@@ -48,5 +48,7 @@ export default {
   error: '#bd1313',
   wrapperColor:'#C4C4C4',
   logoBackground:'#FFFAFA',
-  greenColor:'#1A5B1C'
+  greenColor:'#1A5B1C',
+  labelcolor:'#616161',
+  unhighlightColor:'#9E9E9E'
 };
