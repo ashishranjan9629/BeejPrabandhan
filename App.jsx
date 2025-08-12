@@ -13,6 +13,8 @@ import Splash from "./src/screens/auth/Splash";
 import NoInternet from "./src/screens/auth/NoInternet";
 import FlashMessage from "react-native-flash-message";
 import RootedDevice from "./src/components/RootedDevice";
+import { NavigationContainer } from "@react-navigation/native";
+import AuthNavigation from "./src/navigation/AuthNavigation";
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(true);
@@ -41,7 +43,13 @@ const App = () => {
 
   return (
     <View style={styles.main}>
-      {isConnected ? <Splash /> : <NoInternet />}
+      {isConnected ? (
+        <NavigationContainer>
+          <AuthNavigation />
+        </NavigationContainer>
+      ) : (
+        <NoInternet />
+      )}
       <FlashMessage
         position={"top"}
         animated={true}
