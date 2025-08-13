@@ -1,6 +1,6 @@
 import {Modal, StyleSheet, View} from 'react-native';
 import React from 'react';
-import {SkypeIndicator} from 'react-native-indicators';
+import {BallIndicator} from 'react-native-indicators';
 import Colors from './Colors';
 import PropTypes from 'prop-types';
 import { moderateScale } from './responsiveSize';
@@ -8,7 +8,7 @@ import { moderateScale } from './responsiveSize';
 const LoadingComponent = () => {
   return (
     <View style={styles.loaderContainer}>
-      <SkypeIndicator color={Colors.buttonBackground} size={moderateScale(40)} />
+      <BallIndicator color={Colors.greenColor} size={moderateScale(40)} />
     </View>
   );
 };
@@ -32,19 +32,19 @@ export default Loader;
 
 const styles = StyleSheet.create({
   loaderContainer: {
-    borderWidth: moderateScale(2),
-    borderColor: Colors.lightBackground,
+    // borderWidth: moderateScale(2),
+    // borderColor: Colors.lightBackground,
     position: 'absolute',
     top: '45%',
     width: '80%',
     alignSelf: 'center',
-    padding: moderateScale(10),
-    backgroundColor: Colors.lightBackground,
-    borderRadius: moderateScale(20),
-    elevation: moderateScale(5),
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 1,
+    // padding: moderateScale(10),
+    // backgroundColor: Colors.lightBackground,
+    // borderRadius: moderateScale(20),
+    // elevation: moderateScale(5),
+    // shadowColor: '#000',
+    // shadowOffset: {width: 0, height: 2},
+    // shadowOpacity: 0.25,
+    // shadowRadius: 1,
   },
 });

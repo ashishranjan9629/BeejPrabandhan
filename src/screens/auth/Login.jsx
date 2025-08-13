@@ -24,13 +24,20 @@ import CustomTextInoutWithIcon from "../../components/CustomTextInoutWithIcon";
 import { useNavigation } from "@react-navigation/native";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import CustomButton from "../../components/CustomButton";
-import { showErrorMessage } from "../../utils/HelperFunction";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../utils/HelperFunction";
 import en from "../../constants/en";
+import { useDispatch } from "react-redux";
+import { setUserData } from "../../redux/slice/UserSlice";
+import { saveUserData, saveUserToken } from "../../utils/Storage";
 
 const Login = () => {
   const [email, setEmail] = useState("ashish@gmail.com");
   const [password, setPassword] = useState("passwordd");
   const [rememberMe, setRememberMe] = useState(false);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
 
   const validateEmail = (email) => {
@@ -52,7 +59,16 @@ const Login = () => {
       showErrorMessage(en.LOGIN.VALIDATION.WEAK_PASSWORD);
       return;
     }
-    navigation.navigate("BottomTab");
+    const response = {
+      name: "Ashish Ranjan",
+      email: email,
+      password: password,
+    };
+    dispatch(setUserData(response));
+    saveUserData(response);
+    saveUserToken("response?.token");
+    showSuccessMessage("Login Success");
+    // navigation.navigate("DashBoard");
   };
 
   return (

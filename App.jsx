@@ -15,6 +15,11 @@ import FlashMessage from "react-native-flash-message";
 import RootedDevice from "./src/components/RootedDevice";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthNavigation from "./src/navigation/AuthNavigation";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { PersistGate } from "redux-persist/integration/react";
+import { Provider } from "react-redux";
+import { persistor, store } from "./src/redux/Store";
+import Route from "./src/navigation/Route";
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(true);
@@ -42,20 +47,38 @@ const App = () => {
   }
 
   return (
-    <View style={styles.main}>
-      {isConnected ? (
-        <NavigationContainer>
-          <AuthNavigation />
-        </NavigationContainer>
-      ) : (
-        <NoInternet />
-      )}
-      <FlashMessage
-        position={"top"}
-        animated={true}
-        titleStyle={{ textTransform: "capitalize" }}
-      />
-    </View>
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          {isConnected ? (
+            <NavigationContainer>
+              <Route />
+            </NavigationContainer>
+          ) : (
+            <NoInternet />
+          )}
+          <FlashMessage
+            position={"top"}
+            animated={true}
+            titleStyle={{ textTransform: "capitalize" }}
+          />
+        </PersistGate>
+      </Provider>
+    </SafeAreaProvider>
+    // <View style={styles.main}>
+    //   {isConnected ? (
+    //     <NavigationContainer>
+    //       <AuthNavigation />
+    //     </NavigationContainer>
+    //   ) : (
+    //     <NoInternet />
+    //   )}
+    //   <FlashMessage
+    //     position={"top"}
+    //     animated={true}
+    //     titleStyle={{ textTransform: "capitalize" }}
+    //   />
+    // </View>
   );
 };
 

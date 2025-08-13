@@ -1,14 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import WrapperContainer from "../../utils/WrapperContainer";
+import ImagePath from "../../utils/ImagePath";
+import CustomHeader from "../../components/CustomHeader";
 
 const Cart = () => {
+  const userData = {
+    name: "Ashish Ranjan",
+    userProfileImage: ImagePath.userProfile,
+  };
   return (
-    <View>
-      <Text>Cart</Text>
-    </View>
-  )
-}
+    <WrapperContainer>
+      <CustomHeader data={userData} />
+    </WrapperContainer>
+  );
+};
 
-export default Cart
+export default Cart;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

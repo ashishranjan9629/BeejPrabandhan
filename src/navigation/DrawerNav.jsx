@@ -1,14 +1,18 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import BottomNav from "./BottomNav";
+
+const Drawer = createDrawerNavigator();
 
 const DrawerNav = () => {
   return (
-    <View>
-      <Text>DrawerNav</Text>
-    </View>
-  )
-}
+    <Drawer.Navigator screenOptions={{ headerShown: false }}>
+      <Drawer.Screen name="DashBoard" component={BottomNav} />
+    </Drawer.Navigator>
+  );
+};
 
-export default DrawerNav
+export default DrawerNav;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});

@@ -1,14 +1,17 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import DrawerNav from "./DrawerNav";
 
+const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
   return (
-    <View>
-      <Text>AppNavigation</Text>
-    </View>
-  )
-}
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="DrawerNav" component={DrawerNav} />
+    </Stack.Navigator>
+  );
+};
 
-export default AppNavigation
+export default AppNavigation;
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({});
