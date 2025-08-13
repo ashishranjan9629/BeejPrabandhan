@@ -1,16 +1,18 @@
-import {SafeAreaView, StatusBar, StyleSheet, Text, View} from 'react-native';
-import React from 'react';
-import Colors from './Colors';
-import Loader from './Loader';
+import { StatusBar, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import Colors from "./Colors";
+import Loader from "./Loader";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-const WrapperContainer = ({children, isLoading = false}) => {
+const WrapperContainer = ({ children, isLoading = false }) => {
   return (
-    <View style={styles.main}>
-      <SafeAreaView style={{backgroundColor: Colors.blue}} />
-      <StatusBar barStyle={'default'} backgroundColor={Colors.blue} />
-      <Loader isLoading={isLoading} />
-      {children}
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.white }}>
+        <StatusBar barStyle={"dark-content"} backgroundColor={Colors.primary} />
+        <Loader isLoading={isLoading} />
+        {children}
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

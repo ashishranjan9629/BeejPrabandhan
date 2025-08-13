@@ -6,4 +6,9 @@ export default {
   logoBgImage: require("../assets/image/loginBg.png"),
   emailIcon:require("../assets/image/email.png"),
   password:require("../assets/image/lock.png"),
+  userProfile:require("../assets/image/userProfile.png"),
+  notification:require("../assets/image/notification.png"),
+  bannerImage:require("../assets/image/bannerImage.png"),
+  complaint:require("../assets/image/complaint.png"),
+  registrationIcon:require("../assets/image/registration.png"),
 };

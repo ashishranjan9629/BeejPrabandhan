@@ -5,6 +5,7 @@ import Splash from "../screens/auth/Splash";
 import Login from "../screens/auth/Login";
 import ForgotPassword from "../screens/auth/ForgotPassword";
 import BottomNav from "./BottomNav";
+import DrawerNav from "./DrawerNav";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,7 +15,6 @@ const AuthNavigation = () => {
       <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-      <Stack.Screen name="BottomTab" component={BottomNav} />
     </Stack.Navigator>
   );
 };
