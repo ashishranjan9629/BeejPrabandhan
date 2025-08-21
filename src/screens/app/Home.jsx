@@ -1,5 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React, { useState } from "react";
+import { ScrollView, StyleSheet, Text, View, Animated, Easing } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import WrapperContainer from "../../utils/WrapperContainer";
 import CustomHeader from "../../components/CustomHeader";
 import ImagePath from "../../utils/ImagePath";
@@ -15,11 +15,21 @@ import LowerBanner from "../../components/LowerBanner";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
+  
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const headerSlideAnim = useRef(new Animated.Value(-100)).current;
+  const searchSlideAnim = useRef(new Animated.Value(100)).current;
+  const productOpacityAnim = useRef(new Animated.Value(0)).current;
+  const productTranslateAnim = useRef(new Animated.Value(20)).current;
 
   const userData = {
     name: "Ashish Ranjan",
     userProfileImage: ImagePath.userProfile,
   };
+  
   const bannerImageList = [
     {
       id: 1,
@@ -59,72 +69,163 @@ const Home = () => {
       name: "Field Inspection Reports",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg1,
+      navigationScreenName: "FieldInspectionReport",
     },
     {
       id: 2,
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg2,
+      navigationScreenName: "DailyProgressReport",
     },
     {
       id: 3,
       name: "Daily Progress Reports",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg3,
+      navigationScreenName: "FieldInspectionReport",
     },
     {
       id: 4,
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg4,
+      navigationScreenName: "FieldInspectionReport",
     },
     {
       id: 5,
       name: "Daily Progress Reports",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg1,
+      navigationScreenName: "FieldInspectionReport",
     },
     {
       id: 6,
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg2,
+      navigationScreenName: "FieldInspectionReport",
     },
   ];
+
+  useEffect(() => {
+    // Sequence of animations when component mounts
+    Animated.parallel([
+      // Header animation
+      Animated.timing(headerSlideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.exp)
+      }),
+      
+      // Search box animation
+      Animated.timing(searchSlideAnim, {
+        toValue: 0,
+        duration: 600,
+        delay: 100,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.exp)
+      }),
+      
+      // Banner animation
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 800,
+          delay: 200,
+          useNativeDriver: true,
+        })
+      ]),
+      
+      // Product list animation
+      Animated.parallel([
+        Animated.timing(productOpacityAnim, {
+          toValue: 1,
+          duration: 1000,
+          delay: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(productTranslateAnim, {
+          toValue: 0,
+          duration: 1000,
+          delay: 400,
+          useNativeDriver: true,
+        })
+      ])
+    ]).start();
+  }, []);
 
   return (
     <WrapperContainer isLoading={false}>
       <View style={styles.main}>
-        <CustomHeader data={userData} />
-        <CustomSearchBox
-          value={searchText}
-          onChangeText={(text) => setSearchText(text)}
-          resetSearchText={() => setSearchText("")}
-        />
+        <Animated.View 
+          style={{ 
+            transform: [{ translateY: headerSlideAnim }] 
+          }}
+        >
+          <CustomHeader data={userData} />
+        </Animated.View>
+        
+        <Animated.View 
+          style={{ 
+            transform: [{ translateX: searchSlideAnim }] 
+          }}
+        >
+          <CustomSearchBox
+            value={searchText}
+            onChangeText={(text) => setSearchText(text)}
+            resetSearchText={() => setSearchText("")}
+          />
+        </Animated.View>
+        
         <ScrollView
           showsVerticalScrollIndicator={false}
-          // style={{ marginBottom: moderateScaleVertical(75) }}
         >
-          {/* Banner Images */}
-          <View
+          {/* Banner Images with animation */}
+          <Animated.View
             style={{
               height: moderateScale(175),
               marginVertical: moderateScaleVertical(10),
+              opacity: fadeAnim,
+              transform: [
+                { translateY: slideAnim },
+                { scale: scaleAnim }
+              ]
             }}
           >
             <SwiperImage bannerImageList={bannerImageList} />
-          </View>
-          {/* Browse Product */}
-          <View
+          </Animated.View>
+          
+          {/* Browse Product with animation */}
+          <Animated.View
             style={{
               marginTop: moderateScaleVertical(25),
               marginHorizontal: moderateScale(10),
+              opacity: productOpacityAnim,
+              transform: [{ translateY: productTranslateAnim }]
             }}
           >
-            <BrowseProduct browseProductList={browseProductList} />
-          </View>
+            <BrowseProduct 
+              browseProductList={browseProductList} 
+              animated={true}
+            />
+          </Animated.View>
         </ScrollView>
-        <View style={{ marginBottom: moderateScaleVertical(75) }}>
+        
+        <View style={{ marginBottom: moderateScaleVertical(80) }}>
           <LowerBanner />
         </View>
       </View>

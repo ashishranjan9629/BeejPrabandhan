@@ -44,7 +44,7 @@ const BottomNav = () => {
           ),
         }}
       />
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Explore"
         component={Explore}
         options={{
@@ -61,8 +61,8 @@ const BottomNav = () => {
             </View>
           ),
         }}
-      />
-      <Tab.Screen
+      /> */}
+      {/* <Tab.Screen
         name="Cart"
         component={Cart}
         options={{
@@ -79,7 +79,7 @@ const BottomNav = () => {
             </View>
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name="Profile"
         component={Profile}
