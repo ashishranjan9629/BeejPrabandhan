@@ -26,7 +26,7 @@ const SwiperImage = ({ bannerImageList }) => {
           onPress={() => {}}
           activeOpacity={0.9}
         >
-          <Image source={item?.image} resizeMode="cover" style={styles.image} />
+          <Image source={item?.image} resizeMode="contain" style={styles.image} />
         </TouchableOpacity>
       ))}
     </Swiper>
@@ -37,7 +37,7 @@ export default SwiperImage;
 
 const styles = StyleSheet.create({
   swiper: {
-    height: moderateScale(200), // Add a fixed height to the swiper
+    height: moderateScale(175),
     alignItems: "center",
     alignSelf: "center",
   },
@@ -49,8 +49,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: width - 20,
-    height: "100%", // Use 100% height to fill the slide
+    height: "100%", 
     borderRadius: moderateScale(25),
+    backgroundColor:Colors.white
   },
   dotStyle: {
     width: moderateScale(8),

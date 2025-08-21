@@ -2,13 +2,11 @@ import {
   Image,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
-  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import Colors from "../../utils/Colors";
@@ -158,12 +156,12 @@ const Login = () => {
             textStyle={styles.buttonText}
             handleAction={handleLogin}
           />
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Text style={styles.dontHaveAccountText}>
               {en.LOGIN.NO_ACCOUNT}
               <Text style={styles.textGreen}>{en.LOGIN.SIGN_UP}</Text>
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

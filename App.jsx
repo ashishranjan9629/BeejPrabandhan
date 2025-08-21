@@ -1,20 +1,14 @@
 import {
-  Alert,
-  BackHandler,
   LogBox,
   StyleSheet,
-  Text,
-  View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import JailMonkey from "jail-monkey";
-import Splash from "./src/screens/auth/Splash";
 import NoInternet from "./src/screens/auth/NoInternet";
 import FlashMessage from "react-native-flash-message";
 import RootedDevice from "./src/components/RootedDevice";
 import { NavigationContainer } from "@react-navigation/native";
-import AuthNavigation from "./src/navigation/AuthNavigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
@@ -65,20 +59,6 @@ const App = () => {
         </PersistGate>
       </Provider>
     </SafeAreaProvider>
-    // <View style={styles.main}>
-    //   {isConnected ? (
-    //     <NavigationContainer>
-    //       <AuthNavigation />
-    //     </NavigationContainer>
-    //   ) : (
-    //     <NoInternet />
-    //   )}
-    //   <FlashMessage
-    //     position={"top"}
-    //     animated={true}
-    //     titleStyle={{ textTransform: "capitalize" }}
-    //   />
-    // </View>
   );
 };
 

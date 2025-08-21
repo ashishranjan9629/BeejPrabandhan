@@ -15,8 +15,10 @@ import {
 } from "../../../utils/responsiveSize";
 import FontFamily from "../../../utils/FontFamily";
 import Colors from "../../../utils/Colors";
+import { useNavigation } from "@react-navigation/native";
 
 const BrowseProduct = ({ browseProductList }) => {
+  const navigation = useNavigation();
   return (
     <View style={{ padding: moderateScale(10) }}>
       <Text style={styles.headerText}>Browse Products</Text>
@@ -34,6 +36,16 @@ const BrowseProduct = ({ browseProductList }) => {
                 justifyContent: "center",
                 backgroundColor: item?.backgroundColor,
                 margin: moderateScale(10),
+              }}
+              onPress={() => {
+                if (item?.navigationScreenName) {
+                  navigation.navigate(item.navigationScreenName);
+                } else {
+                  // Optionally handle no navigation case here
+                  console.warn(
+                    "No navigationScreenName provided for this item"
+                  );
+                }
               }}
             >
               <Image

@@ -4,8 +4,10 @@ import { moderateScale, scale, textScale } from "../utils/responsiveSize";
 import Colors from "../utils/Colors";
 import Feather from "react-native-vector-icons/Feather";
 import FontFamily from "../utils/FontFamily";
+import { useNavigation } from "@react-navigation/native";
 
 const CustomHeader = ({ data }) => {
+  const navigation = useNavigation();
   // Function to get time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -42,6 +44,7 @@ const CustomHeader = ({ data }) => {
           <TouchableOpacity
             activeOpacity={0.5}
             style={styles.notificationHolder}
+            onPress={() => navigation.navigate("Notification")}
           >
             {/* Notification Icon */}
             <Feather
@@ -50,7 +53,10 @@ const CustomHeader = ({ data }) => {
               color={Colors.black}
             />
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.6}>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={() => navigation.navigate("UserProfile")}
+          >
             <Image
               source={data?.userProfileImage}
               resizeMode="cover"
