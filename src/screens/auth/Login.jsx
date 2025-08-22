@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import Colors from "../../utils/Colors";
@@ -30,13 +31,17 @@ import en from "../../constants/en";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../../redux/slice/UserSlice";
 import { saveUserData, saveUserToken } from "../../utils/Storage";
+import { apiRequest } from "../../services/APIRequest";
+import { API_ROUTES } from "../../services/APIRoutes";
+import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
 
 const Login = () => {
-  const [email, setEmail] = useState("ashish@gmail.com");
-  const [password, setPassword] = useState("passwordd");
+  const [email, setEmail] = useState("117812001");
+  const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,26 +52,76 @@ const Login = () => {
     return password.length >= 6;
   };
 
-  const handleLogin = () => {
-    if (!validateEmail(email)) {
-      showErrorMessage(en.LOGIN.VALIDATION.INVALID_EMAIL);
-      return;
-    }
+  const handleLogin = async () => {
+    // if (!validateEmail(email)) {
+    //   showErrorMessage(en.LOGIN.VALIDATION.INVALID_EMAIL);
+    //   return;
+    // }
 
-    if (!validatePassword(password)) {
-      showErrorMessage(en.LOGIN.VALIDATION.WEAK_PASSWORD);
-      return;
+    // if (!validatePassword(password)) {
+    //   showErrorMessage(en.LOGIN.VALIDATION.WEAK_PASSWORD);
+    //   return;
+    // }
+    // const response = {
+    //   name: "Ashish Ranjan",
+    //   email: email,
+    //   password: password,
+    // };
+    try {
+      const payloadData = {
+        clientId: email,
+        secretKey: password,
+      };
+      console.log(payloadData, "line 73");
+      setLoading(true);
+      const response = await apiRequest(
+        API_ROUTES.AUTHORIZE_LOGIN,
+        "post",
+        payloadData
+      );
+      if (
+        response &&
+        response?.status === "Success" &&
+        response?.statusCode === "200"
+      ) {
+        saveUserToken(response?.authToken);
+        try {
+          const response2 = await apiRequest(
+            API_ROUTES.GET_PROFILE,
+            "POST",
+            null,
+            response?.authToken
+          );
+          const decrypted = decryptAES(response2);
+          const parsedDecrypted = JSON.parse(decrypted);
+          console.log(parsedDecrypted, "userData");
+          if (
+            parsedDecrypted &&
+            parsedDecrypted?.status === "Success" &&
+            parsedDecrypted?.statusCode === "200"
+          ) {
+            // console.log(parsedDecrypted.data,"line 103")
+            const decryptedData = deepDecryptObject(parsedDecrypted.data);
+            dispatch(setUserData(decryptedData));
+            saveUserData(decryptedData);
+          } else {
+            showErrorMessage("Unable to Fetch User Data");
+          }
+        } catch (error) {
+          console.log(error, "Error in Catch Block");
+        }
+        showSuccessMessage("Login Success");
+      } else {
+        showErrorMessage(response?.errorMsg);
+      }
+    } catch (error) {
+      console.log(error, "Error In Login API");
+    } finally {
+      console.log("Finally Block");
+      setLoading(false);
+      setEmail("");
+      setPassword("");
     }
-    const response = {
-      name: "Ashish Ranjan",
-      email: email,
-      password: password,
-    };
-    dispatch(setUserData(response));
-    saveUserData(response);
-    saveUserToken("response?.token");
-    showSuccessMessage("Login Success");
-    // navigation.navigate("DashBoard");
   };
 
   return (

@@ -1,20 +1,23 @@
 import { MMKV } from "react-native-mmkv";
 const storage = new MMKV();
-const STORAGE_KEY = "BeejPrabandhan";
+const USER_DATA_KEY = "BeejPrabandhan_UserData";
+const USER_TOKEN_KEY = "BeejPrabandhan_Token";
+
 
 //  Function to save User data
 export const saveUserData = (userData) => {
   try {
-    storage.set(STORAGE_KEY, JSON.stringify(userData));
+    storage.set(USER_DATA_KEY, JSON.stringify(userData));
   } catch (error) {
     console.error("Error saving user data:", error);
   }
 };
 
 //  Function to save User token
-export const saveUserToken = (userData) => {
+export const saveUserToken = (token) => {
+  console.log(token,"line 16")
   try {
-    storage.set(STORAGE_KEY, JSON.stringify(userData?.token));
+    storage.set(USER_TOKEN_KEY, JSON.stringify(token));
     console.log("User token saved successfully");
   } catch (error) {
     console.error("Error saving user data:", error);
@@ -24,7 +27,7 @@ export const saveUserToken = (userData) => {
 // Function to get user data
 export const getUserData = () => {
   try {
-    const data = storage.getString(STORAGE_KEY);
+    const data = storage.getString(USER_DATA_KEY);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error("Error retrieving user data:", error);
@@ -35,8 +38,10 @@ export const getUserData = () => {
 // Function to get user data
 export const getUserToken = () => {
   try {
-    const data = storage.getString(STORAGE_KEY);
-    return data?.token ? JSON.parse(data?.token) : null;
+    const data = storage.getString(USER_TOKEN_KEY);
+    const parsedData = data ? JSON.parse(data) : null;
+    console.log(parsedData,"line 41")
+    return parsedData;
   } catch (error) {
     console.error("Error retrieving user data:", error);
     return null;
@@ -46,7 +51,8 @@ export const getUserToken = () => {
 // Function to remove user data (logout)
 export const removeUserData = () => {
   try {
-    storage.delete(STORAGE_KEY);
+    storage.delete(USER_DATA_KEY);
+    storage.delete(USER_TOKEN_KEY);
     console.log("User data removed successfully");
   } catch (error) {
     console.error("Error removing user data:", error);

@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Image,
   TouchableOpacity,
   Animated,
   Easing,
@@ -21,11 +20,16 @@ import {
 } from "../../utils/responsiveSize";
 import FontFamily from "../../utils/FontFamily";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { apiRequest } from "../../services/APIRequest";
+import { API_ROUTES } from "../../services/APIRoutes";
+import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
+import { showErrorMessage } from "../../utils/HelperFunction";
+import { getUserData } from "../../utils/Storage";
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState("personal");
-  
-  // Animation values
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -49,7 +53,7 @@ const Profile = () => {
         toValue: 1,
         duration: 500,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   }, []);
 
@@ -58,49 +62,211 @@ const Profile = () => {
     userProfileImage: ImagePath.userProfile,
   };
 
+  useEffect(() => {
+    fethchUserprofileData();
+  }, []);
+
+  const fethchUserprofileData = async () => {
+    const userData = await getUserData();
+    console.log(userData?.employeeId, "Line 72 userData");
+    try {
+      const payloadData = {
+        id: userData?.employeeId,
+      };
+      setLoading(true);
+      const encryptedPayload = encryptWholeObject(payloadData);
+      console.log(encryptedPayload, "line 77");
+      const response = await apiRequest(
+        API_ROUTES.PROFILE_DETAILS,
+        "post",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      
+      if (
+        parsedDecrypted &&
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        setProfileData(parsedDecrypted?.data);
+        console.log(parsedDecrypted?.data, "line 92");
+      } else {
+        showErrorMessage("Error");
+      }
+    } catch (error) {
+      console.log(error, "line Error in Catch Bloack");
+    } finally {
+      console.log("Finally Block Run");
+      setLoading(false)
+    }
+  };
+
   // Profile data organized in arrays for mapping
   const profileDetails = [
-    { label: "Employee ID", value: "52565" },
-    { label: "Email", value: "kumar.sumit@velocis.co.in" },
+    {
+      label: "Employee ID",
+      value: profileData?.empCode ? profileData?.empCode : "N/A",
+    },
+    {
+      label: "Email",
+      value: profileData?.emailId ? profileData?.emailId : "N/A",
+    },
   ];
 
   const personalDetails = [
-    { label: "Full Name", value: "Ashish Ranjan" },
-    { label: "Gender", value: "MALE" },
-    { label: "Date of Birth", value: "1992-11-01" },
-    { label: "Contact|", value: "8130236107" },
-    { label: "Blood Group", value: "B+" },
-    { label: "Religion", value: "HINDU" },
-    { label: "Nationality", value: "INDIA" },
-    { label: "Category", value: "GENERAL" },
-    { label: "Father's Name", value: "test father" },
-    { label: "Spouse's Name", value: "test spouse" },
-    { label: "Identification Mark 1", value: "Mole on right forehead" },
-    { label: "Identification Mark 2", value: "NA" },
+    {
+      label: "Full Name",
+      value: profileData?.firstName ? profileData?.firstName : "N/A",
+    },
+    {
+      label: "Gender",
+      value: profileData?.gender ? profileData?.gender : "N/A",
+    },
+    {
+      label: "Date of Birth",
+      value: profileData?.dob ? profileData?.dob : "N/A",
+    },
+    {
+      label: "Contact",
+      value: profileData?.mobile ? profileData?.mobile : "N/A",
+    },
+    {
+      label: "Blood Group",
+      value: profileData?.bloodGroup ? profileData?.bloodGroup : "N/A",
+    },
+    {
+      label: "Religion",
+      value: profileData?.religion ? profileData?.religion : "N/A",
+    },
+    {
+      label: "State",
+      value: profileData?.stateName ? profileData?.stateName : "N/A",
+    },
+    {
+      label: "Nationality",
+      value: profileData?.nationName ? profileData?.nationName : "N/A",
+    },
+    {
+      label: "Category",
+      value: profileData?.empCategory ? profileData?.empCategory : "N/A",
+    },
+    {
+      label: "Father's Name",
+      value: profileData?.fatherName ? profileData?.fatherName : "N/A",
+    },
+    {
+      label: "Spouse's Name",
+      value: profileData?.spouseName ? profileData?.spouseName : "N/A",
+    },
+    {
+      label: "Identification Mark 1",
+      value: profileData?.identificationMarkOne
+        ? profileData?.identificationMarkOne
+        : "N/A",
+    },
+    {
+      label: "Identification Mark 2",
+      value: profileData?.identificationMarkTwo
+        ? profileData?.identificationMarkTwo
+        : "N/A",
+    },
   ];
 
   const professionalDetails = [
-    { label: "Employee ID", value: "117812001" },
-    { label: "Employment Type", value: "PERMANENT" },
-    { label: "Grade", value: "G4" },
-    { label: "Designation", value: "CONTRACTOR WORKER" },
-    { label: "Department", value: "QUALITY CONTROL" },
-    { label: "Date Of Appointment", value: "2020-06-01" },
-    { label: "Unit Type", value: "AO" },
-    { label: "Office Phone", value: "011-23456789" },
-    { label: "DOJ the Designation", value: "2020-07-01" },
-    { label: "DOJ the Department", value: "2020-08-01" },
-    { label: "Unit Date", value: "2020-09-01" },
-    { label: "RO Name", value: "NA" },
-    { label: "AO Name", value: "NA" },
+    {
+      label: "Employee ID",
+      value: profileData?.userId ? profileData?.userId : "N/A",
+    },
+    {
+      label: "Employment Type",
+      value: profileData?.employmentType ? profileData?.employmentType : "N/A",
+    },
+    {
+      label: "Grade Id",
+      value: profileData?.gradeId ? profileData?.gradeId : "N/A",
+    },
+    {
+      label: "Grade Name",
+      value: profileData?.gradeName ? profileData?.gradeName : "N/A",
+    },
+    {
+      label: "Grade Short Name",
+      value: profileData?.gradeShortName ? profileData?.gradeShortName : "N/A",
+    },
+    {
+      label: "Designation",
+      value: profileData?.desigName ? profileData?.desigName : "N/A",
+    },
+    {
+      label: "Department",
+      value: profileData?.departmentName ? profileData?.departmentName : "N/A",
+    },
+    {
+      label: "Date Of Appointment",
+      value: profileData?.dateOfAppointment
+        ? profileData?.dateOfAppointment
+        : "N/A",
+    },
+    {
+      label: "Unit Type",
+      value: profileData?.unitType ? profileData?.unitType : "N/A",
+    },
+    {
+      label: "Office Phone",
+      value: profileData?.officePhone ? profileData?.officePhone : "N/A",
+    },
+    {
+      label: "DOJ the Designation",
+      value: profileData?.designationDate
+        ? profileData?.designationDate
+        : "N/A",
+    },
+    {
+      label: "DOJ the Department",
+      value: profileData?.departmentDate ? profileData?.departmentDate : "N/A",
+    },
+    {
+      label: "Unit Date",
+      value: profileData?.unitDate ? profileData?.unitDate : "N/A",
+    },
+    {
+      label: "RO Name",
+      value: profileData?.roName ? profileData?.roName : "N/A",
+    },
+    {
+      label: "AO Name",
+      value: profileData?.aoName ? profileData?.aoName : "N/A",
+    },
   ];
 
   const contactDetails = [
-    { label: "Phone", value: "8130236107" },
-    { label: "Office Phone", value: "011-23456789" },
-    { label: "Permanent Address", value: "456 Permanent St, Hometown" },
-    { label: "Permanent Address Pincode", value: "127306" },
-    { label: "Residential Address", value: "123 Street Name, Temporary City" },
+    {
+      label: "Phone",
+      value: profileData?.mobileNo ? profileData?.mobileNo : "N/A",
+    },
+    {
+      label: "Office Phone",
+      value: profileData?.officePhone ? profileData?.officePhone : "N/A",
+    },
+    {
+      label: "Residence Phone",
+      value: profileData?.residancePhone ? profileData?.residancePhone : "N/A",
+    },
+    {
+      label: "Permanent Address",
+      value: profileData?.permanentAdd ? profileData?.permanentAdd : "N/A",
+    },
+    {
+      label: "Permanent Address Pincode",
+      value: profileData?.pinCode ? profileData?.pinCode : "N/A",
+    },
+    {
+      label: "Residential Address",
+      value: profileData?.temporaryAddress
+        ? profileData?.temporaryAddress
+        : "N/A",
+    },
   ];
 
   // Helper component to render detail rows with animation
@@ -121,18 +287,20 @@ const Profile = () => {
           duration: 400,
           delay: index * 50,
           useNativeDriver: true,
-        })
+        }),
       ]).start();
     }, []);
 
     return (
-      <Animated.View style={[
-        styles.row,
-        {
-          opacity: rowFadeAnim,
-          transform: [{ translateY: rowSlideAnim }]
-        }
-      ]}>
+      <Animated.View
+        style={[
+          styles.row,
+          {
+            opacity: rowFadeAnim,
+            transform: [{ translateY: rowSlideAnim }],
+          },
+        ]}
+      >
         <Text style={styles.label}>{label}:</Text>
         <Text style={styles.value}>{value}</Text>
       </Animated.View>
@@ -152,7 +320,7 @@ const Profile = () => {
         toValue: 1,
         duration: 100,
         useNativeDriver: true,
-      })
+      }),
     ]).start(() => {
       setActiveSection(section);
     });
@@ -160,13 +328,15 @@ const Profile = () => {
 
   // Navigation tabs with animation
   const NavigationTab = () => (
-    <Animated.View style={[
-      styles.navContainer,
-      {
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }]
-      }
-    ]}>
+    <Animated.View
+      style={[
+        styles.navContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        },
+      ]}
+    >
       <TouchableOpacity
         style={[
           styles.navItem,
@@ -224,53 +394,58 @@ const Profile = () => {
   );
 
   return (
-    <WrapperContainer>
+    <WrapperContainer isLoading={loading}>
       <CustomHeader data={userData} />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
         {/* User Profile Section with Animation */}
-        <Animated.View style={[
-          styles.profileCard,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { translateY: slideAnim },
-              { scale: scaleAnim }
-            ]
-          }
-        ]}>
-          <Animated.Image 
-            source={ImagePath.userProfile} 
+        <Animated.View
+          style={[
+            styles.profileCard,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
+            },
+          ]}
+        >
+          <Animated.Image
+            source={ImagePath.userProfile}
             style={[
               styles.profileImage,
               {
-                transform: [{
-                  rotate: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ['0deg', '360deg']
-                  })
-                }]
-              }
-            ]} 
+                transform: [
+                  {
+                    rotate: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["0deg", "360deg"],
+                    }),
+                  },
+                ],
+              },
+            ]}
           />
           <View style={styles.profileInfo}>
-            <Text style={styles.userName}>Mr. ADMIN</Text>
+            <Text style={styles.userName}>
+              {profileData?.firstName ? profileData?.firstName : "N/A"}
+            </Text>
             {profileDetails.map((item, index) => (
-              <Animated.Text 
-                key={index} 
+              <Animated.Text
+                key={index}
                 style={[
                   styles.userDetail,
                   {
                     opacity: fadeAnim,
-                    transform: [{
-                      translateX: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0]
-                      })
-                    }]
-                  }
+                    transform: [
+                      {
+                        translateX: fadeAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [20, 0],
+                        }),
+                      },
+                    ],
+                  },
                 ]}
               >
                 {item.label}: {item.value}
@@ -285,22 +460,27 @@ const Profile = () => {
             />
           </TouchableOpacity>
         </Animated.View>
-        
+
         {/* Navigation Tabs */}
         <NavigationTab />
-        
+
         {/* Content based on active section with animation */}
         <Animated.View
           style={{
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
+            transform: [{ translateY: slideAnim }],
           }}
         >
           {activeSection === "personal" && (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Personal Details</Text>
               {personalDetails.map((item, index) => (
-                <DetailRow key={index} label={item.label} value={item.value} index={index} />
+                <DetailRow
+                  key={index}
+                  label={item.label}
+                  value={item.value}
+                  index={index}
+                />
               ))}
             </View>
           )}
@@ -309,7 +489,12 @@ const Profile = () => {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Professional Details</Text>
               {professionalDetails.map((item, index) => (
-                <DetailRow key={index} label={item.label} value={item.value} index={index} />
+                <DetailRow
+                  key={index}
+                  label={item.label}
+                  value={item.value}
+                  index={index}
+                />
               ))}
             </View>
           )}
@@ -318,7 +503,12 @@ const Profile = () => {
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Contact Details</Text>
               {contactDetails.map((item, index) => (
-                <DetailRow key={index} label={item.label} value={item.value} index={index} />
+                <DetailRow
+                  key={index}
+                  label={item.label}
+                  value={item.value}
+                  index={index}
+                />
               ))}
             </View>
           )}
