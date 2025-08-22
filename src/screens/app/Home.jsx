@@ -1,4 +1,11 @@
-import { ScrollView, StyleSheet, Text, View, Animated, Easing } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Animated,
+  Easing,
+} from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import WrapperContainer from "../../utils/WrapperContainer";
 import CustomHeader from "../../components/CustomHeader";
@@ -12,10 +19,12 @@ import SwiperImage from "../../components/SwiperImage";
 import BrowseProduct from "./home/BrowseProduct";
 import Colors from "../../utils/Colors";
 import LowerBanner from "../../components/LowerBanner";
+import { apiRequest } from "../../services/APIRequest";
+import { API_ROUTES } from "../../services/APIRoutes";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -29,7 +38,7 @@ const Home = () => {
     name: "Ashish Ranjan",
     userProfileImage: ImagePath.userProfile,
   };
-  
+
   const bannerImageList = [
     {
       id: 1,
@@ -116,18 +125,18 @@ const Home = () => {
         toValue: 0,
         duration: 600,
         useNativeDriver: true,
-        easing: Easing.out(Easing.exp)
+        easing: Easing.out(Easing.exp),
       }),
-      
+
       // Search box animation
       Animated.timing(searchSlideAnim, {
         toValue: 0,
         duration: 600,
         delay: 100,
         useNativeDriver: true,
-        easing: Easing.out(Easing.exp)
+        easing: Easing.out(Easing.exp),
       }),
-      
+
       // Banner animation
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -147,9 +156,9 @@ const Home = () => {
           duration: 800,
           delay: 200,
           useNativeDriver: true,
-        })
+        }),
       ]),
-      
+
       // Product list animation
       Animated.parallel([
         Animated.timing(productOpacityAnim, {
@@ -163,25 +172,43 @@ const Home = () => {
           duration: 1000,
           delay: 400,
           useNativeDriver: true,
-        })
-      ])
+        }),
+      ]),
     ]).start();
   }, []);
+
+  // useEffect(() => {
+  //   fetchProductList();
+  // }, []);
+
+  // const fetchProductList = async () => {
+  //   const payloadData = {
+  //     name: "Apple MacBook Pro 16",
+  //     data: {
+  //       year: 2019,
+  //       price: 1849.99,
+  //       "CPU model": "Intel Core i9",
+  //       "Hard disk size": "1 TB",
+  //     },
+  //   };
+  //   const response = await apiRequest(API_ROUTES.AUTHORIZE_LOGIN,"post",payloadData);
+  //   console.log(response, "line 179");
+  // };
 
   return (
     <WrapperContainer isLoading={false}>
       <View style={styles.main}>
-        <Animated.View 
-          style={{ 
-            transform: [{ translateY: headerSlideAnim }] 
+        <Animated.View
+          style={{
+            transform: [{ translateY: headerSlideAnim }],
           }}
         >
           <CustomHeader data={userData} />
         </Animated.View>
-        
-        <Animated.View 
-          style={{ 
-            transform: [{ translateX: searchSlideAnim }] 
+
+        <Animated.View
+          style={{
+            transform: [{ translateX: searchSlideAnim }],
           }}
         >
           <CustomSearchBox
@@ -190,41 +217,36 @@ const Home = () => {
             resetSearchText={() => setSearchText("")}
           />
         </Animated.View>
-        
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-        >
+
+        <ScrollView showsVerticalScrollIndicator={false}>
           {/* Banner Images with animation */}
           <Animated.View
             style={{
               height: moderateScale(175),
               marginVertical: moderateScaleVertical(10),
               opacity: fadeAnim,
-              transform: [
-                { translateY: slideAnim },
-                { scale: scaleAnim }
-              ]
+              transform: [{ translateY: slideAnim }, { scale: scaleAnim }],
             }}
           >
             <SwiperImage bannerImageList={bannerImageList} />
           </Animated.View>
-          
+
           {/* Browse Product with animation */}
           <Animated.View
             style={{
               marginTop: moderateScaleVertical(25),
               marginHorizontal: moderateScale(10),
               opacity: productOpacityAnim,
-              transform: [{ translateY: productTranslateAnim }]
+              transform: [{ translateY: productTranslateAnim }],
             }}
           >
-            <BrowseProduct 
-              browseProductList={browseProductList} 
+            <BrowseProduct
+              browseProductList={browseProductList}
               animated={true}
             />
           </Animated.View>
         </ScrollView>
-        
+
         <View style={{ marginBottom: moderateScaleVertical(80) }}>
           <LowerBanner />
         </View>
