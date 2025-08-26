@@ -83,7 +83,7 @@ const Profile = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      
+
       if (
         parsedDecrypted &&
         parsedDecrypted?.status === "SUCCESS" &&
@@ -98,7 +98,7 @@ const Profile = () => {
       console.log(error, "line Error in Catch Bloack");
     } finally {
       console.log("Finally Block Run");
-      setLoading(false)
+      setLoading(false);
     }
   };
 
