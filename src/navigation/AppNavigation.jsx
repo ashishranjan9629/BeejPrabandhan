@@ -7,6 +7,8 @@ import UserProfile from "../screens/app/UserProfile";
 import FieldInspectionReport from "../screens/app/home/fieldInspectionReport/FieldInspectionReport";
 import DailyProgressReport from "../screens/app/home/DailyProgressReport";
 import WebViewPreview from "../components/WebViewPreview";
+import FiledInspectionReportDetails from "../screens/app/home/fieldInspectionReport/FiledInspectionReportDetails";
+import SeedsIntakeHistory from "../screens/app/home/fieldInspectionReport/SeedsIntakeHistory";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -15,9 +17,23 @@ const AppNavigation = () => {
       <Stack.Screen name="DrawerNav" component={DrawerNav} />
       <Stack.Screen name="Notification" component={Notification} />
       <Stack.Screen name="UserProfile" component={UserProfile} />
-      <Stack.Screen name="FieldInspectionReport" component={FieldInspectionReport} />
-      <Stack.Screen name="DailyProgressReport" component={DailyProgressReport} />
+      <Stack.Screen
+        name="FieldInspectionReport"
+        component={FieldInspectionReport}
+      />
+      <Stack.Screen
+        name="DailyProgressReport"
+        component={DailyProgressReport}
+      />
       <Stack.Screen name="WebViewPreview" component={WebViewPreview} />
+      <Stack.Screen
+        name="FiledInspectionReportDetails"
+        component={FiledInspectionReportDetails}
+      />
+      <Stack.Screen
+        name="SeedsIntakeHistory"
+        component={SeedsIntakeHistory}
+      />
     </Stack.Navigator>
   );
 };

@@ -129,7 +129,7 @@ const Profile = () => {
     },
     {
       label: "Contact",
-      value: profileData?.mobile ? profileData?.mobile : "N/A",
+      value: profileData?.mobileNo ? profileData?.mobileNo : "N/A",
     },
     {
       label: "Blood Group",
@@ -176,7 +176,7 @@ const Profile = () => {
   const professionalDetails = [
     {
       label: "Employee ID",
-      value: profileData?.userId ? profileData?.userId : "N/A",
+      value: profileData?.empCode ? profileData?.empCode : "N/A",
     },
     {
       label: "Employment Type",
