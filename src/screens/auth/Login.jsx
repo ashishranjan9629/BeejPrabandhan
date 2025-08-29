@@ -100,7 +100,7 @@ const Login = () => {
             parsedDecrypted?.status === "Success" &&
             parsedDecrypted?.statusCode === "200"
           ) {
-            // console.log(parsedDecrypted.data,"line 103")
+            console.log(parsedDecrypted.data,"line 103")
             const decryptedData = deepDecryptObject(parsedDecrypted.data);
             dispatch(setUserData(decryptedData));
             saveUserData(decryptedData);

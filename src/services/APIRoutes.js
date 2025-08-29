@@ -1,6 +1,14 @@
 export const API_ROUTES = {
-  BASE_URL: "http://192.168.100.102:7830/api/",
+  BASE_URL: "http://192.168.100.102:7930/api/",
+  // BASE_URL: "http://192.168.80.25:7830/api/",
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
   PROFILE_DETAILS: "master/employee-master/find-by-id",
+  PROGRAMME_LIST: "prod_plan/prd-schedule/find-by-filter",
+  PROGRAMME_LIST_DETAILS: "prod_plan/prd-schedule/dd",
+  GROWER_DETAILS:"master/parties-master/growers-filter/dd",
+  PRODUCTION_INSPECTION_A:"prod_plan/prd-ins-type-a/find-by-filter",
+  PRODUCTION_INSPECTION_B:"prod_plan/prd-ins-type-b/find-by-filter",
+  PRODUCTION_INSPECTION_C:"prod_plan/prd-ins-type-c/find-by-filter",
+  SEEDS_INTAKE_HISTORY:"prod_plan/prd-sch-seed-intake/find-by-filter",
 };
