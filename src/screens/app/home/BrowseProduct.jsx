@@ -24,13 +24,13 @@ const BrowseProduct = ({ browseProductList }) => {
       <Text style={styles.headerText}>Browse Products</Text>
       <View style={styles.main} showsVerticalScrollIndicator={false}>
         {browseProductList?.map((item, index) => (
-          <View key={index}>
+          <View key={index} style={{alignItems:'center'}}>
             <TouchableOpacity
               style={{
                 borderWidth: 2,
                 borderColor: item?.backgroundColor,
-                width: moderateScale(100),
-                height: moderateScale(100),
+                width: moderateScale(75),
+                height: moderateScale(75),
                 borderRadius: moderateScale(100),
                 alignItems: "center",
                 justifyContent: "center",
@@ -52,8 +52,8 @@ const BrowseProduct = ({ browseProductList }) => {
                 source={item?.icon}
                 resizeMode="contain"
                 style={{
-                  width: moderateScale(50),
-                  height: moderateScale(50),
+                  width: moderateScale(40),
+                  height: moderateScale(40),
                 }}
               />
             </TouchableOpacity>

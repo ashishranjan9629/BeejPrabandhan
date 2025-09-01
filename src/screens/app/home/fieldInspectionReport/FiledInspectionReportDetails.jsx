@@ -181,7 +181,7 @@ const FiledInspectionReportDetails = ({ route }) => {
           renderItem={renderItem}
         />
       ) : (
-        <ScrollView style={styles.main}>
+        <ScrollView style={styles.main} showsVerticalScrollIndicator={false}>
           {/* Grower Programm Details */}
           <View style={styles.containerStyle}>
             <Text style={styles.headerText}>Program Details</Text>

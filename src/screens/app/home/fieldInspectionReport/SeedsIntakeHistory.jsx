@@ -105,7 +105,7 @@ const SeedsIntakeHistory = ({ route }) => {
           <Octicons
             name="history"
             color={Colors.white}
-            size={moderateScale(30)}
+            size={moderateScale(25)}
           />
         </View>
         <View style={{ flex: 1, marginLeft: 16 }}>
@@ -186,7 +186,7 @@ const SeedsIntakeHistory = ({ route }) => {
         <Octicons
           name="history"
           color={Colors.white}
-          size={moderateScale(30)}
+          size={moderateScale(25)}
         />
       </View>
       <View style={{ gap: moderateScaleVertical(10) }}>

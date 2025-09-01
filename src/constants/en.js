@@ -14,8 +14,8 @@ export default {
   LOGIN: {
     SIGN_IN: "Sign in",
     EMAIL: {
-      LABEL: "Email",
-      PLACEHOLDER: "demo@email.com",
+      LABEL: "UserId",
+      PLACEHOLDER: "UserId",
     },
     PASSWORD: {
       LABEL: "Password",
