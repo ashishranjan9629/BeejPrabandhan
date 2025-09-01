@@ -181,9 +181,9 @@ const FieldInspectionReport = () => {
         activeOpacity={0.7}
         onPress={() => {
           // Put your navigation or action here
-          // navigation.navigate("FiledInspectionReportDetails", { item: item });
-          setShowBottomSheet(true);
-          setSelctedData(item);
+          navigation.navigate("FiledInspectionReportDetails", { item: item });
+          // setShowBottomSheet(true);
+          // setSelctedData(item);
         }}
       >
         <Animated.View

@@ -36,7 +36,7 @@ import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
 
 const Login = () => {
-  const [email, setEmail] = useState("117812001");
+  const [email, setEmail] = useState("987655678423");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
@@ -210,6 +210,7 @@ const Login = () => {
             buttonStyle={styles.buttonHolder}
             textStyle={styles.buttonText}
             handleAction={handleLogin}
+            isloading={loading}
           />
           {/* <TouchableOpacity>
             <Text style={styles.dontHaveAccountText}>

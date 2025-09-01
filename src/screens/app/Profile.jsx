@@ -25,6 +25,7 @@ import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
 import { showErrorMessage } from "../../utils/HelperFunction";
 import { getUserData } from "../../utils/Storage";
+import { useNavigation } from "@react-navigation/native";
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState("personal");
@@ -34,6 +35,7 @@ const Profile = () => {
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const tabScaleAnim = useRef(new Animated.Value(1)).current;
+  const navigation = useNavigation();
 
   useEffect(() => {
     // Start animations when component mounts
@@ -452,7 +454,7 @@ const Profile = () => {
               </Animated.Text>
             ))}
           </View>
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity style={styles.editButton} onPress={()=>navigation.navigate("EditUserProfile")}>
             <Ionicons
               name="pencil"
               size={moderateScale(15)}

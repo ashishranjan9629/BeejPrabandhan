@@ -9,6 +9,7 @@ import DailyProgressReport from "../screens/app/home/DailyProgressReport";
 import WebViewPreview from "../components/WebViewPreview";
 import FiledInspectionReportDetails from "../screens/app/home/fieldInspectionReport/FiledInspectionReportDetails";
 import SeedsIntakeHistory from "../screens/app/home/fieldInspectionReport/SeedsIntakeHistory";
+import EditUserProfile from "../screens/app/EditUserProfile";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -33,6 +34,10 @@ const AppNavigation = () => {
       <Stack.Screen
         name="SeedsIntakeHistory"
         component={SeedsIntakeHistory}
+      />
+       <Stack.Screen
+        name="EditUserProfile"
+        component={EditUserProfile}
       />
     </Stack.Navigator>
   );
