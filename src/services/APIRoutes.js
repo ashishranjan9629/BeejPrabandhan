@@ -1,7 +1,7 @@
 export const API_ROUTES = {
-  // BASE_URL: "http://192.168.100.102:7930/api/",
+  BASE_URL: "http://192.168.100.102:7930/api/",
   // BASE_URL: "http://192.168.80.25:7830/api/",
-  BASE_URL: "http://160.25.172.19:9052/api/", //Public Server
+  // BASE_URL: "http://160.25.172.19:9052/api/", //Public Server
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
   PROFILE_DETAILS: "master/employee-master/find-by-id",

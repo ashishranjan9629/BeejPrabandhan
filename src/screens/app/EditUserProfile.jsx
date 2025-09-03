@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import React, { useState } from "react";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons"; 
 import WrapperContainer from "../../utils/WrapperContainer";
 import InnerHeader from "../../components/InnerHeader";
 import Colors from "../../utils/Colors";
@@ -18,11 +19,16 @@ import {
   textScale,
 } from "../../utils/responsiveSize";
 import FontFamily from "../../utils/FontFamily";
-import { showErrorMessage } from "../../utils/HelperFunction";
-import { getUserData } from "../../utils/Storage";
-import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../utils/HelperFunction";
+import { getUserData, removeUserData } from "../../utils/Storage";
+import { decryptAES, encryptAES } from "../../utils/decryptData";
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
+import { useDispatch } from "react-redux";
+import { clearUserData } from "../../redux/slice/UserSlice";
 
 const EditUserProfile = () => {
   const [loading, setLoading] = useState(false);
@@ -30,50 +36,77 @@ const EditUserProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
+  // 👇 Password visibility states
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const dispatch = useDispatch();
+
   const onSubmit = async () => {
-    let valid = true;
-    if (oldPassword.length === 0) {
-      showErrorMessage("Please Entere the old Password");
-      return null;
+    if (!oldPassword || oldPassword.length === 0) {
+      showErrorMessage("Please enter the old password.");
+      return;
     }
-    if (newPassword.length < 6) {
+
+    if (!newPassword || newPassword.length < 6) {
       showErrorMessage("Password must be at least 6 characters long.");
-      valid = false;
+      return;
     }
+
     if (newPassword !== confirmNewPassword) {
       showErrorMessage("Passwords do not match.");
-      valid = false;
+      return;
     }
-    if (valid) {
-      try {
-        const userData = await getUserData();
-        const payloadData = {
-          newpwdKey: newPassword,
-          pwdKey: oldPassword,
-          userId: userData?.userId,
-        };
-        console.log(payloadData, "payloadData");
-        const encryptedPayloadData = encryptWholeObject(payloadData);
-        console.log(encryptedPayloadData, "line encryptedPayloadData");
-        const response = await apiRequest(
-          API_ROUTES.CHANGE_PASSWORD,
-          "post",
-          encryptedPayloadData
+
+    try {
+      setLoading(true);
+
+      const userData = await getUserData();
+      const payloadData = {
+        newpwdKey: encryptAES(newPassword),
+        pwdKey: encryptAES(oldPassword),
+        userId: encryptAES(userData?.userId),
+      };
+
+      console.log(payloadData, "payloadData");
+
+      const response = await apiRequest(
+        API_ROUTES.CHANGE_PASSWORD,
+        "post",
+        payloadData
+      );
+
+      console.log(response, "API Response");
+
+      if (response?.statusCode === "200" && response?.status === "Success") {
+        showSuccessMessage("Your password has been changed successfully.");
+        setTimeout(() => {
+          dispatch(clearUserData());
+          removeUserData();
+        }, 500);
+      } else if (
+        response?.statusCode === "422" &&
+        response?.status === "Error"
+      ) {
+        showErrorMessage(
+          response?.message ||
+            "Old password and new password cannot be the same."
         );
-        console.log(response, "line 63");
-        const decrypted = decryptAES(response);
-        const parsedDecrypted = JSON.parse(decrypted);
-        console.log(parsedDecrypted, "line 63");
-        if (parsedDecrypted?.status === 200 && parsedDecrypted) {
-          console.log("Success", parsedDecrypted?.data);
-        } else {
-          showErrorMessage("Error");
-        }
-      } catch (error) {
-        console.log(error, "line error block");
-      } finally {
-        setLoading(false);
+      } else if (
+        response?.statusCode === "404" &&
+        response?.status === "Fail"
+      ) {
+        showErrorMessage(response?.message || "Invalid user ID or password!");
+      } else {
+        showErrorMessage(
+          response?.message || "Something went wrong, try again."
+        );
       }
+    } catch (error) {
+      console.log(error, "API Error");
+      showErrorMessage("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,38 +123,79 @@ const EditUserProfile = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Old Password */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Old Password</Text>
-            <TextInput
-              style={styles.input}
-              value={oldPassword}
-              onChangeText={setOldPassword}
-              placeholder="Enter old password"
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={styles.input}
+                value={oldPassword}
+                onChangeText={setOldPassword}
+                placeholder="Enter old password"
+                secureTextEntry={!showOld}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                onPress={() => setShowOld(!showOld)}
+                style={styles.eyeIcon}
+              >
+                <Icon
+                  name={showOld ? "eye-off" : "eye"}
+                  size={22}
+                  color={Colors.textColor}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {/* New Password */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>New Password</Text>
-            <TextInput
-              style={styles.input}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Enter new password"
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={styles.input}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="Enter new password"
+                secureTextEntry={!showNew}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                onPress={() => setShowNew(!showNew)}
+                style={styles.eyeIcon}
+              >
+                <Icon
+                  name={showNew ? "eye-off" : "eye"}
+                  size={22}
+                  color={Colors.textColor}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {/* Confirm New Password */}
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Confirm New Password</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmNewPassword}
-              onChangeText={setConfirmNewPassword}
-              placeholder="Confirm new password"
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={styles.input}
+                value={confirmNewPassword}
+                onChangeText={setConfirmNewPassword}
+                placeholder="Confirm new password"
+                secureTextEntry={!showConfirm}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirm(!showConfirm)}
+                style={styles.eyeIcon}
+              >
+                <Icon
+                  name={showConfirm ? "eye-off" : "eye"}
+                  size={22}
+                  color={Colors.textColor}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -138,9 +212,6 @@ const EditUserProfile = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContent: {
     paddingHorizontal: moderateScale(20),
     paddingTop: moderateScaleVertical(20),
@@ -155,15 +226,23 @@ const styles = StyleSheet.create({
     marginBottom: moderateScaleVertical(6),
     fontFamily: FontFamily.RubikMedium,
   },
-  input: {
+  passwordWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: Colors.diabledColor,
     borderRadius: moderateScale(8),
+    backgroundColor: Colors.white,
+  },
+  input: {
+    flex: 1,
     paddingHorizontal: moderateScale(16),
     paddingVertical: moderateScaleVertical(12),
     fontSize: textScale(15),
-    backgroundColor: Colors.white,
     fontFamily: FontFamily.PoppinsRegular,
+  },
+  eyeIcon: {
+    paddingHorizontal: moderateScale(10),
   },
   submitButton: {
     backgroundColor: Colors.greenColor,
@@ -177,12 +256,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: textScale(16),
     fontFamily: FontFamily.PoppinsMedium,
-  },
-  errorText: {
-    color: Colors.red,
-    marginTop: moderateScaleVertical(4),
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsRegular,
   },
 });
 
