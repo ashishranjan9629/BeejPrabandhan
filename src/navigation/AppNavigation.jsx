@@ -10,6 +10,11 @@ import WebViewPreview from "../components/WebViewPreview";
 import FiledInspectionReportDetails from "../screens/app/home/fieldInspectionReport/FiledInspectionReportDetails";
 import SeedsIntakeHistory from "../screens/app/home/fieldInspectionReport/SeedsIntakeHistory";
 import EditUserProfile from "../screens/app/EditUserProfile";
+import Crop from "../screens/app/home/crop/Crop";
+import CropDetails from "../screens/app/home/crop/CropDetails";
+import EditCropDetails from "../screens/app/home/crop/EditCropDetails";
+import StartInspection from "../screens/app/home/fieldInspectionReport/StartInspection";
+import InspectionForm from "../screens/app/home/fieldInspectionReport/InspectionForm";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -31,14 +36,13 @@ const AppNavigation = () => {
         name="FiledInspectionReportDetails"
         component={FiledInspectionReportDetails}
       />
-      <Stack.Screen
-        name="SeedsIntakeHistory"
-        component={SeedsIntakeHistory}
-      />
-       <Stack.Screen
-        name="EditUserProfile"
-        component={EditUserProfile}
-      />
+      <Stack.Screen name="SeedsIntakeHistory" component={SeedsIntakeHistory} />
+      <Stack.Screen name="EditUserProfile" component={EditUserProfile} />
+      <Stack.Screen name="Crop" component={Crop} />
+      <Stack.Screen name="CropDetails" component={CropDetails} />
+      <Stack.Screen name="EditCropDetails" component={EditCropDetails} />
+      <Stack.Screen name="StartInspection" component={StartInspection} />
+      <Stack.Screen name="InspectionForm" component={InspectionForm} />
     </Stack.Navigator>
   );
 };

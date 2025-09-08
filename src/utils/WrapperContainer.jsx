@@ -8,7 +8,7 @@ const WrapperContainer = ({ children, isLoading = false }) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: Colors.white }}>
-        <StatusBar barStyle={"dark-content"} backgroundColor={Colors.primary} />
+        <StatusBar barStyle={"dark-content"} backgroundColor={Colors.white} />
         <Loader isLoading={isLoading} />
         {children}
       </SafeAreaView>

@@ -36,7 +36,7 @@ import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
 
 const Login = () => {
-  const [email, setEmail] = useState("987655678423");
+  const [email, setEmail] = useState("117812001");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
@@ -115,6 +115,7 @@ const Login = () => {
         showErrorMessage(response?.errorMsg);
       }
     } catch (error) {
+      showErrorMessage(error?.message)
       console.log(error, "Error In Login API");
     } finally {
       console.log("Finally Block");
