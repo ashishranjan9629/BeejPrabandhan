@@ -31,14 +31,21 @@ const CustomHeader = ({ data }) => {
   return (
     <View style={styles.main}>
       <View style={styles.container}>
-        <View style={{ gap: moderateScale(3) }}>
+        <View >
           <Text style={styles.textStyle}>
             Hello
             <Text style={{ fontFamily: FontFamily.PoppinsMedium }}>
               , {getGreeting()}
             </Text>
           </Text>
-          <Text style={styles.textStyle}>{getFormattedDate()}</Text>
+          <Text
+            style={[
+              styles.textStyle,
+              { fontFamily: FontFamily.PoppinsLight },
+            ]}
+          >
+            {getFormattedDate()}
+          </Text>
         </View>
         <View style={styles.leftHolder}>
           <TouchableOpacity

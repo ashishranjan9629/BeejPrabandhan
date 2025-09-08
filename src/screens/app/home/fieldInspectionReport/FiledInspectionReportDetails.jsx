@@ -22,9 +22,12 @@ import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
 import { showErrorMessage } from "../../../../utils/HelperFunction";
+import CustomButton from "../../../../components/CustomButton";
+import { useNavigation } from "@react-navigation/native";
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
   const [expandedId, setExpandedId] = useState("1");
@@ -385,29 +388,31 @@ const FiledInspectionReportDetails = ({ route }) => {
                 label={"West"}
                 value={item?.isolationDistanceWest || "N/A"}
               />
-               <Details
+              <Details
                 label={"No of Border Row"}
                 value={item?.noOfBorderRows || "N/A"}
               />
-               <Details
+              <Details
                 label={"Crop Condition"}
                 value={item?.cropCondition || "N/A"}
               />
-             
-               <Details
+
+              <Details
                 label={"No of times Pollen Shedders"}
                 value={item?.noOfTimesPollenShedders || "N/A"}
               />
-               <Details
+              <Details
                 label={"Frequency of Pollen Shedders"}
                 value={item?.frequencyOfPollenShedders || "N/A"}
               />
-               <Details
+              <Details
                 label={"Was it done at inspection time?"}
                 value={item?.wasItDoneAtInspectionTime || "N/A"}
               />
-               <Details
-                label={"Does this crop conform to the standards for certification"}
+              <Details
+                label={
+                  "Does this crop conform to the standards for certification"
+                }
                 value={item?.doesThisCropConfirmToStandard || "N/A"}
               />
 
@@ -416,7 +421,9 @@ const FiledInspectionReportDetails = ({ route }) => {
                 value={item?.estimatedSeedYield || "N/A"}
               />
               <Details
-                label={"Was the Grower or his representatives present at inspection time?"}
+                label={
+                  "Was the Grower or his representatives present at inspection time?"
+                }
                 value={item?.wasTheGrowerPresent || "N/A"}
               />
               <Details
@@ -427,33 +434,28 @@ const FiledInspectionReportDetails = ({ route }) => {
                 label={"Area rejected (in Ha)"}
                 value={item?.areaRejected || "N/A"}
               />
-               <Details
+              <Details
                 label={"Area certified (in Ha)"}
                 value={item?.areaCertified || "N/A"}
               />
-               <Details
-                label={"Name"}
-                value={item?.name || "N/A"}
-              />
-               <Details
+              <Details label={"Name"} value={item?.name || "N/A"} />
+              <Details
                 label={"Designation"}
                 value={item?.designation || "N/A"}
               />
-              <Details
-                label={"Address"}
-                value={item?.address || "N/A"}
-              />
-              <Details
-                label={"Remarks"}
-                value={item?.remarks || "N/A"}
-              />
-
-
+              <Details label={"Address"} value={item?.address || "N/A"} />
+              <Details label={"Remarks"} value={item?.remarks || "N/A"} />
             </View>
           ))}
-          
         </ScrollView>
       )}
+      <CustomButton
+        text={"Start Inspection"}
+        buttonStyle={styles.buttonStyle}
+        textStyle={styles.buttonText}
+        disabled={loading}
+        handleAction={() => navigation.navigate("StartInspection",{data:detailsData})}
+      />
     </WrapperContainer>
   );
 };
@@ -551,5 +553,19 @@ const styles = StyleSheet.create({
   cellArea: {
     minWidth: moderateScale(90),
     textAlign: "right",
+  },
+  buttonStyle: {
+    backgroundColor: Colors.greenColor,
+    width: "95%",
+    alignSelf: "center",
+    marginVertical: moderateScaleVertical(10),
+    height: moderateScale(50),
+  },
+  buttonText: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(14),
+    letterSpacing: scale(0.2),
+    textTransform: "capitalize",
   },
 });

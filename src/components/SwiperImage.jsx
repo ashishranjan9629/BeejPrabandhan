@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   image: {
     width: width - 20,
     height: "100%", 
-    borderRadius: moderateScale(25),
+    borderRadius: moderateScale(30),
     backgroundColor:Colors.white
   },
   dotStyle: {

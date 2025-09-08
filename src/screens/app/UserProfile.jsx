@@ -236,7 +236,10 @@ const UserProfile = () => {
             </Animated.Text>
           ))}
         </View>
-        <TouchableOpacity style={styles.editButton} onPress={()=>navigation.navigate("EditUserProfile")}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => navigation.navigate("EditUserProfile")}
+        >
           <Ionicons
             name="pencil"
             size={moderateScale(15)}

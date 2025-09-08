@@ -89,10 +89,10 @@ const Home = () => {
     },
     {
       id: 3,
-      name: "Daily Progress Reports",
+      name: "Crop",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg3,
-      navigationScreenName: "FieldInspectionReport",
+      navigationScreenName: "Crop",
     },
     {
       id: 4,
@@ -177,24 +177,6 @@ const Home = () => {
     ]).start();
   }, []);
 
-  // useEffect(() => {
-  //   fetchProductList();
-  // }, []);
-
-  // const fetchProductList = async () => {
-  //   const payloadData = {
-  //     name: "Apple MacBook Pro 16",
-  //     data: {
-  //       year: 2019,
-  //       price: 1849.99,
-  //       "CPU model": "Intel Core i9",
-  //       "Hard disk size": "1 TB",
-  //     },
-  //   };
-  //   const response = await apiRequest(API_ROUTES.AUTHORIZE_LOGIN,"post",payloadData);
-  //   console.log(response, "line 179");
-  // };
-
   return (
     <WrapperContainer isLoading={false}>
       <View style={styles.main}>
@@ -248,7 +230,7 @@ const Home = () => {
         </ScrollView>
 
         <View style={{ marginBottom: moderateScaleVertical(80) }}>
-          <LowerBanner />
+          {/* <LowerBanner /> */}
         </View>
       </View>
     </WrapperContainer>

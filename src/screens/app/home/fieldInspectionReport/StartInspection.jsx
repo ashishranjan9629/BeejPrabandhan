@@ -1,0 +1,239 @@
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import WrapperContainer from "../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../components/InnerHeader";
+import {
+  moderateScale,
+  moderateScaleVertical,
+  scale,
+  textScale,
+} from "../../../../utils/responsiveSize";
+import Colors from "../../../../utils/Colors";
+import FontFamily from "../../../../utils/FontFamily";
+import CustomButton from "../../../../components/CustomButton";
+import Entypo from "react-native-vector-icons/Entypo";
+import AntDesign from "react-native-vector-icons/AntDesign";
+import Octicons from "react-native-vector-icons/Octicons";
+import { useNavigation } from "@react-navigation/native";
+
+const StartInspection = ({ route }) => {
+  const { data } = route.params;
+  console.log(data, "line 8");
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+  const [selectedLands, setSelectedLands] = useState([]);
+
+  // Calculate total inspected area
+  const totalInspectedArea = selectedLands.reduce((total, land) => {
+    return total + (parseFloat(land.landArea) || 0);
+  }, 0);
+
+  const DataShownView = ({ label, value }) => {
+    return (
+      <View style={styles.cardRow}>
+        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.valueText}>{value ? value : "N/A"}</Text>
+      </View>
+    );
+  };
+
+  const toggleLandSelection = (land) => {
+    // Check if the land is already selected
+    const isSelected = selectedLands.some(
+      (selectedLand) => selectedLand.id === land.id
+    );
+
+    if (isSelected) {
+      // Remove from selection
+      setSelectedLands(
+        selectedLands.filter((selectedLand) => selectedLand.id !== land.id)
+      );
+    } else {
+      // Add to selection
+      setSelectedLands([...selectedLands, land]);
+    }
+  };
+
+  return (
+    <WrapperContainer isLoading={loading}>
+      <InnerHeader title={"Verify Inspection Details"} />
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.card}>
+          <Text style={styles.headerText}>Grower Details</Text>
+          <DataShownView label={"Grower"} value={data?.grower?.partyName} />
+          <DataShownView
+            label={"State"}
+            value={data?.grower?.entityRegNo?.stateId?.stateName}
+          />
+          <DataShownView
+            label={"District"}
+            value={data?.grower?.entityRegNo?.districtId?.districtName}
+          />
+          <DataShownView
+            label={"Taluqs"}
+            value={data?.grower?.entityRegNo?.block?.taluqs?.talukaName}
+          />
+          <DataShownView
+            label={"Block"}
+            value={data?.grower?.entityRegNo?.block?.blockName}
+          />
+          <DataShownView
+            label={"Village"}
+            value={data?.grower?.entityRegNo?.villageId?.villageName}
+          />
+        </View>
+        {/*Crop Land  Details  */}
+        <View style={styles.card}>
+          <Text style={styles.headerText}>Crop Details</Text>
+          <DataShownView
+            label={"Crop"}
+            value={data?.inspection?.crop?.seedCropName}
+          />
+          <DataShownView
+            label={"Seed Variety"}
+            value={data?.inspection?.productionPlan?.seedVariety}
+          />
+          <DataShownView
+            label={"Season"}
+            value={data?.inspection?.productionPlan?.season}
+          />
+          <DataShownView
+            label={"Seed Class"}
+            value={`${data?.inspection?.productionPlan?.toSeedClass} | ${data?.inspection?.productionPlan?.toSeedStage}`}
+          />
+          <DataShownView
+            label={"Total acres under seed production of this hybrid/variety"}
+            value={data?.grower?.landDetails[0]?.landArea}
+          />
+          <DataShownView
+            label={"Inspected Area"}
+            value={totalInspectedArea.toFixed(2)}
+          />
+        </View>
+        {/* Select the Land which is going to be inspected */}
+        {data?.grower?.landDetails?.map((item, index) => {
+          const isSelected = selectedLands.some(
+            (selectedLand) => selectedLand.id === item.id
+          );
+
+          return (
+            <View
+              style={[
+                styles.card,
+                {
+                  backgroundColor: isSelected
+                    ? Colors.lightBackground
+                    : Colors.white,
+                },
+              ]}
+              key={index}
+            >
+              <Text style={styles.headerText}>Select the land {index + 1}</Text>
+              <DataShownView label={"Land Address"} value={item?.landAddress} />
+              <DataShownView label={"Type"} value={item?.typeOfLand} />
+              <DataShownView label={"Soil Type"} value={item?.soilType} />
+              <DataShownView label={"Area (Hectare)"} value={item?.landArea} />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: moderateScale(10),
+                }}
+              >
+                <View style={{ width: "25%", alignItems: "center" }}>
+                  <Octicons
+                    name={isSelected ? "check-circle" : "circle"}
+                    size={moderateScale(35)}
+                    color={Colors.greenColor}
+                  />
+                </View>
+                <CustomButton
+                  text={isSelected ? "Deselect Land" : "Select this Land"}
+                  buttonStyle={[
+                    styles.buttonStyle,
+                    isSelected && { backgroundColor: Colors.red },
+                  ]}
+                  textStyle={styles.textStyle}
+                  handleAction={() => toggleLandSelection(item)}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+      <CustomButton
+        text={`Continue Inspection for ${totalInspectedArea}`}
+        buttonStyle={styles.buttonStyle2}
+        textStyle={styles.textStyle}
+        disabled={totalInspectedArea === 0}
+        handleAction={() =>
+          navigation.navigate("InspectionForm", { data: data })
+        }
+      />
+    </WrapperContainer>
+  );
+};
+
+export default StartInspection;
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: moderateScale(10),
+    marginHorizontal: moderateScale(15),
+    margin: moderateScaleVertical(10),
+    padding: moderateScale(10),
+    elevation: moderateScale(5),
+    shadowColor: Colors.greenColor,
+    shadowOpacity: scale(0.09),
+    shadowRadius: moderateScale(5),
+    shadowOffset: { width: 0, height: 3 },
+    gap: moderateScaleVertical(5),
+  },
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: moderateScale(5),
+  },
+  label: {
+    flex: 1,
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.textColor,
+    fontSize: textScale(14),
+    textAlign: "left",
+  },
+  valueText: {
+    flex: 1,
+    fontFamily: FontFamily.PoppinsRegular,
+    fontSize: textScale(14),
+    color: Colors.black,
+    textAlign: "right",
+  },
+  headerText: {
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsSemiBold,
+    color: Colors.greenColor,
+    marginBottom: moderateScaleVertical(4),
+    borderLeftWidth: moderateScale(2),
+    paddingHorizontal: moderateScale(10),
+    borderColor: Colors.primary,
+  },
+  buttonStyle: {
+    backgroundColor: Colors.greenColor,
+    width: "70%",
+    height: moderateScale(45),
+  },
+  textStyle: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(14),
+    letterSpacing: scale(0.2),
+  },
+  buttonStyle2: {
+    backgroundColor: Colors.greenColor,
+    height: moderateScale(45),
+    margin: moderateScaleVertical(5),
+    width: "95%",
+    alignSelf: "center",
+  },
+});
