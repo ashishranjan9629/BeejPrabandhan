@@ -21,4 +21,7 @@ export const API_ROUTES = {
   CROP_GROUP_MASTER: "master/crop-group-master/dd",
   ADD_CROP: "master/crop-master/save",
   UPDATE_CROP: "master/crop-master/update",
+  INSPECTION_SAVE_A:"prod_plan/prd-ins-type-a/save",
+  INSPECTION_SAVE_B:"prod_plan/prd-ins-type-b/save",
+  INSPECTION_SAVE_C:"prod_plan/prd-ins-type-c/save",
 };

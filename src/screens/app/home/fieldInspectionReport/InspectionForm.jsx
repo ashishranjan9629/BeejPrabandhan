@@ -16,12 +16,14 @@ import {
   moderateScale,
   moderateScaleVertical,
   textScale,
+  width,
 } from "../../../../utils/responsiveSize";
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
+import CustomButton from "../../../../components/CustomButton";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
@@ -32,6 +34,7 @@ const InspectionForm = ({ route }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState(null);
   const cropFirTypeId = data?.cropFirTypeId ?? 3;
+  const [errors, setErrors] = useState({});
 
   // Define all possible Step 1 fields (label + field + placeholder)
   const STEP1_ALL_FIELDS = [
@@ -203,12 +206,7 @@ const InspectionForm = ({ route }) => {
         "Objectionable weeds",
         "Affected by seed borne Disease",
       ],
-      fields: [
-        "offType",
-        "otherCrops",
-        "weeds",
-        "disease",
-      ],
+      fields: ["offType", "otherCrops", "weeds", "disease"],
     },
     3: {
       title: "Maize Crop Inspection Details",
@@ -229,6 +227,181 @@ const InspectionForm = ({ route }) => {
   };
 
   const currentStep2Config = STEP2_CONFIGS[cropFirTypeId] || STEP2_CONFIGS[2];
+
+  // Build label maps for better error messages
+  const STEP1_LABEL_MAP = React.useMemo(() => {
+    const map = {};
+    // Date/time labels based on type
+    if (cropFirTypeId === 1) {
+      map.dateOfSowing = "Date of Sowing";
+      map.expectedHarvest = "Expected Date Of Harvest";
+      map.dateOfInspection = "Date of inspection";
+      map.timeFrom = "Time From";
+      map.timeTo = "Time To";
+    } else if (cropFirTypeId === 2) {
+      map.dateOfSowing = "Date of Sowing";
+      map.expectedHarvestFrom = "Expected date of harvest (From)";
+      map.expectedHarvestTo = "Expected date of harvest (To)";
+      map.dateOfInspection = "Date of inspection";
+    }
+    // Visible inputs
+    visibleStep1Fields.forEach((f) => {
+      if (f.type !== "switch") map[f.field] = f.label;
+    });
+    return map;
+  }, [cropFirTypeId, visibleStep1Fields]);
+
+  const STEP3_LABEL_MAP = React.useMemo(() => {
+    const map = {};
+    const def = [];
+    if (cropFirTypeId === 1) {
+      def.push(
+        {
+          label: "No. of Border Row",
+          field: "noOfBorderRow",
+          keyboardType: "numeric",
+        },
+        { label: "Crop Condition", field: "cropCondition" },
+        {
+          label: "No. of times pollen shedders / off types were removed",
+          field: "noOfTimesPollenSheddersRemoved",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Frequency of pollen shedders, off types etc.",
+          field: "frequencyOfPollenShedders",
+        },
+        {
+          label: "Quality of seed production work",
+          field: "qualityOfSeedProductionWork",
+        },
+        {
+          label: "Estimated seed yield (Kgs/ Hect.)",
+          field: "estimatedSeedYieldKgPerHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area rejected (in Ha)",
+          field: "areaRejectedHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area certified (in Ha)",
+          field: "areaCertifiedHa",
+          keyboardType: "numeric",
+        },
+        { label: "Name", field: "name" },
+        { label: "Designation", field: "designation" },
+        { label: "Address", field: "address" },
+        { label: "Remarks", field: "remarks" }
+      );
+    } else if (cropFirTypeId === 2) {
+      def.push(
+        {
+          label: "Percentage of Off-Types plants",
+          field: "offTypePercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Inseparable Other Crops",
+          field: "inseparableOtherCropsPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Objectionable Weed Plants",
+          field: "objectionableWeedsPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Seed-borne Diseases",
+          field: "seedBorneDiseasesPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Name of Inseparable Other Crop Plants",
+          field: "inseparableOtherCropsName",
+        },
+        {
+          label: "Name of Objectionable Weed Plants",
+          field: "objectionableWeedsName",
+        },
+        {
+          label: "Name of Seed-borne Diseases",
+          field: "seedBorneDiseasesName",
+        },
+        {
+          label: "Names of Non-seed Borne Disease(s)",
+          field: "nonSeedBorneDiseases",
+        },
+        { label: "Condition of Crop", field: "conditionOfCrop" },
+        { label: "Quality of Production Work", field: "productionQuality" },
+        {
+          label: "Estimated Raw Seed Yield (Kg/hect)",
+          field: "estimatedRawSeedYield",
+          keyboardType: "numeric",
+        },
+        { label: "Submitted for (Grower Name)", field: "growerName" },
+        {
+          label: "Submitted By (Name of Inspecting Official)",
+          field: "submittedBy",
+        },
+        { label: "Designation", field: "designation" },
+        { label: "Remarks", field: "remarks" }
+      );
+    } else if (cropFirTypeId === 3) {
+      def.push(
+        {
+          label: "Side of field from which inspection was started",
+          field: "sideOfFieldFromWhichInspectionWasStarted",
+        },
+        { label: "Crop Condition", field: "cropCondition" },
+        {
+          label: "No. of times detasselled",
+          field: "noOfTimesDetasselled",
+          keyboardType: "numeric",
+        },
+        {
+          label: "label.frequencyOfDetasselling",
+          field: "frequencyOfDetasselling",
+        },
+        {
+          label: "Quality of seed production work",
+          field: "qualityOfSeedProductionWork",
+        },
+        {
+          label: "Estimated seed yield (Kgs./acres)",
+          field: "estimatedSeedYieldKgsPerAcres",
+          keyboardType: "numeric",
+        },
+        {
+          label:
+            "Was Grower or his representative present at the time of inspection",
+          field: "growerPresent",
+        },
+        {
+          label: "No. of Border Row",
+          field: "noOfBorderRow",
+          keyboardType: "numeric",
+        },
+        { label: "Is this final report", field: "isFinalReport" },
+        {
+          label: "Area rejected(in Ha)",
+          field: "areaRejectedHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area certified (in Ha)",
+          field: "areaCertifiedHa",
+          keyboardType: "numeric",
+        },
+        { label: "Remarks", field: "remarks" }
+      );
+    }
+    def.forEach((f) => {
+      map[f.field] = f.label;
+    });
+    return map;
+  }, [cropFirTypeId]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -360,12 +533,38 @@ const InspectionForm = ({ route }) => {
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+    // Clear error for this field when user types a non-empty value
+    if (typeof value === "string") {
+      const isEmpty = value.trim() === "";
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (!isEmpty && updated[field]) {
+          delete updated[field];
+        }
+        return updated;
+      });
+    } else {
+      // For non-string fields, just clear the error when value changes
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (updated[field]) delete updated[field];
+        return updated;
+      });
+    }
   };
 
   const handleCountChange = (index, field, value) => {
     const newCounts = [...formData.counts];
     newCounts[index][field] = value;
     setFormData({ ...formData, counts: newCounts });
+    const errorKey = `counts.${index}.${field}`;
+    setErrors((prev) => {
+      const updated = { ...prev };
+      if (String(value).trim() !== "" && updated[errorKey]) {
+        delete updated[errorKey];
+      }
+      return updated;
+    });
   };
 
   const showDatePickerModal = (field) => {
@@ -378,6 +577,11 @@ const InspectionForm = ({ route }) => {
     if (selectedDate) {
       const formattedDate = formatDate(selectedDate);
       handleInputChange(currentDateField, formattedDate);
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (updated[currentDateField]) delete updated[currentDateField];
+        return updated;
+      });
     }
   };
 
@@ -388,7 +592,190 @@ const InspectionForm = ({ route }) => {
     return `${day}/${month}/${year}`;
   };
 
+  const isEmptyValue = (val) => {
+    if (typeof val === "string") return val.trim() === "";
+    if (val === null || val === undefined) return true;
+    return false;
+  };
+
+  const isNumericString = (val) => {
+    if (typeof val !== "string") return false;
+    if (val.trim() === "") return false;
+    return /^-?\d*(\.\d+)?$/.test(val.trim());
+  };
+
+  const isValidDateDDMMYYYY = (val) => {
+    if (typeof val !== "string") return false;
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(val)) return false;
+    const [dd, mm, yyyy] = val.split("/").map((s) => parseInt(s, 10));
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return false;
+    return true;
+  };
+
+  const isValidTimeHHMM = (val) => {
+    if (typeof val !== "string") return false;
+    if (!/^\d{2}:\d{2}$/.test(val)) return false;
+    const [hh, mm] = val.split(":").map((s) => parseInt(s, 10));
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return false;
+    return true;
+  };
+
+  const validateStep = (currentStep) => {
+    const stepErrors = {};
+
+    if (currentStep === 1) {
+      // Date fields required based on type
+      if (cropFirTypeId === 1) {
+        ["dateOfSowing", "expectedHarvest", "dateOfInspection"].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidDateDDMMYYYY(formData[f]))
+            stepErrors[
+              f
+            ] = `${STEP1_LABEL_MAP[f]} must be in dd/mm/yyyy format`;
+        });
+        ["timeFrom", "timeTo"].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidTimeHHMM(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} must be in HH:MM format`;
+        });
+      }
+      if (cropFirTypeId === 2) {
+        [
+          "dateOfSowing",
+          "expectedHarvestFrom",
+          "expectedHarvestTo",
+          "dateOfInspection",
+        ].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidDateDDMMYYYY(formData[f]))
+            stepErrors[
+              f
+            ] = `${STEP1_LABEL_MAP[f]} must be in dd/mm/yyyy format`;
+        });
+      }
+
+      // Visible text fields (exclude switches)
+      const requiredFields = visibleStep1Fields
+        .filter((i) => i.type !== "switch")
+        .map((i) => i.field);
+      requiredFields.forEach((f) => {
+        const label = STEP1_LABEL_MAP[f] || f;
+        if (isEmptyValue(formData[f])) stepErrors[f] = `${label} is required`;
+        else if (
+          visibleStep1Fields.find(
+            (i) => i.field === f && i.keyboardType === "numeric"
+          ) &&
+          !isNumericString(String(formData[f]))
+        ) {
+          stepErrors[f] = `${label} must be a number`;
+        }
+      });
+    }
+
+    if (currentStep === 2) {
+      // All table cells required for current config
+      formData.counts.forEach((row, idx) => {
+        currentStep2Config.fields.forEach((f) => {
+          const headerIdx = currentStep2Config.fields.indexOf(f);
+          const headerLabel = currentStep2Config.headers[headerIdx + 1] || f; // +1 because first header is Count No.
+          const key = `counts.${idx}.${f}`;
+          const value = row[f];
+          if (isEmptyValue(value))
+            stepErrors[key] = `${headerLabel} (Row ${idx + 1}) is required`;
+          else if (!isNumericString(String(value)))
+            stepErrors[key] = `${headerLabel} (Row ${
+              idx + 1
+            }) must be a number`;
+        });
+      });
+    }
+
+    if (currentStep === 3) {
+      // Required fields per crop type (exclude switches)
+      const step3FieldsByType = {
+        1: [
+          "noOfBorderRow",
+          "cropCondition",
+          "noOfTimesPollenSheddersRemoved",
+          "frequencyOfPollenShedders",
+          "qualityOfSeedProductionWork",
+          "estimatedSeedYieldKgPerHa",
+          "areaRejectedHa",
+          "areaCertifiedHa",
+          "name",
+          "designation",
+          "address",
+          "remarks",
+        ],
+        2: [
+          "offTypePercentage",
+          "inseparableOtherCropsPercentage",
+          "objectionableWeedsPercentage",
+          "seedBorneDiseasesPercentage",
+          "inseparableOtherCropsName",
+          "objectionableWeedsName",
+          "seedBorneDiseasesName",
+          "nonSeedBorneDiseases",
+          "conditionOfCrop",
+          "productionQuality",
+          "estimatedRawSeedYield",
+          "growerName",
+          "submittedBy",
+          "designation",
+          "remarks",
+        ],
+        3: [
+          "sideOfFieldFromWhichInspectionWasStarted",
+          "cropCondition",
+          "noOfTimesDetasselled",
+          "frequencyOfDetasselling",
+          "qualityOfSeedProductionWork",
+          "estimatedSeedYieldKgsPerAcres",
+          "noOfBorderRow",
+          "areaRejectedHa",
+          "areaCertifiedHa",
+          "remarks",
+        ],
+      };
+      const req = step3FieldsByType[cropFirTypeId] || [];
+      req.forEach((f) => {
+        const label = STEP3_LABEL_MAP[f] || f;
+        const value = formData[f];
+        if (isEmptyValue(value)) stepErrors[f] = `${label} is required`;
+        else if (
+          [
+            "noOfBorderRow",
+            "noOfTimesPollenSheddersRemoved",
+            "estimatedSeedYieldKgPerHa",
+            "areaRejectedHa",
+            "areaCertifiedHa",
+            "offTypePercentage",
+            "inseparableOtherCropsPercentage",
+            "objectionableWeedsPercentage",
+            "seedBorneDiseasesPercentage",
+            "estimatedRawSeedYield",
+            "noOfTimesDetasselled",
+            "estimatedSeedYieldKgsPerAcres",
+          ].includes(f) &&
+          !isNumericString(String(value))
+        ) {
+          stepErrors[f] = `${label} must be a number`;
+        }
+      });
+    }
+
+    return stepErrors;
+  };
+
   const nextStep = () => {
+    const stepErrors = validateStep(step);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
     if (step < 3) setStep(step + 1);
   };
 
@@ -414,7 +801,11 @@ const InspectionForm = ({ route }) => {
               <Text style={styles.label}>Date of Sowing</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfSowing ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.dateOfSowing}
                   editable={false}
@@ -430,13 +821,20 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.dateOfSowing && (
+                <Text style={styles.errorText}>{errors.dateOfSowing}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Expected Date Of Harvest</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvest ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.expectedHarvest}
                   editable={false}
@@ -452,13 +850,20 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.expectedHarvest && (
+                <Text style={styles.errorText}>{errors.expectedHarvest}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Date of inspection</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfInspection ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.dateOfInspection}
                   editable={false}
@@ -474,26 +879,38 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.dateOfInspection && (
+                <Text style={styles.errorText}>{errors.dateOfInspection}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Time From</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  errors.timeFrom ? styles.errorInput : null,
+                ]}
                 placeholder="HH:MM"
                 value={formData.timeFrom}
                 onChangeText={(text) => handleInputChange("timeFrom", text)}
               />
+              {errors.timeFrom && (
+                <Text style={styles.errorText}>{errors.timeFrom}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Time To</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.timeTo ? styles.errorInput : null]}
                 placeholder="HH:MM"
                 value={formData.timeTo}
                 onChangeText={(text) => handleInputChange("timeTo", text)}
               />
+              {errors.timeTo && (
+                <Text style={styles.errorText}>{errors.timeTo}</Text>
+              )}
             </View>
           </>
         )}
@@ -504,7 +921,11 @@ const InspectionForm = ({ route }) => {
               <Text style={styles.label}>Date of Sowing</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfSowing ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.dateOfSowing}
                   editable={false}
@@ -520,13 +941,20 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.dateOfSowing && (
+                <Text style={styles.errorText}>{errors.dateOfSowing}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Expected date of harvest (From)</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvestFrom ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.expectedHarvestFrom}
                   editable={false}
@@ -542,13 +970,22 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.expectedHarvestFrom && (
+                <Text style={styles.errorText}>
+                  {errors.expectedHarvestFrom}
+                </Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Expected date of harvest (To)</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvestTo ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.expectedHarvestTo}
                   editable={false}
@@ -564,13 +1001,20 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.expectedHarvestTo && (
+                <Text style={styles.errorText}>{errors.expectedHarvestTo}</Text>
+              )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Date of inspection</Text>
               <View style={styles.dateViewHolder}>
                 <TextInput
-                  style={[styles.input, { width: "80%" }]}
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfInspection ? styles.errorInput : null,
+                  ]}
                   placeholder="dd/mm/yyyy"
                   value={formData.dateOfInspection}
                   editable={false}
@@ -586,6 +1030,9 @@ const InspectionForm = ({ route }) => {
                   />
                 </TouchableOpacity>
               </View>
+              {errors.dateOfInspection && (
+                <Text style={styles.errorText}>{errors.dateOfInspection}</Text>
+              )}
             </View>
           </>
         )}
@@ -615,12 +1062,18 @@ const InspectionForm = ({ route }) => {
               </View>
             ) : (
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  errors[item.field] ? styles.errorInput : null,
+                ]}
                 placeholder={item.placeholder || "Enter value"}
                 value={String(formData[item.field] ?? "")}
                 onChangeText={(text) => handleInputChange(item.field, text)}
                 keyboardType={item.keyboardType || "default"}
               />
+            )}
+            {item.type !== "switch" && errors[item.field] && (
+              <Text style={styles.errorText}>{errors[item.field]}</Text>
             )}
           </View>
         ))}
@@ -653,7 +1106,10 @@ const InspectionForm = ({ route }) => {
                   style={[
                     styles.tableCell,
                     styles.headerCell,
-                    { width: index === 0 ? moderateScale(80) : moderateScale(150) },
+                    {
+                      width:
+                        index === 0 ? moderateScale(80) : moderateScale(150),
+                    },
                   ]}
                 >
                   {header}
@@ -679,9 +1135,14 @@ const InspectionForm = ({ route }) => {
                       styles.tableCell,
                       styles.inputCell,
                       { width: moderateScale(150) },
+                      errors[`counts.${index}.${field}`]
+                        ? styles.errorInput
+                        : null,
                     ]}
                     value={count[field] || ""}
-                    onChangeText={(text) => handleCountChange(index, field, text)}
+                    onChangeText={(text) =>
+                      handleCountChange(index, field, text)
+                    }
                     keyboardType="numeric"
                     placeholder="0"
                   />
@@ -826,12 +1287,16 @@ const InspectionForm = ({ route }) => {
                     style={[
                       styles.input,
                       item.multiline ? styles.textArea : null,
+                      errors[item.field] ? styles.errorInput : null,
                     ]}
                     value={String(formData[item.field] ?? "")}
                     onChangeText={(text) => handleInputChange(item.field, text)}
                     keyboardType={item.keyboardType || "default"}
                     multiline={!!item.multiline}
                   />
+                )}
+                {item.type !== "switch" && errors[item.field] && (
+                  <Text style={styles.errorText}>{errors[item.field]}</Text>
                 )}
               </View>
             ))}
@@ -938,12 +1403,16 @@ const InspectionForm = ({ route }) => {
                     style={[
                       styles.input,
                       item.multiline ? styles.textArea : null,
+                      errors[item.field] ? styles.errorInput : null,
                     ]}
                     value={String(formData[item.field] ?? "")}
                     onChangeText={(text) => handleInputChange(item.field, text)}
                     keyboardType={item.keyboardType || "default"}
                     multiline={!!item.multiline}
                   />
+                )}
+                {item.type !== "switch" && errors[item.field] && (
+                  <Text style={styles.errorText}>{errors[item.field]}</Text>
                 )}
               </View>
             ))}
@@ -1055,6 +1524,15 @@ const InspectionForm = ({ route }) => {
     </KeyboardAvoidingView>
   );
 
+  const handleSubmit = async () => {
+    const stepErrors = validateStep(3);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+    console.log("clicked on the submit button");
+  };
+
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={"Inspection Form"} />
@@ -1069,59 +1547,76 @@ const InspectionForm = ({ route }) => {
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
 
-      <View style={styles.navigation}>
+      <View style={{ padding: moderateScale(10) }}>
         {step === 1 && (
-          <TouchableOpacity
-            style={[styles.navButton, styles.nextButton, styles.nextButton2]}
-            onPress={nextStep}
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
+          <CustomButton
+            text={"Next"}
+            buttonStyle={styles.nextButtonStyle}
+            textStyle={styles.buttonText}
+            handleAction={nextStep}
+          />
         )}
         {step === 2 && (
-          <View
-            style={{
-              flexDirection: "row",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <TouchableOpacity style={styles.navButton} onPress={prevStep}>
-              <Text style={styles.navButtonText}>Previous</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.navButton, styles.nextButton]}
-              onPress={nextStep}
-            >
-              <Text style={styles.navButtonText}>Next</Text>
-            </TouchableOpacity>
+          <View style={styles.step2}>
+            <CustomButton
+              text={"Previous"}
+              buttonStyle={styles.prevButton}
+              textStyle={styles.buttonText}
+              handleAction={prevStep}
+            />
+            <CustomButton
+              text={"Next"}
+              buttonStyle={[styles.nextButtonStyle, { width: "45%" }]}
+              textStyle={styles.buttonText}
+              handleAction={nextStep}
+            />
           </View>
         )}
-        {step == 3 && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-            }}
+
+        {step === 3 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={true}
+            contentContainerStyle={styles.step3ButtonsContainer}
           >
-            <TouchableOpacity style={styles.navButton} onPress={prevStep}>
-              <Text style={styles.navButtonText}>Previous</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.navButton, styles.submitButton]}>
-              <Text style={styles.navButtonText}>Submit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.navButton, styles.rejectButton]}>
-              <Text style={styles.navButtonText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.navButton, styles.cancelButton]}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.navButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+            <CustomButton
+              text={"Previous"}
+              buttonStyle={[styles.prevButton, styles.hButton]}
+              textStyle={styles.buttonText}
+              handleAction={prevStep}
+            />
+
+            <CustomButton
+              text={"Submit"}
+              buttonStyle={[
+                styles.prevButton,
+                styles.hButton,
+                { backgroundColor: Colors.greenColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => handleSubmit()}
+            />
+            <CustomButton
+              text={"Reject"}
+              buttonStyle={[
+                styles.prevButton,
+                styles.hButton,
+                { backgroundColor: Colors.redThemeColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => handleSubmit()}
+            />
+            <CustomButton
+              text={"Cancel"}
+              buttonStyle={[
+                styles.nextButtonStyle,
+                styles.hButton,
+                { backgroundColor: Colors.diabledColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => navigation.goBack()}
+            />
+          </ScrollView>
         )}
       </View>
       {showDatePicker && (
@@ -1276,6 +1771,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.greenColor,
   },
+  errorInput: {
+    borderColor: Colors.redThemeColor,
+  },
+  errorText: {
+    color: Colors.redThemeColor,
+    fontSize: textScale(11),
+    marginTop: moderateScaleVertical(4),
+    fontFamily: FontFamily.PoppinsRegular,
+  },
   twoColumnLayout: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1329,5 +1833,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  nextButtonStyle: {
+    backgroundColor: Colors.greenColor,
+    height: moderateScale(45),
+  },
+  buttonText: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(14),
+  },
+  prevButton: {
+    backgroundColor: Colors.veryLightGrey,
+    width: "45%",
+    height: moderateScale(45),
+  },
+  step2: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  step3ButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: moderateScale(4),
+  },
+  hButton: {
+    width: moderateScale(140),
+    height: moderateScale(45),
+    marginRight: moderateScale(10),
   },
 });
