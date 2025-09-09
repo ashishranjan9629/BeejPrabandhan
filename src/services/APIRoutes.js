@@ -1,5 +1,5 @@
 export const API_ROUTES = {
-  BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
+  // BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
   BASE_URL: "http://192.168.100.102:7830/api/", //(development)
   // BASE_URL: "http://192.168.80.25:7830/api/",
   // BASE_URL: "http://160.25.172.19:9052/api/", //Public Server

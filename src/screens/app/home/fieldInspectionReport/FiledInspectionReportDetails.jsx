@@ -31,7 +31,7 @@ const FiledInspectionReportDetails = ({ route }) => {
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
   const [expandedId, setExpandedId] = useState("1");
-  console.log(detailsData?.productionInspection[0], "line 31aaa");
+  console.log(detailsData?.productionInspection?.[0], "line 31aaa");
   useEffect(() => {
     fethcProgramListDetails();
   }, []);
