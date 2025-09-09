@@ -105,14 +105,43 @@ const InspectionForm = ({ route }) => {
       { label: "Code/Hybrid designation", field: "codeHybridDesignation" },
       { label: "Planting ratio (a:b)", field: "plantingRatio" },
       { label: "Previous crop", field: "previouscrop" },
-      { label: "Are both end marked?", field: "areBothEndMarked", type: "switch" },
-      { label: "Method of marking male rows", field: "methodOfMarkingMaleRows" },
-      { label: "Stage of crop growth at this inspection", field: "stageOfCropGrowthAtInspection" },
-      { label: "label.stageOfGrowthOfContaminant", field: "stageofgrowthofcontaminant" },
-      { label: "Isolation Distance North", field: "isolationDistanceNorth", keyboardType: "numeric" },
-      { label: "Isolation Distance South", field: "isolationDistanceSouth", keyboardType: "numeric" },
-      { label: "Isolation Distance East", field: "isolationDistanceEast", keyboardType: "numeric" },
-      { label: "Isolation Distance West", field: "isolationDistanceWest", keyboardType: "numeric" },
+      {
+        label: "Are both end marked?",
+        field: "areBothEndMarked",
+        type: "switch",
+      },
+      {
+        label: "Method of marking male rows",
+        field: "methodOfMarkingMaleRows",
+      },
+      {
+        label: "Stage of crop growth at this inspection",
+        field: "stageOfCropGrowthAtInspection",
+      },
+      {
+        label: "label.stageOfGrowthOfContaminant",
+        field: "stageofgrowthofcontaminant",
+      },
+      {
+        label: "Isolation Distance North",
+        field: "isolationDistanceNorth",
+        keyboardType: "numeric",
+      },
+      {
+        label: "Isolation Distance South",
+        field: "isolationDistanceSouth",
+        keyboardType: "numeric",
+      },
+      {
+        label: "Isolation Distance East",
+        field: "isolationDistanceEast",
+        keyboardType: "numeric",
+      },
+      {
+        label: "Isolation Distance West",
+        field: "isolationDistanceWest",
+        keyboardType: "numeric",
+      },
       { label: "Report Number", field: "reportnumber" },
       { label: "Time From", field: "timeFrom" },
       { label: "Time To", field: "timeTo" },
@@ -124,15 +153,33 @@ const InspectionForm = ({ route }) => {
       { label: "Male Parent", field: "maleParent" },
       { label: "Code/Hybrid designation", field: "codeHybridDesignation" },
       { label: "Planting ratio (a:b)", field: "plantingRatio" },
-      { label: "Are both end of male rows marked?", field: "areBothEndOfMaleRowsMarked", type: "switch" },
-      { label: "Method of marking male rows", field: "methodOfMarkingMaleRows" },
-      { label: "Isolation Distance (in meters)", field: "isolationDistanceMeters", keyboardType: "numeric" },
-      { label: "Stage of Growth of Coteminant", field: "stageofgrowthofcontaminant" },
-      { label: "Stage of Seed Crop at this Inspection", field: "stageofseedcropatthisinspection" },
+      {
+        label: "Are both end of male rows marked?",
+        field: "areBothEndOfMaleRowsMarked",
+        type: "switch",
+      },
+      {
+        label: "Method of marking male rows",
+        field: "methodOfMarkingMaleRows",
+      },
+      {
+        label: "Isolation Distance (in meters)",
+        field: "isolationDistanceMeters",
+        keyboardType: "numeric",
+      },
+      {
+        label: "Stage of Growth of Coteminant",
+        field: "stageofgrowthofcontaminant",
+      },
+      {
+        label: "Stage of Seed Crop at this Inspection",
+        field: "stageofseedcropatthisinspection",
+      },
     ],
   };
 
-  const visibleStep1Fields = (STEP1_FIELD_SETS[cropFirTypeId] || STEP1_FIELD_SETS[3]);
+  const visibleStep1Fields =
+    STEP1_FIELD_SETS[cropFirTypeId] || STEP1_FIELD_SETS[3];
 
   // Form state
   const [formData, setFormData] = useState({
@@ -481,13 +528,19 @@ const InspectionForm = ({ route }) => {
           <View key={index} style={styles.inputGroup}>
             <Text style={styles.label}>{item.label}</Text>
             {item.type === "switch" ? (
-              <View style={[styles.switchRow, { justifyContent: "flex-start" }]}>
+              <View
+                style={[styles.switchRow, { justifyContent: "flex-start" }]}
+              >
                 <View style={styles.switchContainer}>
                   <Switch
                     value={!!formData[item.field]}
-                    onValueChange={(value) => handleInputChange(item.field, value)}
+                    onValueChange={(value) =>
+                      handleInputChange(item.field, value)
+                    }
                     trackColor={{ false: "#767577", true: Colors.lightGreen }}
-                    thumbColor={formData[item.field] ? Colors.greenColor : "#f4f3f4"}
+                    thumbColor={
+                      formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                    }
                   />
                 </View>
               </View>
@@ -597,19 +650,63 @@ const InspectionForm = ({ route }) => {
 
         {cropFirTypeId === 1 && (
           <>
-            {[ 
-              { label: "No. of Border Row", field: "noOfBorderRow", keyboardType: "numeric" },
+            {[
+              {
+                label: "No. of Border Row",
+                field: "noOfBorderRow",
+                keyboardType: "numeric",
+              },
               { label: "Crop Condition", field: "cropCondition" },
-              { label: "No. of times pollen shedders / off types were removed", field: "noOfTimesPollenSheddersRemoved", keyboardType: "numeric" },
-              { label: "Frequency of pollen shedders, off types etc.", field: "frequencyOfPollenShedders" },
-              { label: "Was it done at inspection time?", field: "wasItDoneAtInspectionTime", type: "switch" },
-              { label: "Quality of seed production work", field: "qualityOfSeedProductionWork" },
-              { label: "Does this crop conform to the standards for certification", field: "doesCropConformToStandards", type: "switch" },
-              { label: "Estimated seed yield (Kgs/ Hect.)", field: "estimatedSeedYieldKgPerHa", keyboardType: "numeric" },
-              { label: "Was the Grower or his representatives present at inspection time?", field: "wasGrowerPresentAtInspectionTime", type: "switch" },
-              { label: "Is this the final report?", field: "isFinalReport", type: "switch" },
-              { label: "Area rejected (in Ha)", field: "areaRejectedHa", keyboardType: "numeric" },
-              { label: "Area certified (in Ha)", field: "areaCertifiedHa", keyboardType: "numeric" },
+              {
+                label: "No. of times pollen shedders / off types were removed",
+                field: "noOfTimesPollenSheddersRemoved",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Frequency of pollen shedders, off types etc.",
+                field: "frequencyOfPollenShedders",
+              },
+              {
+                label: "Was it done at inspection time?",
+                field: "wasItDoneAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label:
+                  "Does this crop conform to the standards for certification",
+                field: "doesCropConformToStandards",
+                type: "switch",
+              },
+              {
+                label: "Estimated seed yield (Kgs/ Hect.)",
+                field: "estimatedSeedYieldKgPerHa",
+                keyboardType: "numeric",
+              },
+              {
+                label:
+                  "Was the Grower or his representatives present at inspection time?",
+                field: "wasGrowerPresentAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Is this the final report?",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Area rejected (in Ha)",
+                field: "areaRejectedHa",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Area certified (in Ha)",
+                field: "areaCertifiedHa",
+                keyboardType: "numeric",
+              },
               { label: "Name", field: "name" },
               { label: "Designation", field: "designation" },
               { label: "Address", field: "address" },
@@ -618,19 +715,31 @@ const InspectionForm = ({ route }) => {
               <View key={idx} style={styles.inputGroup}>
                 <Text style={styles.label}>{item.label}</Text>
                 {item.type === "switch" ? (
-                  <View style={[styles.switchRow, { justifyContent: "flex-start" }]}>
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
                     <View style={styles.switchContainer}>
                       <Switch
                         value={!!formData[item.field]}
-                        onValueChange={(value) => handleInputChange(item.field, value)}
-                        trackColor={{ false: "#767577", true: Colors.lightGreen }}
-                        thumbColor={formData[item.field] ? Colors.greenColor : "#f4f3f4"}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
                       />
                     </View>
                   </View>
                 ) : (
                   <TextInput
-                    style={[styles.input, item.multiline ? styles.textArea : null]}
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                    ]}
                     value={String(formData[item.field] ?? "")}
                     onChangeText={(text) => handleInputChange(item.field, text)}
                     keyboardType={item.keyboardType || "default"}
@@ -644,42 +753,105 @@ const InspectionForm = ({ route }) => {
 
         {cropFirTypeId === 2 && (
           <>
-            {[ 
-              { label: "Percentage of Off-Types plants", field: "offTypePercentage", keyboardType: "numeric" },
-              { label: "Percentage of Inseparable Other Crops", field: "inseparableOtherCropsPercentage", keyboardType: "numeric" },
-              { label: "Percentage of Objectionable Weed Plants", field: "objectionableWeedsPercentage", keyboardType: "numeric" },
-              { label: "Percentage of Seed-borne Diseases", field: "seedBorneDiseasesPercentage", keyboardType: "numeric" },
-              { label: "Name of Inseparable Other Crop Plants", field: "inseparableOtherCropsName" },
-              { label: "Name of Objectionable Weed Plants", field: "objectionableWeedsName" },
-              { label: "Name of Seed-borne Diseases", field: "seedBorneDiseasesName" },
-              { label: "Names of Non-seed Borne Disease(s)", field: "nonSeedBorneDiseases" },
+            {[
+              {
+                label: "Percentage of Off-Types plants",
+                field: "offTypePercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Inseparable Other Crops",
+                field: "inseparableOtherCropsPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Objectionable Weed Plants",
+                field: "objectionableWeedsPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Seed-borne Diseases",
+                field: "seedBorneDiseasesPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Name of Inseparable Other Crop Plants",
+                field: "inseparableOtherCropsName",
+              },
+              {
+                label: "Name of Objectionable Weed Plants",
+                field: "objectionableWeedsName",
+              },
+              {
+                label: "Name of Seed-borne Diseases",
+                field: "seedBorneDiseasesName",
+              },
+              {
+                label: "Names of Non-seed Borne Disease(s)",
+                field: "nonSeedBorneDiseases",
+              },
               { label: "Condition of Crop", field: "conditionOfCrop" },
-              { label: "Does this crop confirm to standards of cert.?", field: "confirmsToStandards", type: "switch" },
-              { label: "Quality of Production Work", field: "productionQuality" },
-              { label: "Is this the final report?", field: "isFinalReport", type: "switch" },
-              { label: "Estimated Raw Seed Yield (Kg/hect)", field: "estimatedRawSeedYield", keyboardType: "numeric" },
-              { label: "Was Grower or his representative present at the time of inspection", field: "growerPresent", type: "switch" },
+              {
+                label: "Does this crop confirm to standards of cert.?",
+                field: "confirmsToStandards",
+                type: "switch",
+              },
+              {
+                label: "Quality of Production Work",
+                field: "productionQuality",
+              },
+              {
+                label: "Is this the final report?",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Estimated Raw Seed Yield (Kg/hect)",
+                field: "estimatedRawSeedYield",
+                keyboardType: "numeric",
+              },
+              {
+                label:
+                  "Was Grower or his representative present at the time of inspection",
+                field: "growerPresent",
+                type: "switch",
+              },
               { label: "Submitted for (Grower Name)", field: "growerName" },
-              { label: "Submitted By (Name of Inspecting Official)", field: "submittedBy" },
+              {
+                label: "Submitted By (Name of Inspecting Official)",
+                field: "submittedBy",
+              },
               { label: "Designation", field: "designation" },
               { label: "Remarks", field: "remarks", multiline: true },
             ].map((item, idx) => (
               <View key={idx} style={styles.inputGroup}>
                 <Text style={styles.label}>{item.label}</Text>
                 {item.type === "switch" ? (
-                  <View style={[styles.switchRow, { justifyContent: "flex-start" }]}>
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
                     <View style={styles.switchContainer}>
                       <Switch
                         value={!!formData[item.field]}
-                        onValueChange={(value) => handleInputChange(item.field, value)}
-                        trackColor={{ false: "#767577", true: Colors.lightGreen }}
-                        thumbColor={formData[item.field] ? Colors.greenColor : "#f4f3f4"}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
                       />
                     </View>
                   </View>
                 ) : (
                   <TextInput
-                    style={[styles.input, item.multiline ? styles.textArea : null]}
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                    ]}
                     value={String(formData[item.field] ?? "")}
                     onChangeText={(text) => handleInputChange(item.field, text)}
                     keyboardType={item.keyboardType || "default"}
@@ -693,38 +865,95 @@ const InspectionForm = ({ route }) => {
 
         {cropFirTypeId === 3 && (
           <>
-            {[ 
-              { label: "Side of field from which inspection was started", field: "sideOfFieldFromWhichInspectionWasStarted" },
+            {[
+              {
+                label: "Side of field from which inspection was started",
+                field: "sideOfFieldFromWhichInspectionWasStarted",
+              },
               { label: "Crop Condition", field: "cropCondition" },
-              { label: "No. of times detasselled", field: "noOfTimesDetasselled", keyboardType: "numeric" },
-              { label: "label.frequencyOfDetasselling", field: "frequencyOfDetasselling" },
-              { label: "label.detassellingDoneAtInspectionTime", field: "detassellingDoneAtInspectionTime", type: "switch" },
-              { label: "Quality of seed production work", field: "qualityOfSeedProductionWork" },
-              { label: "Quality of seed production work", field: "qualityOfSeedProductionWork" },
-              { label: "Estimated seed yield (Kgs./acres)", field: "estimatedSeedYieldKgsPerAcres", keyboardType: "numeric" },
-              { label: "Was Grower or his representative present at the time of inspection", field: "growerPresent", type: "switch" },
-              { label: "No. of Border Row", field: "noOfBorderRow", keyboardType: "numeric" },
-              { label: "Is this final report", field: "isFinalReport", type: "switch" },
-              { label: "Area rejected(in Ha)", field: "areaRejectedHa", keyboardType: "numeric" },
-              { label: "Area certified (in Ha)", field: "areaCertifiedHa", keyboardType: "numeric" },
+              {
+                label: "No. of times detasselled",
+                field: "noOfTimesDetasselled",
+                keyboardType: "numeric",
+              },
+              {
+                label: "label.frequencyOfDetasselling",
+                field: "frequencyOfDetasselling",
+              },
+              {
+                label: "label.detassellingDoneAtInspectionTime",
+                field: "detassellingDoneAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label: "Estimated seed yield (Kgs./acres)",
+                field: "estimatedSeedYieldKgsPerAcres",
+                keyboardType: "numeric",
+              },
+              {
+                label:
+                  "Was Grower or his representative present at the time of inspection",
+                field: "growerPresent",
+                type: "switch",
+              },
+              {
+                label: "No. of Border Row",
+                field: "noOfBorderRow",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Is this final report",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Area rejected(in Ha)",
+                field: "areaRejectedHa",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Area certified (in Ha)",
+                field: "areaCertifiedHa",
+                keyboardType: "numeric",
+              },
               { label: "Remarks", field: "remarks", multiline: true },
             ].map((item, idx) => (
               <View key={idx} style={styles.inputGroup}>
                 <Text style={styles.label}>{item.label}</Text>
                 {item.type === "switch" ? (
-                  <View style={[styles.switchRow, { justifyContent: "flex-start" }]}>
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
                     <View style={styles.switchContainer}>
                       <Switch
                         value={!!formData[item.field]}
-                        onValueChange={(value) => handleInputChange(item.field, value)}
-                        trackColor={{ false: "#767577", true: Colors.lightGreen }}
-                        thumbColor={formData[item.field] ? Colors.greenColor : "#f4f3f4"}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
                       />
                     </View>
                   </View>
                 ) : (
                   <TextInput
-                    style={[styles.input, item.multiline ? styles.textArea : null]}
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                    ]}
                     value={String(formData[item.field] ?? "")}
                     onChangeText={(text) => handleInputChange(item.field, text)}
                     keyboardType={item.keyboardType || "default"}
@@ -808,6 +1037,14 @@ const InspectionForm = ({ route }) => {
           </View>
         )}
       </View>
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onDateChange}
+        />
+      )}
     </WrapperContainer>
   );
 };
