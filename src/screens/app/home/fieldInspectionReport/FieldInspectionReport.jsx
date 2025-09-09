@@ -32,6 +32,8 @@ import { getUserData } from "../../../../utils/Storage";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
+import { showSuccessMessage } from "../../../../utils/HelperFunction";
+import FileViewer from "react-native-file-viewer";
 
 // Mock data from screenshot
 const PROGRAMMES = [
@@ -103,11 +105,14 @@ const FieldInspectionReport = () => {
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [selctedData, setSelctedData] = useState();
   const [userDataVariable, setUserDataVariable] = useState();
-
+  const [showOpenShowPreviewModal, setShowOpenShowPreviewModal] =
+    useState(false);
   const animationRefs = useRef(
     PROGRAMMES.map(() => new Animated.Value(0))
   ).current;
 
+  const [fileUri, setFileUri] = useState(null);
+  const [fileName, setFileName] = useState("");
   useEffect(() => {
     // Animate each card in sequence
     Animated.stagger(
@@ -227,7 +232,7 @@ const FieldInspectionReport = () => {
           <View style={styles.cardRow}>
             <Text style={styles.label}>Status</Text>
             <Text style={[styles.status, getStatusStyle(item.status)]}>
-              {item.status}
+              {item.productionStatus}
             </Text>
           </View>
         </Animated.View>
@@ -273,10 +278,8 @@ const FieldInspectionReport = () => {
         null,
         { responseType: "arraybuffer" }
       );
-      // Convert ArrayBuffer to base64
+      // console.log(response,"line 281")
       const base64Data = Buffer.from(response, "binary").toString("base64");
-
-      // Save and share the file (iOS/Android) using RN ShareSheet (fallback: open-in)
       const fileName = `Programme_List_${Date.now()}.xlsx`;
       const dirPath =
         Platform.OS === "ios"
@@ -298,12 +301,35 @@ const FieldInspectionReport = () => {
 
       const filePath = `${dirPath}/${fileName}`;
       await RNFS.writeFile(filePath, base64Data, "base64");
-
-      Alert.alert("Download Complete", `Saved to: ${filePath}`);
-      console.log(filePath, "line 297");
+      showSuccessMessage(`Download Complete,Saved to: ${filePath}`);
+      setShowOpenShowPreviewModal(true);
+      setFileUri(filePath);
+      setFileName(`Programme_List_${Date.now()}.xlsx`);
     } catch (error) {
       console.log(error, "downloadExcelFile error");
       Alert.alert("Failed", "Unable to download file. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePreview = () => {
+    if (!fileUri) {
+      Alert.alert("Error", "No file path provided");
+      return;
+    }
+    try {
+      setLoading(true);
+      setShowOpenShowPreviewModal(false);
+      setTimeout(async () => {
+        if (Platform.OS === "android") {
+          await FileViewer.open(fileUri);
+        } else {
+          await FileViewer.open(fileUri);
+        }
+      }, 1000);
+    } catch (err) {
+      Alert.alert("Error", "Failed to open file: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -421,6 +447,33 @@ const FieldInspectionReport = () => {
             setShowBottomSheet(false);
           }}
         />
+      </CustomBottomSheet>
+      <CustomBottomSheet
+        visible={showOpenShowPreviewModal}
+        onRequestClose={() => setShowOpenShowPreviewModal(false)}
+      >
+        <Text style={styles.headerText}>
+          Do you want to view the Export file
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: moderateScale(10),
+          }}
+        >
+          <CustomButton
+            text={"Preview"}
+            buttonStyle={styles.openButton}
+            handleAction={() => handlePreview()}
+          />
+          <CustomButton
+            text={"Close"}
+            buttonStyle={styles.closeButton}
+            handleAction={() => setShowOpenShowPreviewModal(false)}
+          />
+        </View>
       </CustomBottomSheet>
     </WrapperContainer>
   );
@@ -599,6 +652,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: textScale(14),
     textTransform: "capitalize",
+  },
+  openButton: {
+    width: "48%",
+    backgroundColor: Colors.greenColor,
+  },
+  closeButton: {
+    width: "48%",
+    backgroundColor: Colors.redThemeColor,
   },
 });
 

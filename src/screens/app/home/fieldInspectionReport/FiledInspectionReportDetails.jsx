@@ -27,6 +27,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
+  console.log(item?.productionStatus, "line 30");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
@@ -37,7 +38,7 @@ const FiledInspectionReportDetails = ({ route }) => {
   }, []);
 
   const fethcProgramListDetails = async () => {
-    console.log(item?.id,"line 40")
+    console.log(item?.id, "line 40");
     const payloadData = {
       id: item?.id,
     };
@@ -450,13 +451,18 @@ const FiledInspectionReportDetails = ({ route }) => {
           ))}
         </ScrollView>
       )}
-      <CustomButton
-        text={"Start Inspection"}
-        buttonStyle={styles.buttonStyle}
-        textStyle={styles.buttonText}
-        disabled={loading}
-        handleAction={() => navigation.navigate("StartInspection",{data:detailsData})}
-      />
+      {item?.productionStatus === "ISSUED" ||
+        (item?.productionStatus === "INSPECTED" && (
+          <CustomButton
+            text={"Start Inspection"}
+            buttonStyle={styles.buttonStyle}
+            textStyle={styles.buttonText}
+            disabled={loading}
+            handleAction={() =>
+              navigation.navigate("StartInspection", { data: detailsData })
+            }
+          />
+        ))}
     </WrapperContainer>
   );
 };
