@@ -33,6 +33,7 @@
     "react-native-crypto-js": "^1.0.0",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-flash-message": "^0.4.2",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.27.1",
     "react-native-indicators": "^0.17.0",
     "react-native-mmkv": "^3.3.0",

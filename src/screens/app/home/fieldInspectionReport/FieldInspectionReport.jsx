@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Buffer } from "buffer";
 import {
   StyleSheet,
   Text,
@@ -10,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Alert,
+  PermissionsAndroid,
 } from "react-native";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
@@ -27,6 +30,7 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { getUserData } from "../../../../utils/Storage";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
+import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
 
 // Mock data from screenshot
@@ -98,6 +102,7 @@ const FieldInspectionReport = () => {
   const navigation = useNavigation();
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [selctedData, setSelctedData] = useState();
+  const [userDataVariable, setUserDataVariable] = useState();
 
   const animationRefs = useRef(
     PROGRAMMES.map(() => new Animated.Value(0))
@@ -131,6 +136,7 @@ const FieldInspectionReport = () => {
     try {
       setLoading(true);
       const userData = await getUserData();
+      setUserDataVariable(userData);
       // console.log(userData, "line 132");
       const payloadData = {
         aoId: userData?.aoId,
@@ -244,6 +250,65 @@ const FieldInspectionReport = () => {
     }
   }
 
+  const downloadExcelFile = async () => {
+    try {
+      setLoading(true);
+      const payloadData = {
+        aoId: userDataVariable?.aoId,
+        growerMobileNo: mobileNo,
+        growerName: growerName,
+        page: 0,
+        pageSize: 25,
+        pcId: "",
+        planId: planId,
+        roId: userDataVariable?.roId,
+      };
+      const encryptedPayload = encryptWholeObject(payloadData);
+
+      // Request binary (Excel) data
+      const response = await apiRequest(
+        API_ROUTES.DOWNLOAD_PROGRAM_EXCEL_LIST,
+        "post",
+        encryptedPayload,
+        null,
+        { responseType: "arraybuffer" }
+      );
+      // Convert ArrayBuffer to base64
+      const base64Data = Buffer.from(response, "binary").toString("base64");
+
+      // Save and share the file (iOS/Android) using RN ShareSheet (fallback: open-in)
+      const fileName = `Programme_List_${Date.now()}.xlsx`;
+      const dirPath =
+        Platform.OS === "ios"
+          ? RNFS.DocumentDirectoryPath
+          : RNFS.DownloadDirectoryPath;
+
+      if (Platform.OS === "android") {
+        try {
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+          );
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+        } catch (permErr) {
+          console.log("Permission error", permErr);
+        }
+      }
+
+      const filePath = `${dirPath}/${fileName}`;
+      await RNFS.writeFile(filePath, base64Data, "base64");
+
+      Alert.alert("Download Complete", `Saved to: ${filePath}`);
+      console.log(filePath, "line 297");
+    } catch (error) {
+      console.log(error, "downloadExcelFile error");
+      Alert.alert("Failed", "Unable to download file. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={"Field Inspection Report"} />
@@ -304,7 +369,10 @@ const FieldInspectionReport = () => {
           <View style={styles.exportRow}>
             <Text style={styles.headerText}>Programme List</Text>
             {programmingList && (
-              <TouchableOpacity style={styles.exportBtn}>
+              <TouchableOpacity
+                style={styles.exportBtn}
+                onPress={() => downloadExcelFile()}
+              >
                 <Text style={styles.exportBtnText}>Export</Text>
               </TouchableOpacity>
             )}

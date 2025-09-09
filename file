@@ -120,3 +120,46 @@ Is this final report
 Area rejected(in Ha)
 Area certified (in Ha)
 Remarks
+
+
+
+for cropFirTypeId ===1 
+and step 2 -->
+Count No.
+No. of pollen shedding heads
+No. of heads of off types shedding pollen
+No. of heads affected by ---->
+    Head Smut / Ergot
+    Kernel Smut/Grain Smut
+    Green Ear
+No. of heads of off types shedding pollen
+No. of heads affected by ---->
+    Head Smut / Ergot
+    Kernel Smut/Grain Smut
+    Green Ear
+
+
+for cropFirTypeId ===2
+and step 2 -->
+Count No.
+Plants/heads of off-type
+Inseparable other crops
+Objectionable weeds
+Affected by seed borne Disease
+
+
+for cropFirTypeId ===3
+and step 2 -->
+Count No.
+Composite/open pollinated variety and female parent of maize crop ---->
+    Receptive Skills	
+Female parent of maize crops ----->
+    Shedding tassels
+Composite/open pollinated variety and female parent of maize crop ---->
+    Off type with Shedding tassels
+Male parent of maize crops ---->
+    Off type with Shedding tassels
+
+
+
+inspected and Issue par inspection karwana hai

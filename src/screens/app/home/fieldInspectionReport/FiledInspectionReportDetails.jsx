@@ -37,6 +37,7 @@ const FiledInspectionReportDetails = ({ route }) => {
   }, []);
 
   const fethcProgramListDetails = async () => {
+    console.log(item?.id,"line 40")
     const payloadData = {
       id: item?.id,
     };

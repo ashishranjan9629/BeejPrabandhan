@@ -31,7 +31,14 @@ const InspectionForm = ({ route }) => {
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState(null);
+
+  // Determine crop FIR type id (defaults to 3)
   const cropFirTypeId = data?.cropFirTypeId ?? 3;
+
+  // Helper function to create field names
+  const createFieldName = (text) => {
+    return text.replace(/\s+/g, "").toLowerCase();
+  };
 
   // Define all possible Step 1 fields (label + field + placeholder)
   const STEP1_ALL_FIELDS = [
@@ -174,62 +181,6 @@ const InspectionForm = ({ route }) => {
   const visibleStep1Fields =
     STEP1_FIELD_SETS[cropFirTypeId] || STEP1_FIELD_SETS[3];
 
-  // Step 2 configurations per crop FIR type
-  const STEP2_CONFIGS = {
-    1: {
-      title: "Pollen Shedding & Disease Count Details",
-      headers: [
-        "Count No.",
-        "No. of pollen shedding heads",
-        "No. of heads of off types shedding pollen",
-        "No. of heads affected by Head Smut / Ergot",
-        "No. of heads affected by Kernel Smut/Grain Smut",
-        "No. of heads affected by Green Ear",
-      ],
-      fields: [
-        "pollenSheddingHeads",
-        "offTypesSheddingPollen",
-        "headSmutErgot",
-        "kernelSmutGrainSmut",
-        "greenEar",
-      ],
-    },
-    2: {
-      title: "Count Details",
-      headers: [
-        "Count No.",
-        "Plants/heads of off-type",
-        "Inseparable other crops",
-        "Objectionable weeds",
-        "Affected by seed borne Disease",
-      ],
-      fields: [
-        "offType",
-        "otherCrops",
-        "weeds",
-        "disease",
-      ],
-    },
-    3: {
-      title: "Maize Crop Inspection Details",
-      headers: [
-        "Count No.",
-        "Composite/open pollinated variety and female parent of maize crop - Receptive Skills",
-        "Female parent of maize crops - Shedding tassels",
-        "Composite/open pollinated variety and female parent of maize crop - Off type with Shedding tassels",
-        "Male parent of maize crops - Off type with Shedding tassels",
-      ],
-      fields: [
-        "receptiveSkills",
-        "femaleParentSheddingTassels",
-        "compositeOffTypeSheddingTassels",
-        "maleParentOffTypeSheddingTassels",
-      ],
-    },
-  };
-
-  const currentStep2Config = STEP2_CONFIGS[cropFirTypeId] || STEP2_CONFIGS[2];
-
   // Form state
   const [formData, setFormData] = useState({
     // Step 1 fields
@@ -264,35 +215,15 @@ const InspectionForm = ({ route }) => {
     isolationDistanceMeters: "",
     totalacreageunderproductioninha: "",
 
-    // Step 2 fields - dynamic based on cropFirTypeId
+    // Step 2 fields
     counts: Array(10)
       .fill()
-      .map(() => {
-        if (cropFirTypeId === 1) {
-          return {
-            pollenSheddingHeads: "",
-            offTypesSheddingPollen: "",
-            headSmutErgot: "",
-            kernelSmutGrainSmut: "",
-            greenEar: "",
-          };
-        } else if (cropFirTypeId === 3) {
-          return {
-            receptiveSkills: "",
-            femaleParentSheddingTassels: "",
-            compositeOffTypeSheddingTassels: "",
-            maleParentOffTypeSheddingTassels: "",
-          };
-        } else {
-          // Default for type 2
-          return {
-            offType: "",
-            otherCrops: "",
-            weeds: "",
-            disease: "",
-          };
-        }
-      }),
+      .map(() => ({
+        offType: "",
+        otherCrops: "",
+        weeds: "",
+        disease: "",
+      })),
 
     // Step 3 fields (union of all types)
     offTypePercentage: "",
@@ -638,87 +569,69 @@ const InspectionForm = ({ route }) => {
         style={styles.stepContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>{currentStep2Config.title}</Text>
+        <Text style={styles.sectionTitle}>Count Details</Text>
 
-        <ScrollView
-          horizontal={true}
-          showsHorizontalScrollIndicator={true}
-          style={styles.horizontalScrollContainer}
-        >
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              {currentStep2Config.headers.map((header, index) => (
-                <Text
-                  key={index}
-                  style={[
-                    styles.tableCell,
-                    styles.headerCell,
-                    { width: index === 0 ? moderateScale(80) : moderateScale(150) },
-                  ]}
-                >
-                  {header}
-                </Text>
-              ))}
-            </View>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.tableCell, styles.headerCell, { flex: 0.5 }]}>
+            Count No.
+          </Text>
+          <Text style={[styles.tableCell, styles.headerCell]}>
+            Plants/heads of off-type
+          </Text>
+          <Text style={[styles.tableCell, styles.headerCell]}>
+            Inseparable other crops
+          </Text>
+          <Text style={[styles.tableCell, styles.headerCell]}>
+            Objectionable weeds
+          </Text>
+          <Text style={[styles.tableCell, styles.headerCell]}>
+            Affected by seed borne Disease
+          </Text>
+        </View>
 
-            {formData.counts.map((count, index) => (
-              <View key={index} style={styles.tableRow}>
-                <Text
-                  style={[
-                    styles.tableCell,
-                    styles.countCell,
-                    { width: moderateScale(80) },
-                  ]}
-                >
-                  {index + 1}
-                </Text>
-                {currentStep2Config.fields.map((field, fieldIndex) => (
-                  <TextInput
-                    key={fieldIndex}
-                    style={[
-                      styles.tableCell,
-                      styles.inputCell,
-                      { width: moderateScale(150) },
-                    ]}
-                    value={count[field] || ""}
-                    onChangeText={(text) => handleCountChange(index, field, text)}
-                    keyboardType="numeric"
-                    placeholder="0"
-                  />
-                ))}
-              </View>
-            ))}
-
-            <View style={styles.tableFooter}>
-              <Text
-                style={[
-                  styles.tableCell,
-                  styles.footerCell,
-                  { width: moderateScale(80) },
-                ]}
-              >
-                TOTAL
-              </Text>
-              {currentStep2Config.fields.map((field, index) => {
-                const total = formData.counts.reduce((sum, count) => {
-                  return sum + (parseFloat(count[field]) || 0);
-                }, 0);
-                return (
-                  <Text
-                    key={index}
-                    style={[
-                      styles.tableCell,
-                      styles.footerCell,
-                      { width: moderateScale(150) },
-                    ]}
-                  >
-                    {total.toFixed(2)}
-                  </Text>
-                );
-              })}
-            </View>
+        {formData.counts.map((count, index) => (
+          <View key={index} style={styles.tableRow}>
+            <Text style={[styles.tableCell, styles.countCell, { flex: 0.5 }]}>
+              {index + 1}
+            </Text>
+            <TextInput
+              style={[styles.tableCell, styles.inputCell]}
+              value={count.offType}
+              onChangeText={(text) => handleCountChange(index, "offType", text)}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.tableCell, styles.inputCell]}
+              value={count.otherCrops}
+              onChangeText={(text) =>
+                handleCountChange(index, "otherCrops", text)
+              }
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.tableCell, styles.inputCell]}
+              value={count.weeds}
+              onChangeText={(text) => handleCountChange(index, "weeds", text)}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[styles.tableCell, styles.inputCell]}
+              value={count.disease}
+              onChangeText={(text) => handleCountChange(index, "disease", text)}
+              keyboardType="numeric"
+            />
           </View>
-        </ScrollView>
+        ))}
+
+        <View style={styles.tableFooter}>
+          <Text style={[styles.tableCell, styles.footerCell, { flex: 0.5 }]}>
+            TOTAL
+          </Text>
+          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
+          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
+          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
+          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -1174,6 +1087,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: textScale(12),
+    // marginBottom: moderateScaleVertical(8),
     fontFamily: FontFamily.PoppinsMedium,
     color: Colors.textColor,
   },
@@ -1210,71 +1124,55 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
   },
-  horizontalScrollContainer: {
-    marginBottom: moderateScaleVertical(20),
-  },
-  tableContainer: {
-    minWidth: moderateScale(800),
-  },
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: moderateScale(2),
+    borderBottomWidth: moderateScale(1),
     borderColor: Colors.lightGray,
-    paddingBottom: moderateScale(8),
-    marginBottom: moderateScale(8),
-    backgroundColor: Colors.lightBackground,
+    paddingBottom: moderateScale(5),
+    marginBottom: moderateScale(5),
   },
   tableRow: {
     flexDirection: "row",
-    marginBottom: moderateScaleVertical(10),
-    paddingVertical: moderateScaleVertical(5),
+    marginBottom: moderateScaleVertical(8),
   },
   tableFooter: {
     flexDirection: "row",
-    borderTopWidth: moderateScale(2),
+    borderTopWidth: moderateScale(1),
     borderColor: Colors.lightGray,
-    paddingTop: moderateScale(8),
-    marginTop: moderateScale(8),
+    paddingTop: moderateScale(6),
+    marginTop: moderateScale(6),
     marginBottom: moderateScaleVertical(10),
-    backgroundColor: Colors.lightBackground,
   },
   tableCell: {
-    padding: moderateScale(8),
+    flex: 1,
+    padding: moderateScale(4),
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: moderateScale(2),
   },
   headerCell: {
-    fontFamily: FontFamily.PoppinsSemiBold,
-    fontSize: textScale(11),
+    fontFamily: FontFamily.PoppinsRegular,
+    fontSize: textScale(9),
     textAlign: "center",
     color: Colors.textColor,
-    fontWeight: "600",
   },
   countCell: {
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
     textAlign: "center",
     color: Colors.textColor,
-    fontSize: textScale(13),
-    fontWeight: "500",
+    fontSize: textScale(12),
   },
   inputCell: {
     borderWidth: moderateScale(1),
     borderColor: Colors.veryLightGrey,
     borderRadius: moderateScale(5),
-    padding: moderateScale(8),
+    padding: moderateScale(4),
     textAlign: "center",
-    height: moderateScale(45),
-    fontSize: textScale(13),
-    fontFamily: FontFamily.PoppinsRegular,
-    backgroundColor: Colors.white,
+    height: moderateScale(40),
   },
   footerCell: {
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontFamily: FontFamily.PoppinsRegular,
     textAlign: "center",
     fontSize: textScale(12),
-    fontWeight: "600",
-    color: Colors.greenColor,
   },
   twoColumnLayout: {
     flexDirection: "row",
