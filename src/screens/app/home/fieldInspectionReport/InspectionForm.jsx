@@ -24,11 +24,21 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../../../../components/CustomButton";
+import { apiRequest } from "../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../services/APIRoutes";
+import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
+import { showMessage } from "react-native-flash-message";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../../../utils/HelperFunction";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
+  // console.log(data, "line 32");
   const navigation = useNavigation();
-  console.log(data?.cropFirTypeId, "line 7");
+  // console.log(data?.cropFirTypeId, "line 7");
+  // console.log(data?.inspection?.crop?.id, "line 35");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -1524,13 +1534,263 @@ const InspectionForm = ({ route }) => {
     </KeyboardAvoidingView>
   );
 
-  const handleSubmit = async () => {
+  // Helper function to convert boolean to Yes/No string
+  const booleanToYesNo = (value) => {
+    return value ? "Yes" : "No";
+  };
+
+  // Helper function to map counts data for different crop types
+  const mapCountsData = (counts, cropType) => {
+    if (cropType === 1) {
+      // For type 1: Pollen Shedding & Disease Count Details
+      return counts.map((count) => ({
+        pollenSheddingHeads: count.pollenSheddingHeads || "0",
+        offTypesSheddingPollen: count.offTypesSheddingPollen || "0",
+        headSmutErgot: count.headSmutErgot || "0",
+        kernelSmutGrainSmut: count.kernelSmutGrainSmut || "0",
+        greenEar: count.greenEar || "0",
+      }));
+    } else if (cropType === 2) {
+      // For type 2: Count Details
+      return counts.map((count) => ({
+        offType: count.offType || "0",
+        otherCrops: count.otherCrops || "0",
+        weeds: count.weeds || "0",
+        disease: count.disease || "0",
+      }));
+    } else if (cropType === 3) {
+      // For type 3: Maize Crop Inspection Details
+      return counts.map((count) => ({
+        compositeOrFemaleParent1: count.receptiveSkills || "0",
+        femaleParentOfCrops: count.femaleParentSheddingTassels || "0",
+        compositeOrFemaleParent2: count.compositeOffTypeSheddingTassels || "0",
+        maleParentOfCrops: count.maleParentOffTypeSheddingTassels || "0",
+      }));
+    }
+    return [];
+  };
+
+  // Function to map form data to API payload based on crop type
+  const mapFormDataToPayload = (formData, cropType, routeData) => {
+    const basePayload = {
+      scheduleId:
+        routeData?.inspection?.schedule?.id || data?.inspection?.schedule?.id,
+      cropId: data?.inspection?.crop?.id,
+      seasonId: data?.inspection?.productionPlan?.seasonId,
+      season: data?.inspection?.productionPlan?.season,
+      seedClass:
+        routeData?.inspection?.schedule?.seed ||
+        data?.inspection?.schedule?.seed,
+      areaOfInspectionField:
+        routeData?.totalInspectedArea || data?.totalInspectedArea,
+      totalAcreUnderSeedProd:
+        routeData?.inspection?.schedule?.areaToBePlanted ||
+        data?.inspection?.schedule?.areaToBePlanted,
+      growerId: routeData?.inspection?.growerId || data?.inspection?.growerId,
+      growerName:
+        routeData?.inspection?.schedule?.growerName ||
+        data?.inspection?.schedule?.growerName,
+      growerDistrict:
+        data?.grower?.entityRegNo?.block?.taluqs?.district?.districtName,
+      growerState:
+        data?.grower?.entityRegNo?.block?.taluqs?.district?.state?.stateName,
+      inspectionCount: data?.productionInspection?.length,
+      inspectionInchargeId:
+        routeData?.inspection?.schedule?.inspectionInChargeId ||
+        data?.inspection?.schedule?.inspectionInChargeId,
+      scheduleLandId: routeData?.inspection?.schedule?.landDetails?.map(
+        (land) => land.landId
+      ) ||
+        data?.inspection?.schedule?.landDetails?.map((land) => land.landId) || [
+          routeData?.selectedLands?.[0]?.id || data?.selectedLands?.[0]?.id,
+        ],
+      inspectionStatus: "APPROVED", // Default status
+    };
+
+    if (cropType === 1) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        seedSource: formData.seedsource || "",
+        femaleParent: formData.femaleParent || "",
+        maleParent: formData.maleParent || "",
+        hybridCodeDesignation: formData.codeHybridDesignation || "",
+        plantingRatio: formData.plantingRatio || "",
+        areBothEndMaleRowsMarked: booleanToYesNo(formData.areBothEndMarked),
+        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
+        isolationDistanceNorth: formData.isolationDistanceNorth || "0",
+        isolationDistanceSouth: formData.isolationDistanceSouth || "0",
+        isolationDistanceEast: formData.isolationDistanceEast || "0",
+        isolationDistanceWest: formData.isolationDistanceWest || "0",
+        stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
+        stageOfSeedCropAtInspection:
+          formData.stageOfCropGrowthAtInspection || "",
+        reportNumber: formData.reportnumber || "",
+        timeFrom: formData.timeFrom || "",
+        timeTo: formData.timeTo || "",
+        // Step 2 fields
+        fieldCount: mapCountsData(formData.counts, 1),
+        // Step 3 fields
+        numberOfBorderRow: formData.noOfBorderRow || "0",
+        cropCondition: formData.cropCondition || "",
+        numberOfTimesPollenSheddersRemoved:
+          formData.noOfTimesPollenSheddersRemoved || "0",
+        frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
+        wasItDoneAtInspectionTime: booleanToYesNo(
+          formData.wasItDoneAtInspectionTime
+        ),
+        qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
+        doesCropConformToStandards: booleanToYesNo(
+          formData.doesCropConformToStandards
+        ),
+        estimatedSeedYieldQtlsOrHect: formData.estimatedSeedYieldKgPerHa || "0",
+        wasGrowerPresentAtInspection: booleanToYesNo(
+          formData.wasGrowerPresentAtInspectionTime
+        ),
+        isFinalReport: booleanToYesNo(formData.isFinalReport),
+        areaRejectedHect: formData.areaRejectedHa || "0",
+        areaCertifiedHect: formData.areaCertifiedHa || "0",
+        name: formData.name || "",
+        designation: formData.designation || "",
+        address: formData.address || "",
+        remarks: formData.remarks || "",
+      };
+    } else if (cropType === 2) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        natureOfProgramme: formData.natureofprogramme || "",
+        reportNumber: formData.reportnumber || "",
+        labelOfFarm: formData.labeoffarm || "",
+        seedSource: formData.seedsource || "",
+        totalAcreageUnderProductionInHa:
+          formData.totalacreageunderproductioninha || "0",
+        acreageOfFieldNoInspectedInHa:
+          formData.acreageoffieldnoinspectedinha || "0",
+        previousCrop: formData.previouscrop || "",
+        isolationDistance: formData.isolationdistance || "0",
+        stageOfGrowthOfContaminant: formData.stageofgrowthofcontaminant || "",
+        stageOfSeedCropAtThisInspection:
+          formData.stageofseedcropatthisinspection || "",
+        // Step 2 fields
+        fieldCount: mapCountsData(formData.counts, 2),
+        // Step 3 fields
+        offTypePercentage: formData.offTypePercentage || "0",
+        inseparableOtherCropsPercentage:
+          formData.inseparableOtherCropsPercentage || "0",
+        objectionableWeedsPercentage:
+          formData.objectionableWeedsPercentage || "0",
+        seedBorneDiseasesPercentage:
+          formData.seedBorneDiseasesPercentage || "0",
+        inseparableOtherCropsName: formData.inseparableOtherCropsName || "",
+        objectionableWeedsName: formData.objectionableWeedsName || "",
+        seedBorneDiseasesName: formData.seedBorneDiseasesName || "",
+        nonSeedBorneDiseases: formData.nonSeedBorneDiseases || "",
+        conditionOfCrop: formData.conditionOfCrop || "",
+        confirmsToStandards: booleanToYesNo(formData.confirmsToStandards),
+        productionQuality: formData.productionQuality || "",
+        isFinalReport: booleanToYesNo(formData.isFinalReport),
+        estimatedRawSeedYield: formData.estimatedRawSeedYield || "0",
+        growerPresent: booleanToYesNo(formData.growerPresent),
+        submittedFor: formData.growerName || "",
+        submittedBy: formData.submittedBy || "",
+        designation: formData.designation || "",
+        remarks: formData.remarks || "",
+      };
+    } else if (cropType === 3) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        seedSource: formData.seedsource || "",
+        femaleParent: formData.femaleParent || "",
+        maleParent: formData.maleParent || "",
+        hybridCodeDesignation: formData.codeHybridDesignation || "",
+        plantingRatio: formData.plantingRatio || "",
+        areBothEndOfMaleRowsMarked: booleanToYesNo(
+          formData.areBothEndOfMaleRowsMarked
+        ),
+        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
+        isolationDistanceMeters: formData.isolationDistanceMeters || "0",
+        stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
+        stageOfSeedCropAtInspection:
+          formData.stageofseedcropatthisinspection || "",
+        // Step 2 fields
+        fieldCount: mapCountsData(formData.counts, 3),
+        // Step 3 fields
+        sideOfFieldFromWhichInspectionStarted:
+          formData.sideOfFieldFromWhichInspectionWasStarted || "",
+        cropCondition: formData.cropCondition || "",
+        numberOfTimesDetasselled: formData.noOfTimesDetasselled || "0",
+        frequencyOfDetasselling: formData.frequencyOfDetasselling || "",
+        detassellingDoneAtInspectionTime: booleanToYesNo(
+          formData.detassellingDoneAtInspectionTime
+        ),
+        qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
+        estimatedSeedYieldQtlsOrAcres:
+          formData.estimatedSeedYieldKgsPerAcres || "0",
+        wasGrowerPresentAtInspection: booleanToYesNo(formData.growerPresent),
+        numberOfBorderRow: formData.noOfBorderRow || "0",
+        isFinalReport: booleanToYesNo(formData.isFinalReport),
+        areaRejectedHect: formData.areaRejectedHa || "0",
+        areaCertifiedHect: formData.areaCertifiedHa || "0",
+        remarks: formData.remarks || "",
+      };
+    }
+
+    return basePayload;
+  };
+
+  const handleSubmit = async (inspectionStatus = "APPROVED") => {
     const stepErrors = validateStep(3);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
     }
-    console.log("clicked on the submit button");
+
+    setLoading(true);
+    try {
+      const payload = mapFormDataToPayload(formData, cropFirTypeId, data);
+      payload.inspectionStatus = inspectionStatus;
+      let apiEndpoint;
+      switch (cropFirTypeId) {
+        case 1:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_A;
+          break;
+        case 2:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_B;
+          break;
+        case 3:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_C;
+          break;
+        default:
+          throw new Error("Invalid crop FIR type");
+      }
+      console.log("Submitting data:", payload);
+      console.log("API Endpoint:", apiEndpoint);
+      const encryptedPayload = encryptWholeObject(payload);
+      const response = await apiRequest(apiEndpoint, "POST", encryptedPayload);
+      console.log("API Response:", response);
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 1780");
+      console.log("parsedDecrypted:", parsedDecrypted);
+      if (
+        parsedDecrypted &&
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        showSuccessMessage(`Success,${parsedDecrypted?.message}`);
+        navigation.push("FieldInspectionReport");
+      } else {
+        console.log("errors");
+        showErrorMessage(`Error,${parsedDecrypted?.message}`);
+      }
+    } catch (error) {
+      console.error("Error submitting inspection form:", error);
+      alert("Failed to submit inspection form. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1594,7 +1854,7 @@ const InspectionForm = ({ route }) => {
                 { backgroundColor: Colors.greenColor },
               ]}
               textStyle={styles.buttonText}
-              handleAction={() => handleSubmit()}
+              handleAction={() => handleSubmit("APPROVED")}
             />
             <CustomButton
               text={"Reject"}
@@ -1604,7 +1864,7 @@ const InspectionForm = ({ route }) => {
                 { backgroundColor: Colors.redThemeColor },
               ]}
               textStyle={styles.buttonText}
-              handleAction={() => handleSubmit()}
+              handleAction={() => handleSubmit("REJECTED")}
             />
             <CustomButton
               text={"Cancel"}
