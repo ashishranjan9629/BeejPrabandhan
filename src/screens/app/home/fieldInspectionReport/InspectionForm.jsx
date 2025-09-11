@@ -127,22 +127,22 @@ const InspectionForm = ({ route }) => {
       {
         label: "Isolation Distance North",
         field: "isolationDistanceNorth",
-        keyboardType: "numeric",
+        keyboardType: "decimal-pad",
       },
       {
         label: "Isolation Distance South",
         field: "isolationDistanceSouth",
-        keyboardType: "numeric",
+        keyboardType: "decimal-pad",
       },
       {
         label: "Isolation Distance East",
         field: "isolationDistanceEast",
-        keyboardType: "numeric",
+        keyboardType: "decimal-pad",
       },
       {
         label: "Isolation Distance West",
         field: "isolationDistanceWest",
-        keyboardType: "numeric",
+        keyboardType: "decimal-pad",
       },
       { label: "Report Number", field: "reportnumber" },
       { label: "Time From", field: "timeFrom" },
@@ -1218,13 +1218,13 @@ const InspectionForm = ({ route }) => {
               {
                 label: "No. of Border Row",
                 field: "noOfBorderRow",
-                keyboardType: "numeric",
+                keyboardType: "number-pad",
               },
               { label: "Crop Condition", field: "cropCondition" },
               {
                 label: "No. of times pollen shedders / off types were removed",
                 field: "noOfTimesPollenSheddersRemoved",
-                keyboardType: "numeric",
+                keyboardType: "number-pad",
               },
               {
                 label: "Frequency of pollen shedders, off types etc.",
@@ -1248,7 +1248,7 @@ const InspectionForm = ({ route }) => {
               {
                 label: "Estimated seed yield (Kgs/ Hect.)",
                 field: "estimatedSeedYieldKgPerHa",
-                keyboardType: "numeric",
+                keyboardType: "decimal-pad",
               },
               {
                 label:
@@ -1264,12 +1264,12 @@ const InspectionForm = ({ route }) => {
               {
                 label: "Area rejected (in Ha)",
                 field: "areaRejectedHa",
-                keyboardType: "numeric",
+                keyboardType: "decimal-pad",
               },
               {
                 label: "Area certified (in Ha)",
                 field: "areaCertifiedHa",
-                keyboardType: "numeric",
+                keyboardType: "decimal-pad",
               },
               { label: "Name", field: "name" },
               { label: "Designation", field: "designation" },
@@ -1550,11 +1550,15 @@ const InspectionForm = ({ route }) => {
     if (cropType === 1) {
       // For type 1: Pollen Shedding & Disease Count Details
       return counts.map((count) => ({
-        pollenSheddingHeads: count.pollenSheddingHeads || "0",
-        offTypesSheddingPollen: count.offTypesSheddingPollen || "0",
-        headSmutErgot: count.headSmutErgot || "0",
-        kernelSmutGrainSmut: count.kernelSmutGrainSmut || "0",
-        greenEar: count.greenEar || "0",
+        pollenSheddingHeadsCount: parseInt(count.pollenSheddingHeads) || 0,
+        offTypeSheddingHeadsCount1: parseInt(count.offTypesSheddingPollen) || 0,
+        normalHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
+        normalKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
+        normalGreenEarCount: parseInt(count.greenEar) || 0,
+        offTypeSheddingHeadsCount2: parseInt(count.offTypesSheddingPollen) || 0,
+        offTypeHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
+        offTypeKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
+        offTypeGreenEarCount: parseInt(count.greenEar) || 0,
       }));
     } else if (cropType === 2) {
       // For type 2: Count Details
@@ -1623,52 +1627,51 @@ const InspectionForm = ({ route }) => {
       return {
         ...basePayload,
         // Step 1 fields
+        reportNo: formData.reportnumber || "",
+        timeFrom: formData.timeFrom || "",
+        timeTo: formData.timeTo || "",
+        dateOfInspection: convertDateFormat(formData.dateOfInspection),
+        plantingRatio: formData.plantingRatio || "",
+        previousCrop: formData.previouscrop || "",
+        areBothEndMarked: booleanToYesNo(formData.areBothEndMarked),
+        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
+        stageOfGrowthOfAtTheInspection: formData.stageOfCropGrowthAtInspection || "",
+        stageOfGrowthOfContaminant: formData.stageofgrowthofcontaminant || "",
+        isolationDistanceNorth: parseFloat(formData.isolationDistanceNorth) || 0,
+        isolationDistanceSouth: parseFloat(formData.isolationDistanceSouth) || 0,
+        isolationDistanceEast: parseFloat(formData.isolationDistanceEast) || 0,
+        isolationDistanceWest: parseFloat(formData.isolationDistanceWest) || 0,
         seedSource: formData.seedsource || "",
         femaleParent: formData.femaleParent || "",
         maleParent: formData.maleParent || "",
         hybridCodeDesignation: formData.codeHybridDesignation || "",
-        plantingRatio: formData.plantingRatio || "",
-        areBothEndMaleRowsMarked: booleanToYesNo(formData.areBothEndMarked),
-        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
-        isolationDistanceNorth: formData.isolationDistanceNorth || "0",
-        isolationDistanceSouth: formData.isolationDistanceSouth || "0",
-        isolationDistanceEast: formData.isolationDistanceEast || "0",
-        isolationDistanceWest: formData.isolationDistanceWest || "0",
-        stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
-        stageOfSeedCropAtInspection:
-          formData.stageOfCropGrowthAtInspection || "",
-        reportNumber: formData.reportnumber || "",
-        timeFrom: formData.timeFrom || "",
-        timeTo: formData.timeTo || "",
         dateOfSowing: convertDateFormat(formData.dateOfSowing),
-        expectedHarvest: convertDateFormat(formData.expectedHarvest),
-        dateOfInspection: convertDateFormat(formData.dateOfInspection),
+        expectedDateOfHarvest: convertDateFormat(formData.expectedHarvest),
         // Step 2 fields
-        fieldCount: mapCountsData(formData.counts, 1),
+        productionInspectionFieldCountAs: mapCountsData(formData.counts, 1),
         // Step 3 fields
-        numberOfBorderRow: formData.noOfBorderRow || "0",
+        noOfBorderRows: parseInt(formData.noOfBorderRow) || 0,
         cropCondition: formData.cropCondition || "",
-        numberOfTimesPollenSheddersRemoved:
-          formData.noOfTimesPollenSheddersRemoved || "0",
+        noOfTimesPollenShedders: parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
         frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
-        wasItDoneAtInspectionTime: booleanToYesNo(
-          formData.wasItDoneAtInspectionTime
-        ),
+        wasItDoneAtInspectionTime: booleanToYesNo(formData.wasItDoneAtInspectionTime),
         qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
-        doesCropConformToStandards: booleanToYesNo(
-          formData.doesCropConformToStandards
-        ),
-        estimatedSeedYieldQtlsOrHect: formData.estimatedSeedYieldKgPerHa || "0",
-        wasGrowerPresentAtInspection: booleanToYesNo(
-          formData.wasGrowerPresentAtInspectionTime
-        ),
-        isFinalReport: booleanToYesNo(formData.isFinalReport),
-        areaRejectedHect: formData.areaRejectedHa || "0",
-        areaCertifiedHect: formData.areaCertifiedHa || "0",
+        doesThisCropConfirmToStandard: booleanToYesNo(formData.doesCropConformToStandards),
+        estimatedSeedYield: parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
+        wasTheGrowerPresent: booleanToYesNo(formData.wasGrowerPresentAtInspectionTime),
+        isFinal: booleanToYesNo(formData.isFinalReport),
+        areaRejected: parseFloat(formData.areaRejectedHa) || 0,
+        areaCertified: parseFloat(formData.areaCertifiedHa) || 0,
         name: formData.name || "",
         designation: formData.designation || "",
         address: formData.address || "",
         remarks: formData.remarks || "",
+        programmeRejected: "No", // Default value
+        // Additional fields for Type 1
+        growerVillage: data?.grower?.entityRegNo?.villageId?.villageName || "",
+        growerTaluk: data?.grower?.entityRegNo?.taluqs?.talukaName || "",
+        growerBlock: data?.grower?.entityRegNo?.block?.blockName || "",
+        rejectedLands: [], // Default empty array
       };
     } else if (cropType === 2) {
       return {
