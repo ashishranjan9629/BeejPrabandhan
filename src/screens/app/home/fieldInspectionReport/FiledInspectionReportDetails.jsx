@@ -352,11 +352,11 @@ const FiledInspectionReportDetails = ({ route }) => {
                   />
                   <Details
                     label={"Expected Date of Harvest"}
-                    value={item?.expectedHarvest || "N/A"}
+                    value={item?.expectedDateOfHarvest || "N/A"}
                   />
                   <Details
                     label={"Report Number"}
-                    value={item?.reportNumber || "N/A"}
+                    value={item?.reportNo || "N/A"}
                   />
                   <Details label={"Time From"} value={item?.timeFrom || "N/A"} />
                   <Details label={"Time To"} value={item?.timeTo || "N/A"} />
@@ -370,7 +370,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                   />
                   <Details
                     label={"Are Both End Marked"}
-                    value={item?.areBothEndMaleRowsMarked || "N/A"}
+                    value={item?.areBothEndMarked || "N/A"}
                   />
                   <Details
                     label={"Method of marking male rows"}
@@ -378,11 +378,11 @@ const FiledInspectionReportDetails = ({ route }) => {
                   />
                   <Details
                     label={"Stage of crop growth at this inspection"}
-                    value={item?.stageOfSeedCropAtInspection || "N/A"}
+                    value={item?.stageOfGrowthOfAtTheInspection || "N/A"}
                   />
                   <Details
                     label={"Stage Of Growth Of Contaminant"}
-                    value={item?.stageOfGrowthCoteminant || "N/A"}
+                    value={item?.stageOfGrowthOfContaminant || "N/A"}
                   />
                   <Details
                     label={"North"}
@@ -402,7 +402,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                   />
                   <Details
                     label={"No of Border Row"}
-                    value={item?.numberOfBorderRow || "N/A"}
+                    value={item?.noOfBorderRows || "N/A"}
                   />
                   <Details
                     label={"Crop Condition"}
@@ -410,7 +410,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                   />
                   <Details
                     label={"No of times Pollen Shedders"}
-                    value={item?.numberOfTimesPollenSheddersRemoved || "N/A"}
+                    value={item?.noOfTimesPollenShedders || "N/A"}
                   />
                   <Details
                     label={"Frequency of Pollen Shedders"}
@@ -424,29 +424,29 @@ const FiledInspectionReportDetails = ({ route }) => {
                     label={
                       "Does this crop conform to the standards for certification"
                     }
-                    value={item?.doesCropConformToStandards || "N/A"}
+                    value={item?.doesThisCropConfirmToStandard || "N/A"}
                   />
                   <Details
                     label={"Estimated seed yield (Kgs/ Hect.)"}
-                    value={item?.estimatedSeedYieldQtlsOrHect || "N/A"}
+                    value={item?.estimatedSeedYield || "N/A"}
                   />
                   <Details
                     label={
                       "Was the Grower or his representatives present at inspection time?"
                     }
-                    value={item?.wasGrowerPresentAtInspection || "N/A"}
+                    value={item?.wasTheGrowerPresent || "N/A"}
                   />
                   <Details
                     label={"Is this the final report?"}
-                    value={item?.isFinalReport || "N/A"}
+                    value={item?.isFinal || "N/A"}
                   />
                   <Details
                     label={"Area rejected (in Ha)"}
-                    value={item?.areaRejectedHect || "N/A"}
+                    value={item?.areaRejected || "N/A"}
                   />
                   <Details
                     label={"Area certified (in Ha)"}
-                    value={item?.areaCertifiedHect || "N/A"}
+                    value={item?.areaCertified || "N/A"}
                   />
                   <Details label={"Name"} value={item?.name || "N/A"} />
                   <Details
