@@ -27,16 +27,21 @@ import { useNavigation } from "@react-navigation/native";
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
+  // console.log(item, "line 30");
+  // console.log(item?.productionStatus, "line 30");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
   const [expandedId, setExpandedId] = useState("1");
-  console.log(detailsData?.productionInspection[0], "line 31aaa");
+  const [cropFirTypeId, setCropFirTypeId] = useState(null);
+  console.log(detailsData, "All the details Data");
+  console.log(cropFirTypeId,"cropFirTypeId")
   useEffect(() => {
     fethcProgramListDetails();
   }, []);
 
   const fethcProgramListDetails = async () => {
+    console.log(item?.id, "line 40");
     const payloadData = {
       id: item?.id,
     };
@@ -125,8 +130,9 @@ const FiledInspectionReportDetails = ({ route }) => {
               setDetailsData({
                 inspection: parsedDecrypted?.data,
                 grower: growerData,
-                productionInspection: inspectionParsedDecrypted?.data, // <-- added here
+                productionInspection: inspectionParsedDecrypted?.data, 
               });
+              setCropFirTypeId( parsedDecrypted?.data?.crop?.cropFirType?.cropFirTypeId);
             } else {
               showErrorMessage("Error in getting Inspection Data");
             }
@@ -267,6 +273,8 @@ const FiledInspectionReportDetails = ({ route }) => {
               <Text style={styles.headerText}>
                 Inspection Details {index + 1}
               </Text>
+              
+              {/* Common fields for all types */}
               <Details
                 label={"Name of the Producer/Grower"}
                 value={item.growerName || "N/A"}
@@ -315,147 +323,390 @@ const FiledInspectionReportDetails = ({ route }) => {
                 value={item?.totalAcreUnderSeedProd || "N/A"}
               />
               <Details
-                label={"Seed Source"}
-                value={item?.seedSource || "N/A"}
-              />
-              <Details
-                label={"Female Parent"}
-                value={item?.femaleParent || "N/A"}
-              />
-              <Details
-                label={"Male Parent"}
-                value={item?.maleParent || "N/A"}
-              />
-              <Details
-                label={"Code / Hybrid Designation"}
-                value={item?.hybridCodeDesignation || "N/A"}
-              />
-              <Details
-                label={"Date of Showing"}
-                value={item?.dateOfSowing || "N/A"}
-              />
-              <Details
-                label={"Expected Date of Harvest"}
-                value={item?.expectedDateOfHarvest || "N/A"}
-              />
-              <Details
-                label={"Report Number"}
-                value={item?.reportNo || "N/A"}
-              />
-              <Details label={"Time From"} value={item?.timeFrom || "N/A"} />
-              <Details label={"Time To"} value={item?.timeTo || "N/A"} />
-              <Details
                 label={"Date of Inspection"}
                 value={item?.dateOfInspection || "N/A"}
               />
-              <Details
-                label={"Planting Ratio"}
-                value={item?.plantingRatio || "N/A"}
-              />
-              <Details
-                label={"Prevoius Crop"}
-                value={item?.previousCrop || "N/A"}
-              />
-              <Details
-                label={"Are Both End Marked"}
-                value={item?.areBothEndMarked || "N/A"}
-              />
-              <Details
-                label={"Method of marking mole rows"}
-                value={item?.methodOfMarkingMaleRows || "N/A"}
-              />
-              <Details
-                label={"Stage of crop growth at this inspection"}
-                value={item?.stageOfGrowthOfAtTheInspection || "N/A"}
-              />
-              <Details
-                label={"Stage Of Growth Of Contaminant"}
-                value={item?.stageOfGrowthOfContaminant || "N/A"}
-              />
-              <Details
-                label={"North"}
-                value={item?.isolationDistanceNorth || "N/A"}
-              />
-              <Details
-                label={"South"}
-                value={item?.isolationDistanceSouth || "N/A"}
-              />
-              <Details
-                label={"East"}
-                value={item?.isolationDistanceEast || "N/A"}
-              />
-              <Details
-                label={"West"}
-                value={item?.isolationDistanceWest || "N/A"}
-              />
-              <Details
-                label={"No of Border Row"}
-                value={item?.noOfBorderRows || "N/A"}
-              />
-              <Details
-                label={"Crop Condition"}
-                value={item?.cropCondition || "N/A"}
-              />
 
-              <Details
-                label={"No of times Pollen Shedders"}
-                value={item?.noOfTimesPollenShedders || "N/A"}
-              />
-              <Details
-                label={"Frequency of Pollen Shedders"}
-                value={item?.frequencyOfPollenShedders || "N/A"}
-              />
-              <Details
-                label={"Was it done at inspection time?"}
-                value={item?.wasItDoneAtInspectionTime || "N/A"}
-              />
-              <Details
-                label={
-                  "Does this crop conform to the standards for certification"
-                }
-                value={item?.doesThisCropConfirmToStandard || "N/A"}
-              />
+              {/* Type-specific fields */}
+              {cropFirTypeId === 1 && (
+                <>
+                  <Details
+                    label={"Seed Source"}
+                    value={item?.seedSource || "N/A"}
+                  />
+                  <Details
+                    label={"Female Parent"}
+                    value={item?.femaleParent || "N/A"}
+                  />
+                  <Details
+                    label={"Male Parent"}
+                    value={item?.maleParent || "N/A"}
+                  />
+                  <Details
+                    label={"Code / Hybrid Designation"}
+                    value={item?.hybridCodeDesignation || "N/A"}
+                  />
+                  <Details
+                    label={"Date of Sowing"}
+                    value={item?.dateOfSowing || "N/A"}
+                  />
+                  <Details
+                    label={"Expected Date of Harvest"}
+                    value={item?.expectedDateOfHarvest || "N/A"}
+                  />
+                  <Details
+                    label={"Report Number"}
+                    value={item?.reportNo || "N/A"}
+                  />
+                  <Details label={"Time From"} value={item?.timeFrom || "N/A"} />
+                  <Details label={"Time To"} value={item?.timeTo || "N/A"} />
+                  <Details
+                    label={"Planting Ratio"}
+                    value={item?.plantingRatio || "N/A"}
+                  />
+                  <Details
+                    label={"Previous Crop"}
+                    value={item?.previousCrop || "N/A"}
+                  />
+                  <Details
+                    label={"Are Both End Marked"}
+                    value={item?.areBothEndMarked || "N/A"}
+                  />
+                  <Details
+                    label={"Method of marking male rows"}
+                    value={item?.methodOfMarkingMaleRows || "N/A"}
+                  />
+                  <Details
+                    label={"Stage of crop growth at this inspection"}
+                    value={item?.stageOfGrowthOfAtTheInspection || "N/A"}
+                  />
+                  <Details
+                    label={"Stage Of Growth Of Contaminant"}
+                    value={item?.stageOfGrowthOfContaminant || "N/A"}
+                  />
+                  <Details
+                    label={"North"}
+                    value={item?.isolationDistanceNorth || "N/A"}
+                  />
+                  <Details
+                    label={"South"}
+                    value={item?.isolationDistanceSouth || "N/A"}
+                  />
+                  <Details
+                    label={"East"}
+                    value={item?.isolationDistanceEast || "N/A"}
+                  />
+                  <Details
+                    label={"West"}
+                    value={item?.isolationDistanceWest || "N/A"}
+                  />
+                  <Details
+                    label={"No of Border Row"}
+                    value={item?.noOfBorderRows || "N/A"}
+                  />
+                  <Details
+                    label={"Crop Condition"}
+                    value={item?.cropCondition || "N/A"}
+                  />
+                  <Details
+                    label={"No of times Pollen Shedders"}
+                    value={item?.noOfTimesPollenShedders || "N/A"}
+                  />
+                  <Details
+                    label={"Frequency of Pollen Shedders"}
+                    value={item?.frequencyOfPollenShedders || "N/A"}
+                  />
+                  <Details
+                    label={"Was it done at inspection time?"}
+                    value={item?.wasItDoneAtInspectionTime || "N/A"}
+                  />
+                  <Details
+                    label={
+                      "Does this crop conform to the standards for certification"
+                    }
+                    value={item?.doesThisCropConfirmToStandard || "N/A"}
+                  />
+                  <Details
+                    label={"Estimated seed yield (Kgs/ Hect.)"}
+                    value={item?.estimatedSeedYield || "N/A"}
+                  />
+                  <Details
+                    label={
+                      "Was the Grower or his representatives present at inspection time?"
+                    }
+                    value={item?.wasTheGrowerPresent || "N/A"}
+                  />
+                  <Details
+                    label={"Is this the final report?"}
+                    value={item?.isFinal || "N/A"}
+                  />
+                  <Details
+                    label={"Area rejected (in Ha)"}
+                    value={item?.areaRejected || "N/A"}
+                  />
+                  <Details
+                    label={"Area certified (in Ha)"}
+                    value={item?.areaCertified || "N/A"}
+                  />
+                  <Details label={"Name"} value={item?.name || "N/A"} />
+                  <Details
+                    label={"Designation"}
+                    value={item?.designation || "N/A"}
+                  />
+                  <Details label={"Address"} value={item?.address || "N/A"} />
+                  <Details label={"Remarks"} value={item?.remarks || "N/A"} />
+                </>
+              )}
 
-              <Details
-                label={"Estimated seed yield (Kgs/ Hect.)"}
-                value={item?.estimatedSeedYield || "N/A"}
-              />
-              <Details
-                label={
-                  "Was the Grower or his representatives present at inspection time?"
-                }
-                value={item?.wasTheGrowerPresent || "N/A"}
-              />
-              <Details
-                label={"Is this the final report?"}
-                value={item?.isFinal || "N/A"}
-              />
-              <Details
-                label={"Area rejected (in Ha)"}
-                value={item?.areaRejected || "N/A"}
-              />
-              <Details
-                label={"Area certified (in Ha)"}
-                value={item?.areaCertified || "N/A"}
-              />
-              <Details label={"Name"} value={item?.name || "N/A"} />
-              <Details
-                label={"Designation"}
-                value={item?.designation || "N/A"}
-              />
-              <Details label={"Address"} value={item?.address || "N/A"} />
-              <Details label={"Remarks"} value={item?.remarks || "N/A"} />
+              {cropFirTypeId === 2 && (
+                <>
+                  <Details
+                    label={"Nature of Programme"}
+                    value={item?.natureOfProgramme || "N/A"}
+                  />
+                  <Details
+                    label={"Report Number"}
+                    value={item?.reportNo || "N/A"}
+                  />
+                  <Details
+                    label={"Location of Farm"}
+                    value={item?.locationOfFarm || "N/A"}
+                  />
+                  <Details
+                    label={"Source of Seed"}
+                    value={item?.sourceOfSeed || "N/A"}
+                  />
+                  <Details
+                    label={"Total Acreage under Production"}
+                    value={item?.totalAcreageUnderProduction || "N/A"}
+                  />
+                  <Details
+                    label={"Acreage of Field Inspected"}
+                    value={item?.acreageOfFieldInspected || "N/A"}
+                  />
+                  <Details
+                    label={"Previous Crop"}
+                    value={item?.previousCrop || "N/A"}
+                  />
+                  <Details
+                    label={"Isolation Distance"}
+                    value={item?.isolationDistance || "N/A"}
+                  />
+                  <Details
+                    label={"Stage of Contaminant"}
+                    value={item?.stageOfContaminant || "N/A"}
+                  />
+                  <Details
+                    label={"Stage of Seed Crop at Time Inspection"}
+                    value={item?.stageOfSeedCropAtTimeInspection || "N/A"}
+                  />
+                  <Details
+                    label={"Date of Sowing"}
+                    value={item?.dateOfSowing || "N/A"}
+                  />
+                  <Details
+                    label={"Expected Date of Harvest From"}
+                    value={item?.expectedDateOfHarvestFrom || "N/A"}
+                  />
+                  <Details
+                    label={"Expected Date of Harvest To"}
+                    value={item?.expectedDateOfHarvestTo || "N/A"}
+                  />
+                  <Details
+                    label={"Percentage of Off-Types"}
+                    value={item?.percentageOffTypes || "N/A"}
+                  />
+                  <Details
+                    label={"Percentage of Inseparable Crops"}
+                    value={item?.percentageInseparableCrops || "N/A"}
+                  />
+                  <Details
+                    label={"Percentage of Objectionable Weeds"}
+                    value={item?.percentageObjectionableWeeds || "N/A"}
+                  />
+                  <Details
+                    label={"Percentage of Seed-borne Diseases"}
+                    value={item?.percentageSeedBorneDiseases || "N/A"}
+                  />
+                  <Details
+                    label={"Inseparable Crop Plants"}
+                    value={item?.inseparableCropPlants || "N/A"}
+                  />
+                  <Details
+                    label={"Objectionable Weed Plants"}
+                    value={item?.objectionableWeedPlants || "N/A"}
+                  />
+                  <Details
+                    label={"Seed-borne Diseases"}
+                    value={item?.seedBorneDiseases || "N/A"}
+                  />
+                  <Details
+                    label={"Non-seed Borne Diseases"}
+                    value={item?.nonSeedBorneDiseases || "N/A"}
+                  />
+                  <Details
+                    label={"Condition of Crop"}
+                    value={item?.conditionOfCrop || "N/A"}
+                  />
+                  <Details
+                    label={"Confirm Standard"}
+                    value={item?.confirmStandard || "N/A"}
+                  />
+                  <Details
+                    label={"Production Quality"}
+                    value={item?.productionQuality || "N/A"}
+                  />
+                  <Details
+                    label={"Is Final"}
+                    value={item?.isFinal || "N/A"}
+                  />
+                  <Details
+                    label={"Estimated Raw Seed Yield"}
+                    value={item?.estimatedRawSeedYield || "N/A"}
+                  />
+                  <Details
+                    label={"Grower Present"}
+                    value={item?.growerPresent || "N/A"}
+                  />
+                  <Details
+                    label={"Submitted For"}
+                    value={item?.submittedFor || "N/A"}
+                  />
+                  <Details
+                    label={"Submitted By"}
+                    value={item?.submittedBy || "N/A"}
+                  />
+                  <Details
+                    label={"Designation"}
+                    value={item?.designation || "N/A"}
+                  />
+                  <Details
+                    label={"Remarks"}
+                    value={item?.remarks || "N/A"}
+                  />
+                  <Details
+                    label={"Variety"}
+                    value={item?.variety || "N/A"}
+                  />
+                </>
+              )}
+
+              {cropFirTypeId === 3 && (
+                <>
+                  <Details
+                    label={"Source of Seed"}
+                    value={item?.sourceOfSeed || "N/A"}
+                  />
+                  <Details
+                    label={"Female Parent"}
+                    value={item?.femaleParent || "N/A"}
+                  />
+                  <Details
+                    label={"Male Parent"}
+                    value={item?.maleParent || "N/A"}
+                  />
+                  <Details
+                    label={"Hybrid Code Designation"}
+                    value={item?.hybridCodeDesignation || "N/A"}
+                  />
+                  <Details
+                    label={"Planting Ratio"}
+                    value={item?.plantingRatio || "N/A"}
+                  />
+                  <Details
+                    label={"Are Both End Male Rows Marked"}
+                    value={item?.areBothEndMaleRowsMarked || "N/A"}
+                  />
+                  <Details
+                    label={"Method of Marking Male Rows"}
+                    value={item?.methodOfMarkingMaleRows || "N/A"}
+                  />
+                  <Details
+                    label={"Isolation Distance Meters"}
+                    value={item?.isolationDistanceMeters || "N/A"}
+                  />
+                  <Details
+                    label={"Stage of Growth Coteminant"}
+                    value={item?.stageOfGrowthCoteminant || "N/A"}
+                  />
+                  <Details
+                    label={"Stage of Seed Crop at Inspection"}
+                    value={item?.stageOfSeedCropAtInspection || "N/A"}
+                  />
+                  <Details
+                    label={"Side of Field From Which Inspection Started"}
+                    value={item?.sideOfFieldFromWhichInspectionStarted || "N/A"}
+                  />
+                  <Details
+                    label={"Crop Condition"}
+                    value={item?.cropCondition || "N/A"}
+                  />
+                  <Details
+                    label={"Number of Times Detasselled"}
+                    value={item?.numberOfTimesDetasselled || "N/A"}
+                  />
+                  <Details
+                    label={"Frequency of Detasselling"}
+                    value={item?.frequencyOfDetasselling || "N/A"}
+                  />
+                  <Details
+                    label={"Detasselling Done at Inspection Time"}
+                    value={item?.detassellingDoneAtInspectionTime || "N/A"}
+                  />
+                  <Details
+                    label={"Quality of Seed Production Work"}
+                    value={item?.qualityOfSeedProductionWork || "N/A"}
+                  />
+                  <Details
+                    label={"Does Crop Conform to Standards"}
+                    value={item?.doesCropConformToStandards || "N/A"}
+                  />
+                  <Details
+                    label={"Estimated Seed Yield Qtls or Acres"}
+                    value={item?.estimatedSeedYieldQtlsOrAcres || "N/A"}
+                  />
+                  <Details
+                    label={"Was Grower Present at Inspection"}
+                    value={item?.wasGrowerPresentAtInspection || "N/A"}
+                  />
+                  <Details
+                    label={"Number of Border Row"}
+                    value={item?.numberOfBorderRow || "N/A"}
+                  />
+                  <Details
+                    label={"Is Final Report"}
+                    value={item?.isFinalReport || "N/A"}
+                  />
+                  <Details
+                    label={"Area Certified Hect"}
+                    value={item?.areaCertifiedHect || "N/A"}
+                  />
+                  <Details
+                    label={"Area Rejected Hect"}
+                    value={item?.areaRejectedHect || "N/A"}
+                  />
+                  <Details
+                    label={"Remarks"}
+                    value={item?.remarks || "N/A"}
+                  />
+                </>
+              )}
             </View>
           ))}
         </ScrollView>
       )}
-      <CustomButton
-        text={"Start Inspection"}
-        buttonStyle={styles.buttonStyle}
-        textStyle={styles.buttonText}
-        disabled={loading}
-        handleAction={() => navigation.navigate("StartInspection",{data:detailsData})}
-      />
+      {(item?.productionStatus === "ISSUED" ||
+        item?.productionStatus === "INSPECTED") && (
+        <CustomButton
+          text={"Start Inspection"}
+          buttonStyle={styles.buttonStyle}
+          textStyle={styles.buttonText}
+          disabled={loading}
+          handleAction={() =>
+            navigation.navigate("StartInspection", { data: detailsData })
+          }
+        />
+      )}
     </WrapperContainer>
   );
 };

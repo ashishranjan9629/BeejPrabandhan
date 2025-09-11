@@ -1,7 +1,7 @@
 export const API_ROUTES = {
   BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
-  BASE_URL: "http://192.168.100.102:7830/api/", //(development)
-  // BASE_URL: "http://192.168.80.25:7830/api/",
+  // BASE_URL: "http://192.168.100.102:7830/api/", //(development)
+  // BASE_URL: "http://192.168.80.25:7930/api/",// (Nitesh Ip)
   // BASE_URL: "http://160.25.172.19:9052/api/", //Public Server
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
@@ -21,4 +21,7 @@ export const API_ROUTES = {
   CROP_GROUP_MASTER: "master/crop-group-master/dd",
   ADD_CROP: "master/crop-master/save",
   UPDATE_CROP: "master/crop-master/update",
+  INSPECTION_SAVE_A:"prod_plan/prd-ins-type-a/save",
+  INSPECTION_SAVE_B:"prod_plan/prd-ins-type-b/save",
+  INSPECTION_SAVE_C:"prod_plan/prd-ins-type-c/save",
 };

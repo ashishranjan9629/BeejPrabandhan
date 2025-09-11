@@ -9,33 +9,405 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import {
   moderateScale,
   moderateScaleVertical,
   textScale,
+  width,
 } from "../../../../utils/responsiveSize";
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
+import CustomButton from "../../../../components/CustomButton";
+import { apiRequest } from "../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../services/APIRoutes";
+import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
+import { showSuccessMessage } from "../../../../utils/HelperFunction";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
+  // console.log(data, "line 32");
   const navigation = useNavigation();
-  console.log(data, "line 7");
+  console.log(data?.cropFirTypeId, "line 7");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState(null);
+  const cropFirTypeId = data?.cropFirTypeId ?? 3;
+  const [errors, setErrors] = useState({});
 
-  // Helper function to create field names
-  const createFieldName = (text) => {
-    return text.replace(/\s+/g, "").toLowerCase();
+  // Define all possible Step 1 fields (label + field + placeholder)
+  const STEP1_ALL_FIELDS = [
+    {
+      label: "Nature of Programme",
+      field: "natureofprogramme",
+      placeholder: "Enter nature of programme",
+    },
+    {
+      label: "Report Number",
+      field: "reportnumber",
+      placeholder: "Enter report number",
+    },
+    {
+      label: "Label of Farm",
+      field: "labeoffarm",
+      placeholder: "Enter farm label",
+    },
+    {
+      label: "Seed Source",
+      field: "seedsource",
+      placeholder: "Enter seed source",
+    },
+    {
+      label: "Total Acreage under Production (in Ha)",
+      field: "totalacreageunderproductioninha",
+      placeholder: "Enter total acreage",
+      keyboardType: "numeric",
+    },
+    {
+      label: "Acreage of Field No. Inspected (in Ha)",
+      field: "acreageoffieldnoinspectedinha",
+      placeholder: "Enter acreage",
+      keyboardType: "numeric",
+    },
+    {
+      label: "Previous crop",
+      field: "previouscrop",
+      placeholder: "Enter previous crop",
+    },
+    {
+      label: "Isolation Distance",
+      field: "isolationdistance",
+      placeholder: "Enter isolation distance",
+      keyboardType: "numeric",
+    },
+    {
+      label: "Stage of growth of contaminant",
+      field: "stageofgrowthofcontaminant",
+      placeholder: "Enter growth stage",
+    },
+    {
+      label: "Stage of seed crop at this inspection",
+      field: "stageofseedcropatthisinspection",
+      placeholder: "Enter crop stage",
+    },
+  ];
+
+  // Visible field sets per crop FIR type
+  const STEP1_FIELD_SETS = {
+    1: [
+      { label: "Seed Source", field: "seedsource" },
+      { label: "Female Parent", field: "femaleParent" },
+      { label: "Male Parent", field: "maleParent" },
+      { label: "Code/Hybrid designation", field: "codeHybridDesignation" },
+      { label: "Planting ratio (a:b)", field: "plantingRatio" },
+      { label: "Previous crop", field: "previouscrop" },
+      {
+        label: "Are both end marked?",
+        field: "areBothEndMarked",
+        type: "switch",
+      },
+      {
+        label: "Method of marking male rows",
+        field: "methodOfMarkingMaleRows",
+      },
+      {
+        label: "Stage of crop growth at this inspection",
+        field: "stageOfCropGrowthAtInspection",
+      },
+      {
+        label: "label.stageOfGrowthOfContaminant",
+        field: "stageofgrowthofcontaminant",
+      },
+      {
+        label: "Isolation Distance North",
+        field: "isolationDistanceNorth",
+        keyboardType: "decimal-pad",
+      },
+      {
+        label: "Isolation Distance South",
+        field: "isolationDistanceSouth",
+        keyboardType: "decimal-pad",
+      },
+      {
+        label: "Isolation Distance East",
+        field: "isolationDistanceEast",
+        keyboardType: "decimal-pad",
+      },
+      {
+        label: "Isolation Distance West",
+        field: "isolationDistanceWest",
+        keyboardType: "decimal-pad",
+      },
+      { label: "Report Number", field: "reportnumber" },
+      { label: "Time From", field: "timeFrom" },
+      { label: "Time To", field: "timeTo" },
+    ],
+    2: STEP1_ALL_FIELDS.map((f) => ({ ...f })),
+    3: [
+      { label: "Seed Source", field: "seedsource" },
+      { label: "Female Parent", field: "femaleParent" },
+      { label: "Male Parent", field: "maleParent" },
+      { label: "Code/Hybrid designation", field: "codeHybridDesignation" },
+      { label: "Planting ratio (a:b)", field: "plantingRatio" },
+      {
+        label: "Are both end of male rows marked?",
+        field: "areBothEndOfMaleRowsMarked",
+        type: "switch",
+      },
+      {
+        label: "Method of marking male rows",
+        field: "methodOfMarkingMaleRows",
+      },
+      {
+        label: "Isolation Distance (in meters)",
+        field: "isolationDistanceMeters",
+        keyboardType: "numeric",
+      },
+      {
+        label: "Stage of Growth of Coteminant",
+        field: "stageofgrowthofcontaminant",
+      },
+      {
+        label: "Stage of Seed Crop at this Inspection",
+        field: "stageofseedcropatthisinspection",
+      },
+    ],
   };
+
+  const visibleStep1Fields =
+    STEP1_FIELD_SETS[cropFirTypeId] || STEP1_FIELD_SETS[3];
+
+  // Step 2 configurations per crop FIR type
+  const STEP2_CONFIGS = {
+    1: {
+      title: "Pollen Shedding & Disease Count Details",
+      headers: [
+        "Count No.",
+        "No. of pollen shedding heads",
+        "No. of heads of off types shedding pollen",
+        "No. of heads affected by Head Smut / Ergot",
+        "No. of heads affected by Kernel Smut/Grain Smut",
+        "No. of heads affected by Green Ear",
+      ],
+      fields: [
+        "pollenSheddingHeads",
+        "offTypesSheddingPollen",
+        "headSmutErgot",
+        "kernelSmutGrainSmut",
+        "greenEar",
+      ],
+    },
+    2: {
+      title: "Count Details",
+      headers: [
+        "Count No.",
+        "Plants/heads of off-type",
+        "Inseparable other crops",
+        "Objectionable weeds",
+        "Affected by seed borne Disease",
+      ],
+      fields: ["offType", "otherCrops", "weeds", "disease"],
+    },
+    3: {
+      title: "Maize Crop Inspection Details",
+      headers: [
+        "Count No.",
+        "Composite/open pollinated variety and female parent of maize crop - Receptive Skills",
+        "Female parent of maize crops - Shedding tassels",
+        "Composite/open pollinated variety and female parent of maize crop - Off type with Shedding tassels",
+        "Male parent of maize crops - Off type with Shedding tassels",
+      ],
+      fields: [
+        "receptiveSkills",
+        "femaleParentSheddingTassels",
+        "compositeOffTypeSheddingTassels",
+        "maleParentOffTypeSheddingTassels",
+      ],
+    },
+  };
+
+  const currentStep2Config = STEP2_CONFIGS[cropFirTypeId] || STEP2_CONFIGS[2];
+
+  // Build label maps for better error messages
+  const STEP1_LABEL_MAP = React.useMemo(() => {
+    const map = {};
+    // Date/time labels based on type
+    if (cropFirTypeId === 1) {
+      map.dateOfSowing = "Date of Sowing";
+      map.expectedHarvest = "Expected Date Of Harvest";
+      map.dateOfInspection = "Date of inspection";
+      map.timeFrom = "Time From";
+      map.timeTo = "Time To";
+    } else if (cropFirTypeId === 2) {
+      map.dateOfSowing = "Date of Sowing";
+      map.expectedHarvestFrom = "Expected date of harvest (From)";
+      map.expectedHarvestTo = "Expected date of harvest (To)";
+      map.dateOfInspection = "Date of inspection";
+    }
+    // Visible inputs
+    visibleStep1Fields.forEach((f) => {
+      if (f.type !== "switch") map[f.field] = f.label;
+    });
+    return map;
+  }, [cropFirTypeId, visibleStep1Fields]);
+
+  const STEP3_LABEL_MAP = React.useMemo(() => {
+    const map = {};
+    const def = [];
+    if (cropFirTypeId === 1) {
+      def.push(
+        {
+          label: "No. of Border Row",
+          field: "noOfBorderRow",
+          keyboardType: "numeric",
+        },
+        { label: "Crop Condition", field: "cropCondition" },
+        {
+          label: "No. of times pollen shedders / off types were removed",
+          field: "noOfTimesPollenSheddersRemoved",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Frequency of pollen shedders, off types etc.",
+          field: "frequencyOfPollenShedders",
+        },
+        {
+          label: "Quality of seed production work",
+          field: "qualityOfSeedProductionWork",
+        },
+        {
+          label: "Estimated seed yield (Kgs/ Hect.)",
+          field: "estimatedSeedYieldKgPerHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area rejected (in Ha)",
+          field: "areaRejectedHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area certified (in Ha)",
+          field: "areaCertifiedHa",
+          keyboardType: "numeric",
+        },
+        { label: "Name", field: "name" },
+        { label: "Designation", field: "designation" },
+        { label: "Address", field: "address" },
+        { label: "Remarks", field: "remarks" }
+      );
+    } else if (cropFirTypeId === 2) {
+      def.push(
+        {
+          label: "Percentage of Off-Types plants",
+          field: "offTypePercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Inseparable Other Crops",
+          field: "inseparableOtherCropsPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Objectionable Weed Plants",
+          field: "objectionableWeedsPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Percentage of Seed-borne Diseases",
+          field: "seedBorneDiseasesPercentage",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Name of Inseparable Other Crop Plants",
+          field: "inseparableOtherCropsName",
+        },
+        {
+          label: "Name of Objectionable Weed Plants",
+          field: "objectionableWeedsName",
+        },
+        {
+          label: "Name of Seed-borne Diseases",
+          field: "seedBorneDiseasesName",
+        },
+        {
+          label: "Names of Non-seed Borne Disease(s)",
+          field: "nonSeedBorneDiseases",
+        },
+        { label: "Condition of Crop", field: "conditionOfCrop" },
+        { label: "Quality of Production Work", field: "productionQuality" },
+        {
+          label: "Estimated Raw Seed Yield (Kg/hect)",
+          field: "estimatedRawSeedYield",
+          keyboardType: "numeric",
+        },
+        { label: "Submitted for (Grower Name)", field: "growerName" },
+        {
+          label: "Submitted By (Name of Inspecting Official)",
+          field: "submittedBy",
+        },
+        { label: "Designation", field: "designation" },
+        { label: "Remarks", field: "remarks" }
+      );
+    } else if (cropFirTypeId === 3) {
+      def.push(
+        {
+          label: "Side of field from which inspection was started",
+          field: "sideOfFieldFromWhichInspectionWasStarted",
+        },
+        { label: "Crop Condition", field: "cropCondition" },
+        {
+          label: "No. of times detasselled",
+          field: "noOfTimesDetasselled",
+          keyboardType: "numeric",
+        },
+        {
+          label: "label.frequencyOfDetasselling",
+          field: "frequencyOfDetasselling",
+        },
+        {
+          label: "Quality of seed production work",
+          field: "qualityOfSeedProductionWork",
+        },
+        {
+          label: "Estimated seed yield (Kgs./acres)",
+          field: "estimatedSeedYieldKgsPerAcres",
+          keyboardType: "numeric",
+        },
+        {
+          label:
+            "Was Grower or his representative present at the time of inspection",
+          field: "growerPresent",
+        },
+        {
+          label: "No. of Border Row",
+          field: "noOfBorderRow",
+          keyboardType: "numeric",
+        },
+        { label: "Is this final report", field: "isFinalReport" },
+        {
+          label: "Area rejected(in Ha)",
+          field: "areaRejectedHa",
+          keyboardType: "numeric",
+        },
+        {
+          label: "Area certified (in Ha)",
+          field: "areaCertifiedHa",
+          keyboardType: "numeric",
+        },
+        { label: "Remarks", field: "remarks" }
+      );
+    }
+    def.forEach((f) => {
+      map[f.field] = f.label;
+    });
+    return map;
+  }, [cropFirTypeId]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,30 +415,65 @@ const InspectionForm = ({ route }) => {
     dateOfSowing: "",
     expectedHarvestFrom: "",
     expectedHarvestTo: "",
+    expectedHarvest: "",
+    timeFrom: "",
+    timeTo: "",
     dateOfInspection: "",
     // Initialize all text input fields
     natureofprogramme: "",
     labeoffarm: "",
     acreageoffieldnoinspectedinha: "",
     stageofgrowthofcontaminant: "",
+    stageOfCropGrowthAtInspection: "",
     reportnumber: "",
     seedsource: "",
+    femaleParent: "",
+    maleParent: "",
+    codeHybridDesignation: "",
+    plantingRatio: "",
     previouscrop: "",
-    stageofseedcropatthisinspection: "",
-    totalacreageunderproductioninha: "",
+    areBothEndMarked: false,
+    areBothEndOfMaleRowsMarked: false,
+    methodOfMarkingMaleRows: "",
     isolationdistance: "",
+    isolationDistanceNorth: "",
+    isolationDistanceSouth: "",
+    isolationDistanceEast: "",
+    isolationDistanceWest: "",
+    isolationDistanceMeters: "",
+    totalacreageunderproductioninha: "",
 
-    // Step 2 fields
+    // Step 2 fields - dynamic based on cropFirTypeId
     counts: Array(10)
       .fill()
-      .map(() => ({
-        offType: "",
-        otherCrops: "",
-        weeds: "",
-        disease: "",
-      })),
+      .map(() => {
+        if (cropFirTypeId === 1) {
+          return {
+            pollenSheddingHeads: "",
+            offTypesSheddingPollen: "",
+            headSmutErgot: "",
+            kernelSmutGrainSmut: "",
+            greenEar: "",
+          };
+        } else if (cropFirTypeId === 3) {
+          return {
+            receptiveSkills: "",
+            femaleParentSheddingTassels: "",
+            compositeOffTypeSheddingTassels: "",
+            maleParentOffTypeSheddingTassels: "",
+          };
+        } else {
+          // Default for type 2
+          return {
+            offType: "",
+            otherCrops: "",
+            weeds: "",
+            disease: "",
+          };
+        }
+      }),
 
-    // Step 3 fields
+    // Step 3 fields (union of all types)
     offTypePercentage: "",
     inseparableOtherCropsPercentage: "",
     objectionableWeedsPercentage: "",
@@ -75,26 +482,95 @@ const InspectionForm = ({ route }) => {
     inseparableOtherCropsName: "",
     objectionableWeedsName: "",
     nonSeedBorneDiseases: "",
-    confirmsToStandards: false,
-    estimatedSeedField: "",
-    productionQuality: "",
-    growerPresent: false,
-    isFinalReport: false,
-    growerName: "",
     conditionOfCrop: "",
+    confirmsToStandards: false,
+    doesCropConformToStandards: false,
+    productionQuality: "",
+    qualityOfSeedProductionWork: "",
+    estimatedSeedField: "",
+    estimatedRawSeedYield: "",
+    estimatedSeedYieldKgPerHa: "",
+    estimatedSeedYieldKgsPerAcres: "",
+    noOfBorderRow: "",
+    noOfTimesPollenSheddersRemoved: "",
+    frequencyOfPollenShedders: "",
+    noOfTimesDetasselled: "",
+    frequencyOfDetasselling: "",
+    wasItDoneAtInspectionTime: false,
+    detassellingDoneAtInspectionTime: false,
+    growerPresent: false,
+    wasGrowerPresentAtInspectionTime: false,
+    isFinalReport: false,
+    areaRejectedHa: "",
+    areaCertifiedHa: "",
+    sideOfFieldFromWhichInspectionWasStarted: "",
+    name: "",
+    address: "",
+    growerName: "",
+    submittedBy: "",
     designation: "",
     remarks: "",
-    submittedBy: "",
   });
+
+  // Default values per crop type for Step 1
+  const STEP1_DEFAULTS_BY_TYPE = {
+    1: {
+      natureofprogramme: "",
+      reportnumber: "",
+      seedsource: "",
+      previouscrop: "",
+    },
+    2: {
+      labeoffarm: "",
+      totalacreageunderproductioninha: String(data?.totalInspectedArea ?? ""),
+      acreageoffieldnoinspectedinha: String(data?.totalInspectedArea ?? ""),
+      isolationdistance: "",
+    },
+    3: {},
+  };
+
+  // Initialize defaults when component mounts
+  useEffect(() => {
+    const defaults = STEP1_DEFAULTS_BY_TYPE[cropFirTypeId] || {};
+    if (Object.keys(defaults).length > 0) {
+      setFormData((prev) => ({ ...prev, ...defaults }));
+    }
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+    // Clear error for this field when user types a non-empty value
+    if (typeof value === "string") {
+      const isEmpty = value.trim() === "";
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (!isEmpty && updated[field]) {
+          delete updated[field];
+        }
+        return updated;
+      });
+    } else {
+      // For non-string fields, just clear the error when value changes
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (updated[field]) delete updated[field];
+        return updated;
+      });
+    }
   };
 
   const handleCountChange = (index, field, value) => {
     const newCounts = [...formData.counts];
     newCounts[index][field] = value;
     setFormData({ ...formData, counts: newCounts });
+    const errorKey = `counts.${index}.${field}`;
+    setErrors((prev) => {
+      const updated = { ...prev };
+      if (String(value).trim() !== "" && updated[errorKey]) {
+        delete updated[errorKey];
+      }
+      return updated;
+    });
   };
 
   const showDatePickerModal = (field) => {
@@ -107,6 +583,11 @@ const InspectionForm = ({ route }) => {
     if (selectedDate) {
       const formattedDate = formatDate(selectedDate);
       handleInputChange(currentDateField, formattedDate);
+      setErrors((prev) => {
+        const updated = { ...prev };
+        if (updated[currentDateField]) delete updated[currentDateField];
+        return updated;
+      });
     }
   };
 
@@ -117,7 +598,200 @@ const InspectionForm = ({ route }) => {
     return `${day}/${month}/${year}`;
   };
 
+  // Helper function to convert DD/MM/YYYY to YYYY-MM-DD format for API
+  const convertDateFormat = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return "";
+    if (dateString.includes('/')) {
+      const [day, month, year] = dateString.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return dateString; // Return as is if already in correct format
+  };
+
+  const isEmptyValue = (val) => {
+    if (typeof val === "string") return val.trim() === "";
+    if (val === null || val === undefined) return true;
+    return false;
+  };
+
+  const isNumericString = (val) => {
+    if (typeof val !== "string") return false;
+    if (val.trim() === "") return false;
+    return /^-?\d*(\.\d+)?$/.test(val.trim());
+  };
+
+  const isValidDateDDMMYYYY = (val) => {
+    if (typeof val !== "string") return false;
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(val)) return false;
+    const [dd, mm, yyyy] = val.split("/").map((s) => parseInt(s, 10));
+    if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return false;
+    return true;
+  };
+
+  const isValidTimeHHMM = (val) => {
+    if (typeof val !== "string") return false;
+    if (!/^\d{2}:\d{2}$/.test(val)) return false;
+    const [hh, mm] = val.split(":").map((s) => parseInt(s, 10));
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return false;
+    return true;
+  };
+
+  const validateStep = (currentStep) => {
+    const stepErrors = {};
+
+    if (currentStep === 1) {
+      // Date fields required based on type
+      if (cropFirTypeId === 1) {
+        ["dateOfSowing", "expectedHarvest", "dateOfInspection"].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidDateDDMMYYYY(formData[f]))
+            stepErrors[
+              f
+            ] = `${STEP1_LABEL_MAP[f]} must be in dd/mm/yyyy format`;
+        });
+        ["timeFrom", "timeTo"].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidTimeHHMM(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} must be in HH:MM format`;
+        });
+      }
+      if (cropFirTypeId === 2) {
+        [
+          "dateOfSowing",
+          "expectedHarvestFrom",
+          "expectedHarvestTo",
+          "dateOfInspection",
+        ].forEach((f) => {
+          if (isEmptyValue(formData[f]))
+            stepErrors[f] = `${STEP1_LABEL_MAP[f]} is required`;
+          else if (!isValidDateDDMMYYYY(formData[f]))
+            stepErrors[
+              f
+            ] = `${STEP1_LABEL_MAP[f]} must be in dd/mm/yyyy format`;
+        });
+      }
+
+      // Visible text fields (exclude switches)
+      const requiredFields = visibleStep1Fields
+        .filter((i) => i.type !== "switch")
+        .map((i) => i.field);
+      requiredFields.forEach((f) => {
+        const label = STEP1_LABEL_MAP[f] || f;
+        if (isEmptyValue(formData[f])) stepErrors[f] = `${label} is required`;
+        else if (
+          visibleStep1Fields.find(
+            (i) => i.field === f && i.keyboardType === "numeric"
+          ) &&
+          !isNumericString(String(formData[f]))
+        ) {
+          stepErrors[f] = `${label} must be a number`;
+        }
+      });
+    }
+
+    if (currentStep === 2) {
+      // All table cells required for current config
+      formData.counts.forEach((row, idx) => {
+        currentStep2Config.fields.forEach((f) => {
+          const headerIdx = currentStep2Config.fields.indexOf(f);
+          const headerLabel = currentStep2Config.headers[headerIdx + 1] || f; // +1 because first header is Count No.
+          const key = `counts.${idx}.${f}`;
+          const value = row[f];
+          if (isEmptyValue(value))
+            stepErrors[key] = `${headerLabel} (Row ${idx + 1}) is required`;
+          else if (!isNumericString(String(value)))
+            stepErrors[key] = `${headerLabel} (Row ${
+              idx + 1
+            }) must be a number`;
+        });
+      });
+    }
+
+    if (currentStep === 3) {
+      // Required fields per crop type (exclude switches)
+      const step3FieldsByType = {
+        1: [
+          "noOfBorderRow",
+          "cropCondition",
+          "noOfTimesPollenSheddersRemoved",
+          "frequencyOfPollenShedders",
+          "qualityOfSeedProductionWork",
+          "estimatedSeedYieldKgPerHa",
+          "areaRejectedHa",
+          "areaCertifiedHa",
+          "name",
+          "designation",
+          "address",
+          "remarks",
+        ],
+        2: [
+          "offTypePercentage",
+          "inseparableOtherCropsPercentage",
+          "objectionableWeedsPercentage",
+          "seedBorneDiseasesPercentage",
+          "inseparableOtherCropsName",
+          "objectionableWeedsName",
+          "seedBorneDiseasesName",
+          "nonSeedBorneDiseases",
+          "conditionOfCrop",
+          "productionQuality",
+          "estimatedRawSeedYield",
+          "growerName",
+          "submittedBy",
+          "designation",
+          "remarks",
+        ],
+        3: [
+          "sideOfFieldFromWhichInspectionWasStarted",
+          "cropCondition",
+          "noOfTimesDetasselled",
+          "frequencyOfDetasselling",
+          "qualityOfSeedProductionWork",
+          "estimatedSeedYieldKgsPerAcres",
+          "noOfBorderRow",
+          "areaRejectedHa",
+          "areaCertifiedHa",
+          "remarks",
+        ],
+      };
+      const req = step3FieldsByType[cropFirTypeId] || [];
+      req.forEach((f) => {
+        const label = STEP3_LABEL_MAP[f] || f;
+        const value = formData[f];
+        if (isEmptyValue(value)) stepErrors[f] = `${label} is required`;
+        else if (
+          [
+            "noOfBorderRow",
+            "noOfTimesPollenSheddersRemoved",
+            "estimatedSeedYieldKgPerHa",
+            "areaRejectedHa",
+            "areaCertifiedHa",
+            "offTypePercentage",
+            "inseparableOtherCropsPercentage",
+            "objectionableWeedsPercentage",
+            "seedBorneDiseasesPercentage",
+            "estimatedRawSeedYield",
+            "noOfTimesDetasselled",
+            "estimatedSeedYieldKgsPerAcres",
+          ].includes(f) &&
+          !isNumericString(String(value))
+        ) {
+          stepErrors[f] = `${label} must be a number`;
+        }
+      });
+    }
+
+    return stepErrors;
+  };
+
   const nextStep = () => {
+    const stepErrors = validateStep(step);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
     if (step < 3) setStep(step + 1);
   };
 
@@ -137,168 +811,286 @@ const InspectionForm = ({ route }) => {
       >
         <Text style={styles.sectionTitle}>Basic Information</Text>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date of Sowing</Text>
-          <View style={styles.dateViewHolder}>
-            <TextInput
-              style={[styles.input, { width: "80%" }]}
-              placeholder="dd/mm/yyyy"
-              value={formData.dateOfSowing}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.calendarView}
-              onPress={() => showDatePickerModal("dateOfSowing")}
-            >
-              <FontAwesome
-                name="calendar"
-                size={moderateScale(25)}
-                color={Colors.black}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+        {cropFirTypeId === 1 && (
+          <>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date of Sowing</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfSowing ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.dateOfSowing}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("dateOfSowing")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.dateOfSowing && (
+                <Text style={styles.errorText}>{errors.dateOfSowing}</Text>
+              )}
+            </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Expected date of harvest (From)</Text>
-          <View style={styles.dateViewHolder}>
-            <TextInput
-              style={[styles.input, { width: "80%" }]}
-              placeholder="dd/mm/yyyy"
-              value={formData.expectedHarvestFrom}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.calendarView}
-              onPress={() => showDatePickerModal("expectedHarvestFrom")}
-            >
-              <FontAwesome
-                name="calendar"
-                size={moderateScale(25)}
-                color={Colors.black}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Expected Date Of Harvest</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvest ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.expectedHarvest}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("expectedHarvest")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.expectedHarvest && (
+                <Text style={styles.errorText}>{errors.expectedHarvest}</Text>
+              )}
+            </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Expected date of harvest (To)</Text>
-          <View style={styles.dateViewHolder}>
-            <TextInput
-              style={[styles.input, { width: "80%" }]}
-              placeholder="dd/mm/yyyy"
-              value={formData.expectedHarvestTo}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.calendarView}
-              onPress={() => showDatePickerModal("expectedHarvestTo")}
-            >
-              <FontAwesome
-                name="calendar"
-                size={moderateScale(25)}
-                color={Colors.black}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date of inspection</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfInspection ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.dateOfInspection}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("dateOfInspection")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.dateOfInspection && (
+                <Text style={styles.errorText}>{errors.dateOfInspection}</Text>
+              )}
+            </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Date of inspection</Text>
-          <View style={styles.dateViewHolder}>
-            <TextInput
-              style={[styles.input, { width: "80%" }]}
-              placeholder="dd/mm/yyyy"
-              value={formData.dateOfInspection}
-              editable={false}
-            />
-            <TouchableOpacity
-              style={styles.calendarView}
-              onPress={() => showDatePickerModal("dateOfInspection")}
-            >
-              <FontAwesome
-                name="calendar"
-                size={moderateScale(25)}
-                color={Colors.black}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Time From</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.timeFrom ? styles.errorInput : null,
+                ]}
+                placeholder="HH:MM"
+                value={formData.timeFrom}
+                onChangeText={(text) => handleInputChange("timeFrom", text)}
               />
-            </TouchableOpacity>
-          </View>
-        </View>
+              {errors.timeFrom && (
+                <Text style={styles.errorText}>{errors.timeFrom}</Text>
+              )}
+            </View>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onDateChange}
-          />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Time To</Text>
+              <TextInput
+                style={[styles.input, errors.timeTo ? styles.errorInput : null]}
+                placeholder="HH:MM"
+                value={formData.timeTo}
+                onChangeText={(text) => handleInputChange("timeTo", text)}
+              />
+              {errors.timeTo && (
+                <Text style={styles.errorText}>{errors.timeTo}</Text>
+              )}
+            </View>
+          </>
         )}
 
-        <Text style={styles.sectionTitle}>Checklist Items</Text>
-        {[
-          {
-            label: "Nature of Programme",
-            field: "natureofprogramme",
-            placeholder: "Enter nature of programme",
-          },
-          {
-            label: "Report Number",
-            field: "reportnumber",
-            placeholder: "Enter report number",
-          },
-          {
-            label: "Label of Farm",
-            field: "labeoffarm",
-            placeholder: "Enter farm label",
-          },
-          {
-            label: "Seed Source",
-            field: "seedsource",
-            placeholder: "Enter seed source",
-          },
-          {
-            label: "Total Acreage under Production (in Ha)",
-            field: "totalacreageunderproductioninha",
-            placeholder: "Enter total acreage",
-            keyboardType: "numeric",
-          },
-          {
-            label: "Acreage of Field No. Inspected (in Ha)",
-            field: "acreageoffieldnoinspectedinha",
-            placeholder: "Enter acreage",
-            keyboardType: "numeric",
-          },
-          {
-            label: "Previous crop",
-            field: "previouscrop",
-            placeholder: "Enter previous crop",
-          },
-          {
-            label: "Isolation Distance",
-            field: "isolationdistance",
-            placeholder: "Enter isolation distance",
-          },
-          {
-            label: "Stage of growth of contaminant",
-            field: "stageofgrowthofcontaminant",
-            placeholder: "Enter growth stage",
-          },
+        {cropFirTypeId === 2 && (
+          <>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date of Sowing</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfSowing ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.dateOfSowing}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("dateOfSowing")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.dateOfSowing && (
+                <Text style={styles.errorText}>{errors.dateOfSowing}</Text>
+              )}
+            </View>
 
-          {
-            label: "Stage of seed crop at this inspection",
-            field: "stageofseedcropatthisinspection",
-            placeholder: "Enter crop stage",
-          },
-        ].map((item, index) => (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Expected date of harvest (From)</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvestFrom ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.expectedHarvestFrom}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("expectedHarvestFrom")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.expectedHarvestFrom && (
+                <Text style={styles.errorText}>
+                  {errors.expectedHarvestFrom}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Expected date of harvest (To)</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.expectedHarvestTo ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.expectedHarvestTo}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("expectedHarvestTo")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.expectedHarvestTo && (
+                <Text style={styles.errorText}>{errors.expectedHarvestTo}</Text>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date of inspection</Text>
+              <View style={styles.dateViewHolder}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { width: "80%" },
+                    errors.dateOfInspection ? styles.errorInput : null,
+                  ]}
+                  placeholder="dd/mm/yyyy"
+                  value={formData.dateOfInspection}
+                  editable={false}
+                />
+                <TouchableOpacity
+                  style={styles.calendarView}
+                  onPress={() => showDatePickerModal("dateOfInspection")}
+                >
+                  <FontAwesome
+                    name="calendar"
+                    size={moderateScale(25)}
+                    color={Colors.black}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.dateOfInspection && (
+                <Text style={styles.errorText}>{errors.dateOfInspection}</Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Type 3 has no date fields in Step 1 per spec */}
+
+        <Text style={styles.sectionTitle}>Checklist Items</Text>
+        {visibleStep1Fields.map((item, index) => (
           <View key={index} style={styles.inputGroup}>
             <Text style={styles.label}>{item.label}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={item.placeholder}
-              value={formData[item.field]}
-              onChangeText={(text) => handleInputChange(item.field, text)}
-              keyboardType={item.keyboardType || "default"}
-            />
+            {item.type === "switch" ? (
+              <View
+                style={[styles.switchRow, { justifyContent: "flex-start" }]}
+              >
+                <View style={styles.switchContainer}>
+                  <Switch
+                    value={!!formData[item.field]}
+                    onValueChange={(value) =>
+                      handleInputChange(item.field, value)
+                    }
+                    trackColor={{ false: "#767577", true: Colors.lightGreen }}
+                    thumbColor={
+                      formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                    }
+                  />
+                </View>
+              </View>
+            ) : (
+              <TextInput
+                style={[
+                  styles.input,
+                  errors[item.field] ? styles.errorInput : null,
+                ]}
+                placeholder={item.placeholder || "Enter value"}
+                value={String(formData[item.field] ?? "")}
+                onChangeText={(text) => handleInputChange(item.field, text)}
+                keyboardType={item.keyboardType || "default"}
+              />
+            )}
+            {item.type !== "switch" && errors[item.field] && (
+              <Text style={styles.errorText}>{errors[item.field]}</Text>
+            )}
           </View>
         ))}
       </ScrollView>
@@ -315,69 +1107,95 @@ const InspectionForm = ({ route }) => {
         style={styles.stepContainer}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>Count Details</Text>
+        <Text style={styles.sectionTitle}>{currentStep2Config.title}</Text>
 
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableCell, styles.headerCell, { flex: 0.5 }]}>
-            Count No.
-          </Text>
-          <Text style={[styles.tableCell, styles.headerCell]}>
-            Plants/heads of off-type
-          </Text>
-          <Text style={[styles.tableCell, styles.headerCell]}>
-            Inseparable other crops
-          </Text>
-          <Text style={[styles.tableCell, styles.headerCell]}>
-            Objectionable weeds
-          </Text>
-          <Text style={[styles.tableCell, styles.headerCell]}>
-            Affected by seed borne Disease
-          </Text>
-        </View>
+        <ScrollView
+          horizontal={true}
+          showsHorizontalScrollIndicator={true}
+          style={styles.horizontalScrollContainer}
+        >
+          <View style={styles.tableContainer}>
+            <View style={styles.tableHeader}>
+              {currentStep2Config.headers.map((header, index) => (
+                <Text
+                  key={index}
+                  style={[
+                    styles.tableCell,
+                    styles.headerCell,
+                    {
+                      width:
+                        index === 0 ? moderateScale(80) : moderateScale(150),
+                    },
+                  ]}
+                >
+                  {header}
+                </Text>
+              ))}
+            </View>
 
-        {formData.counts.map((count, index) => (
-          <View key={index} style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.countCell, { flex: 0.5 }]}>
-              {index + 1}
-            </Text>
-            <TextInput
-              style={[styles.tableCell, styles.inputCell]}
-              value={count.offType}
-              onChangeText={(text) => handleCountChange(index, "offType", text)}
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={[styles.tableCell, styles.inputCell]}
-              value={count.otherCrops}
-              onChangeText={(text) =>
-                handleCountChange(index, "otherCrops", text)
-              }
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={[styles.tableCell, styles.inputCell]}
-              value={count.weeds}
-              onChangeText={(text) => handleCountChange(index, "weeds", text)}
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={[styles.tableCell, styles.inputCell]}
-              value={count.disease}
-              onChangeText={(text) => handleCountChange(index, "disease", text)}
-              keyboardType="numeric"
-            />
+            {formData.counts.map((count, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text
+                  style={[
+                    styles.tableCell,
+                    styles.countCell,
+                    { width: moderateScale(80) },
+                  ]}
+                >
+                  {index + 1}
+                </Text>
+                {currentStep2Config.fields.map((field, fieldIndex) => (
+                  <TextInput
+                    key={fieldIndex}
+                    style={[
+                      styles.tableCell,
+                      styles.inputCell,
+                      { width: moderateScale(150) },
+                      errors[`counts.${index}.${field}`]
+                        ? styles.errorInput
+                        : null,
+                    ]}
+                    value={count[field] || ""}
+                    onChangeText={(text) =>
+                      handleCountChange(index, field, text)
+                    }
+                    keyboardType="numeric"
+                    placeholder="0"
+                  />
+                ))}
+              </View>
+            ))}
+
+            <View style={styles.tableFooter}>
+              <Text
+                style={[
+                  styles.tableCell,
+                  styles.footerCell,
+                  { width: moderateScale(80) },
+                ]}
+              >
+                TOTAL
+              </Text>
+              {currentStep2Config.fields.map((field, index) => {
+                const total = formData.counts.reduce((sum, count) => {
+                  return sum + (parseFloat(count[field]) || 0);
+                }, 0);
+                return (
+                  <Text
+                    key={index}
+                    style={[
+                      styles.tableCell,
+                      styles.footerCell,
+                      { width: moderateScale(150) },
+                    ]}
+                  >
+                    {total.toFixed(2)}
+                  </Text>
+                );
+              })}
+            </View>
           </View>
-        ))}
-
-        <View style={styles.tableFooter}>
-          <Text style={[styles.tableCell, styles.footerCell, { flex: 0.5 }]}>
-            TOTAL
-          </Text>
-          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
-          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
-          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
-          <Text style={[styles.tableCell, styles.footerCell]}>0.00</Text>
-        </View>
+        </ScrollView>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -394,268 +1212,628 @@ const InspectionForm = ({ route }) => {
       >
         <Text style={styles.sectionTitle}>Summary & Assessment</Text>
 
-        <View style={styles.column}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Percentage of Off-Types plants</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.offTypePercentage}
-              onChangeText={(text) =>
-                handleInputChange("offTypePercentage", text)
-              }
-              keyboardType="numeric"
-            />
-          </View>
+        {cropFirTypeId === 1 && (
+          <>
+            {[
+              {
+                label: "No. of Border Row",
+                field: "noOfBorderRow",
+                keyboardType: "number-pad",
+              },
+              { label: "Crop Condition", field: "cropCondition" },
+              {
+                label: "No. of times pollen shedders / off types were removed",
+                field: "noOfTimesPollenSheddersRemoved",
+                keyboardType: "number-pad",
+              },
+              {
+                label: "Frequency of pollen shedders, off types etc.",
+                field: "frequencyOfPollenShedders",
+              },
+              {
+                label: "Was it done at inspection time?",
+                field: "wasItDoneAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label:
+                  "Does this crop conform to the standards for certification",
+                field: "doesCropConformToStandards",
+                type: "switch",
+              },
+              {
+                label: "Estimated seed yield (Kgs/ Hect.)",
+                field: "estimatedSeedYieldKgPerHa",
+                keyboardType: "decimal-pad",
+              },
+              {
+                label:
+                  "Was the Grower or his representatives present at inspection time?",
+                field: "wasGrowerPresentAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Is this the final report?",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Area rejected (in Ha)",
+                field: "areaRejectedHa",
+                keyboardType: "decimal-pad",
+              },
+              {
+                label: "Area certified (in Ha)",
+                field: "areaCertifiedHa",
+                keyboardType: "decimal-pad",
+              },
+              { label: "Name", field: "name" },
+              { label: "Designation", field: "designation" },
+              { label: "Address", field: "address" },
+              { label: "Remarks", field: "remarks", multiline: true },
+            ].map((item, idx) => (
+              <View key={idx} style={styles.inputGroup}>
+                <Text style={styles.label}>{item.label}</Text>
+                {item.type === "switch" ? (
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
+                    <View style={styles.switchContainer}>
+                      <Switch
+                        value={!!formData[item.field]}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                      errors[item.field] ? styles.errorInput : null,
+                    ]}
+                    value={String(formData[item.field] ?? "")}
+                    onChangeText={(text) => handleInputChange(item.field, text)}
+                    keyboardType={item.keyboardType || "default"}
+                    multiline={!!item.multiline}
+                  />
+                )}
+                {item.type !== "switch" && errors[item.field] && (
+                  <Text style={styles.errorText}>{errors[item.field]}</Text>
+                )}
+              </View>
+            ))}
+          </>
+        )}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Percentage of Inseparable Other Crops
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={formData.inseparableOtherCropsPercentage}
-              onChangeText={(text) =>
-                handleInputChange("inseparableOtherCropsPercentage", text)
-              }
-              keyboardType="numeric"
-            />
-          </View>
+        {cropFirTypeId === 2 && (
+          <>
+            {[
+              {
+                label: "Percentage of Off-Types plants",
+                field: "offTypePercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Inseparable Other Crops",
+                field: "inseparableOtherCropsPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Objectionable Weed Plants",
+                field: "objectionableWeedsPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Percentage of Seed-borne Diseases",
+                field: "seedBorneDiseasesPercentage",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Name of Inseparable Other Crop Plants",
+                field: "inseparableOtherCropsName",
+              },
+              {
+                label: "Name of Objectionable Weed Plants",
+                field: "objectionableWeedsName",
+              },
+              {
+                label: "Name of Seed-borne Diseases",
+                field: "seedBorneDiseasesName",
+              },
+              {
+                label: "Names of Non-seed Borne Disease(s)",
+                field: "nonSeedBorneDiseases",
+              },
+              { label: "Condition of Crop", field: "conditionOfCrop" },
+              {
+                label: "Does this crop confirm to standards of cert.?",
+                field: "confirmsToStandards",
+                type: "switch",
+              },
+              {
+                label: "Quality of Production Work",
+                field: "productionQuality",
+              },
+              {
+                label: "Is this the final report?",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Estimated Raw Seed Yield (Kg/hect)",
+                field: "estimatedRawSeedYield",
+                keyboardType: "numeric",
+              },
+              {
+                label:
+                  "Was Grower or his representative present at the time of inspection",
+                field: "growerPresent",
+                type: "switch",
+              },
+              { label: "Submitted for (Grower Name)", field: "growerName" },
+              {
+                label: "Submitted By (Name of Inspecting Official)",
+                field: "submittedBy",
+              },
+              { label: "Designation", field: "designation" },
+              { label: "Remarks", field: "remarks", multiline: true },
+            ].map((item, idx) => (
+              <View key={idx} style={styles.inputGroup}>
+                <Text style={styles.label}>{item.label}</Text>
+                {item.type === "switch" ? (
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
+                    <View style={styles.switchContainer}>
+                      <Switch
+                        value={!!formData[item.field]}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                      errors[item.field] ? styles.errorInput : null,
+                    ]}
+                    value={String(formData[item.field] ?? "")}
+                    onChangeText={(text) => handleInputChange(item.field, text)}
+                    keyboardType={item.keyboardType || "default"}
+                    multiline={!!item.multiline}
+                  />
+                )}
+                {item.type !== "switch" && errors[item.field] && (
+                  <Text style={styles.errorText}>{errors[item.field]}</Text>
+                )}
+              </View>
+            ))}
+          </>
+        )}
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Percentage of Objectionable Weed Plants
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={formData.objectionableWeedsPercentage}
-              onChangeText={(text) =>
-                handleInputChange("objectionableWeedsPercentage", text)
-              }
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Percentage of Seed-Borne Diseases</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.seedBorneDiseasesPercentage}
-              onChangeText={(text) =>
-                handleInputChange("seedBorneDiseasesPercentage", text)
-              }
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Name of Inseparable Other Crop Plants
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={formData.inseparableOtherCropsName}
-              onChangeText={(text) =>
-                handleInputChange("inseparableOtherCropsName", text)
-              }
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name of Objectionable Weed Plants</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.objectionableWeedsName}
-              onChangeText={(text) =>
-                handleInputChange("objectionableWeedsName", text)
-              }
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name of Objectionable Weed Plants</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.objectionableWeedsName}
-              onChangeText={(text) =>
-                handleInputChange("objectionableWeedsName", text)
-              }
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name of Seed-Borne Diseases</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.seedBorneDiseasesName}
-              onChangeText={(text) =>
-                handleInputChange("seedBorneDiseasesName", text)
-              }
-            />
-          </View>
-        </View>
-
-        <View style={styles.column}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name of Non-seed Borne Disease(s)</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.nonSeedBorneDiseases}
-              onChangeText={(text) =>
-                handleInputChange("nonSeedBorneDiseases", text)
-              }
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Condition of Crop</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.conditionOfCrop}
-              onChangeText={(text) =>
-                handleInputChange("conditionOfCrop", text)
-              }
-            />
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.switchRow,
-            { alignSelf: "flex-start", alignItems: "center" },
-          ]}
-        >
-          <View style={styles.switchContainer}>
-            <Switch
-              value={formData.confirmsToStandards}
-              onValueChange={(value) =>
-                handleInputChange("confirmsToStandards", value)
-              }
-              trackColor={{ false: "#767577", true: Colors.lightGreen }}
-              thumbColor={
-                formData.confirmsToStandards ? Colors.greenColor : "#f4f3f4"
-              }
-            />
-            <Text
-              style={[
-                styles.label,
-                { marginLeft: moderateScale(5), width: "85%" },
-              ]}
-            >
-              Does this crop confirm to standards of cert?
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Quality of Production Work</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.productionQuality}
-            onChangeText={(text) =>
-              handleInputChange("productionQuality", text)
-            }
-          />
-        </View>
-
-        <View
-          style={[
-            styles.switchRow,
-            { alignSelf: "flex-start", alignItems: "center" },
-          ]}
-        >
-          <View style={styles.switchContainer}>
-            <Switch
-              value={formData.isFinalReport}
-              onValueChange={(value) =>
-                handleInputChange("isFinalReport", value)
-              }
-              trackColor={{ false: "#767577", true: Colors.lightGreen }}
-              thumbColor={
-                formData.isFinalReport ? Colors.greenColor : "#f4f3f4"
-              }
-            />
-            <Text style={[styles.label, { marginLeft: moderateScale(5) }]}>
-              Is this the final report?
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Estimated Bow Seed Field (Rq/Netc)</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.estimatedSeedField}
-            onChangeText={(text) =>
-              handleInputChange("estimatedSeedField", text)
-            }
-          />
-        </View>
-
-        <View style={styles.switchRow}>
-          <View style={styles.switchContainer}>
-            <Switch
-              value={formData.growerPresent}
-              onValueChange={(value) =>
-                handleInputChange("growerPresent", value)
-              }
-              trackColor={{ false: "#767577", true: Colors.lightGreen }}
-              thumbColor={
-                formData.growerPresent ? Colors.greenColor : "#f4f3f4"
-              }
-            />
-            <Text
-              style={[
-                styles.label,
-                { width: "90%", marginLeft: moderateScale(5) },
-              ]}
-            >
-              Was Grower or his representative present at the time of
-              inspection?
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Submitted for (Grower Name)</Text>
-          <TextInput
-            style={styles.input}
-            value={formData.growerName}
-            onChangeText={(text) => handleInputChange("growerName", text)}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>
-            Submitted By (Name of Inspecting Official)
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={formData.submittedBy}
-            onChangeText={(text) => handleInputChange("submittedBy", text)}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Designation</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={formData.designation}
-            onChangeText={(text) => handleInputChange("designation", text)}
-            multiline
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Remarks</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={formData.remarks}
-            onChangeText={(text) => handleInputChange("remarks", text)}
-            multiline
-          />
-        </View>
+        {cropFirTypeId === 3 && (
+          <>
+            {[
+              {
+                label: "Side of field from which inspection was started",
+                field: "sideOfFieldFromWhichInspectionWasStarted",
+              },
+              { label: "Crop Condition", field: "cropCondition" },
+              {
+                label: "No. of times detasselled",
+                field: "noOfTimesDetasselled",
+                keyboardType: "numeric",
+              },
+              {
+                label: "label.frequencyOfDetasselling",
+                field: "frequencyOfDetasselling",
+              },
+              {
+                label: "label.detassellingDoneAtInspectionTime",
+                field: "detassellingDoneAtInspectionTime",
+                type: "switch",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label: "Quality of seed production work",
+                field: "qualityOfSeedProductionWork",
+              },
+              {
+                label: "Estimated seed yield (Kgs./acres)",
+                field: "estimatedSeedYieldKgsPerAcres",
+                keyboardType: "numeric",
+              },
+              {
+                label:
+                  "Was Grower or his representative present at the time of inspection",
+                field: "growerPresent",
+                type: "switch",
+              },
+              {
+                label: "No. of Border Row",
+                field: "noOfBorderRow",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Is this final report",
+                field: "isFinalReport",
+                type: "switch",
+              },
+              {
+                label: "Area rejected(in Ha)",
+                field: "areaRejectedHa",
+                keyboardType: "numeric",
+              },
+              {
+                label: "Area certified (in Ha)",
+                field: "areaCertifiedHa",
+                keyboardType: "numeric",
+              },
+              { label: "Remarks", field: "remarks", multiline: true },
+            ].map((item, idx) => (
+              <View key={idx} style={styles.inputGroup}>
+                <Text style={styles.label}>{item.label}</Text>
+                {item.type === "switch" ? (
+                  <View
+                    style={[styles.switchRow, { justifyContent: "flex-start" }]}
+                  >
+                    <View style={styles.switchContainer}>
+                      <Switch
+                        value={!!formData[item.field]}
+                        onValueChange={(value) =>
+                          handleInputChange(item.field, value)
+                        }
+                        trackColor={{
+                          false: "#767577",
+                          true: Colors.lightGreen,
+                        }}
+                        thumbColor={
+                          formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                        }
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      item.multiline ? styles.textArea : null,
+                    ]}
+                    value={String(formData[item.field] ?? "")}
+                    onChangeText={(text) => handleInputChange(item.field, text)}
+                    keyboardType={item.keyboardType || "default"}
+                    multiline={!!item.multiline}
+                  />
+                )}
+              </View>
+            ))}
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
+
+  // Helper function to convert boolean to Yes/No string
+  const booleanToYesNo = (value) => {
+    return value ? "Yes" : "No";
+  };
+
+  // Helper function to map counts data for different crop types
+  const mapCountsData = (counts, cropType) => {
+    if (cropType === 1) {
+      // For type 1: Pollen Shedding & Disease Count Details
+      return counts.map((count) => ({
+        pollenSheddingHeadsCount: parseInt(count.pollenSheddingHeads) || 0,
+        offTypeSheddingHeadsCount1: parseInt(count.offTypesSheddingPollen) || 0,
+        normalHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
+        normalKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
+        normalGreenEarCount: parseInt(count.greenEar) || 0,
+        offTypeSheddingHeadsCount2: parseInt(count.offTypesSheddingPollen) || 0,
+        offTypeHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
+        offTypeKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
+        offTypeGreenEarCount: parseInt(count.greenEar) || 0,
+      }));
+    } else if (cropType === 2) {
+      // For type 2: Count Details
+      return counts.map((count) => ({
+        plantsOrHeadsOfOffType: parseInt(count.offType) || 0,
+        inseparableOtherCrops: parseInt(count.otherCrops) || 0,
+        objectionableWeeds: parseInt(count.weeds) || 0,
+        affectedBySeedBorneDisease: parseInt(count.disease) || 0,
+      }));
+    } else if (cropType === 3) {
+      // For type 3: Maize Crop Inspection Details
+      return counts.map((count) => ({
+        compositeOrFemaleParent1: count.receptiveSkills || "0",
+        femaleParentOfCrops: count.femaleParentSheddingTassels || "0",
+        compositeOrFemaleParent2: count.compositeOffTypeSheddingTassels || "0",
+        maleParentOfCrops: count.maleParentOffTypeSheddingTassels || "0",
+      }));
+    }
+    return [];
+  };
+
+  // Function to map form data to API payload based on crop type
+  const mapFormDataToPayload = (formData, cropType, routeData) => {
+    const basePayload = {
+      scheduleId:
+        routeData?.inspection?.schedule?.id || data?.inspection?.schedule?.id,
+      cropId: routeData?.inspection?.crop?.id || data?.inspection?.crop?.id,
+      seasonId: data?.inspection?.productionPlan?.seasonId,
+      season: data?.inspection?.productionPlan?.season,
+      seedClass:
+        routeData?.inspection?.schedule?.seed ||
+        data?.inspection?.schedule?.seed,
+      areaOfInspectionField:
+        routeData?.totalInspectedArea || data?.totalInspectedArea,
+      totalAcreUnderSeedProd:
+        routeData?.inspection?.schedule?.areaToBePlanted ||
+        data?.inspection?.schedule?.areaToBePlanted,
+      growerId: routeData?.inspection?.growerId || data?.inspection?.growerId,
+      growerName:
+        routeData?.inspection?.schedule?.growerName ||
+        data?.inspection?.schedule?.growerName,
+      growerDistrict:
+        routeData?.grower?.districtId?.districtName ||
+        data?.grower?.districtId?.districtName,
+      growerState:
+        routeData?.grower?.stateId?.stateName ||
+        data?.grower?.stateId?.stateName,
+      inspectionCount:
+        routeData?.inspection?.schedule?.inspectionCount ||
+        data?.inspection?.schedule?.inspectionCount ||
+        1,
+      inspectionInchargeId:
+        routeData?.inspection?.schedule?.inspectionInChargeId ||
+        data?.inspection?.schedule?.inspectionInChargeId ||
+        "197",
+      scheduleLandId: routeData?.inspection?.schedule?.landDetails?.map(
+        (land) => land.landId
+      ) ||
+        data?.inspection?.schedule?.landDetails?.map((land) => land.landId) || [
+          routeData?.selectedLands?.[0]?.id || data?.selectedLands?.[0]?.id,
+        ],
+      inspectionStatus: "APPROVED", // Default status
+    };
+
+    if (cropType === 1) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        reportNo: formData.reportnumber || "",
+        timeFrom: formData.timeFrom || "",
+        timeTo: formData.timeTo || "",
+        dateOfInspection: convertDateFormat(formData.dateOfInspection),
+        plantingRatio: formData.plantingRatio || "",
+        previousCrop: formData.previouscrop || "",
+        areBothEndMarked: booleanToYesNo(formData.areBothEndMarked),
+        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
+        stageOfGrowthOfAtTheInspection: formData.stageOfCropGrowthAtInspection || "",
+        stageOfGrowthOfContaminant: formData.stageofgrowthofcontaminant || "",
+        isolationDistanceNorth: parseFloat(formData.isolationDistanceNorth) || 0,
+        isolationDistanceSouth: parseFloat(formData.isolationDistanceSouth) || 0,
+        isolationDistanceEast: parseFloat(formData.isolationDistanceEast) || 0,
+        isolationDistanceWest: parseFloat(formData.isolationDistanceWest) || 0,
+        seedSource: formData.seedsource || "",
+        femaleParent: formData.femaleParent || "",
+        maleParent: formData.maleParent || "",
+        hybridCodeDesignation: formData.codeHybridDesignation || "",
+        dateOfSowing: convertDateFormat(formData.dateOfSowing),
+        expectedDateOfHarvest: convertDateFormat(formData.expectedHarvest),
+        // Step 2 fields
+        productionInspectionFieldCountAs: mapCountsData(formData.counts, 1),
+        // Step 3 fields
+        noOfBorderRows: parseInt(formData.noOfBorderRow) || 0,
+        cropCondition: formData.cropCondition || "",
+        noOfTimesPollenShedders: parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
+        frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
+        wasItDoneAtInspectionTime: booleanToYesNo(formData.wasItDoneAtInspectionTime),
+        qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
+        doesThisCropConfirmToStandard: booleanToYesNo(formData.doesCropConformToStandards),
+        estimatedSeedYield: parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
+        wasTheGrowerPresent: booleanToYesNo(formData.wasGrowerPresentAtInspectionTime),
+        isFinal: booleanToYesNo(formData.isFinalReport),
+        areaRejected: parseFloat(formData.areaRejectedHa) || 0,
+        areaCertified: parseFloat(formData.areaCertifiedHa) || 0,
+        name: formData.name || "",
+        designation: formData.designation || "",
+        address: formData.address || "",
+        remarks: formData.remarks || "",
+        programmeRejected: "No", // Default value
+        // Additional fields for Type 1
+        growerVillage: data?.grower?.entityRegNo?.villageId?.villageName || "",
+        growerTaluk: data?.grower?.entityRegNo?.taluqs?.talukaName || "",
+        growerBlock: data?.grower?.entityRegNo?.block?.blockName || "",
+        rejectedLands: [], // Default empty array
+      };
+    } else if (cropType === 2) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        natureOfProgramme: formData.natureofprogramme || "",
+        reportNo: formData.reportnumber || "",
+        dateOfInspection: convertDateFormat(formData.dateOfInspection),
+        locationOfFarm: formData.labeoffarm || "",
+        sourceOfSeed: formData.seedsource || "",
+        totalAcreageUnderProduction:
+          parseFloat(formData.totalacreageunderproductioninha) || 0,
+        acreageOfFieldInspected:
+          parseFloat(formData.acreageoffieldnoinspectedinha) || 0,
+        previousCrop: formData.previouscrop || "",
+        isolationDistance: parseFloat(formData.isolationdistance) || 0,
+        stageOfContaminant: formData.stageofgrowthofcontaminant || "",
+        stageOfSeedCropAtTimeInspection:
+          formData.stageofseedcropatthisinspection || "",
+        dateOfSowing: convertDateFormat(formData.dateOfSowing),
+        expectedDateOfHarvestFrom: convertDateFormat(formData.expectedHarvestFrom),
+        expectedDateOfHarvestTo: convertDateFormat(formData.expectedHarvestTo),
+        // Step 2 fields
+        fieldCounts: mapCountsData(formData.counts, 2),
+        // Step 3 fields
+        percentageOffTypes: parseFloat(formData.offTypePercentage) || 0,
+        percentageInseparableCrops:
+          parseFloat(formData.inseparableOtherCropsPercentage) || 0,
+        percentageObjectionableWeeds:
+          parseFloat(formData.objectionableWeedsPercentage) || 0,
+        percentageSeedBorneDiseases:
+          parseFloat(formData.seedBorneDiseasesPercentage) || 0,
+        inseparableCropPlants: formData.inseparableOtherCropsName || "",
+        objectionableWeedPlants: formData.objectionableWeedsName || "",
+        seedBorneDiseases: formData.seedBorneDiseasesName || "",
+        nonSeedBorneDiseases: formData.nonSeedBorneDiseases || "",
+        conditionOfCrop: formData.conditionOfCrop || "",
+        confirmStandard: booleanToYesNo(formData.confirmsToStandards),
+        productionQuality: formData.productionQuality || "",
+        isFinal: booleanToYesNo(formData.isFinalReport),
+        estimatedRawSeedYield: parseFloat(formData.estimatedRawSeedYield) || 0,
+        growerPresent: booleanToYesNo(formData.growerPresent),
+        submittedFor: formData.growerName || "",
+        submittedBy: formData.submittedBy || "",
+        designation: formData.designation || "",
+        remarks: formData.remarks || "",
+        programmeRejected: "No", 
+        growerVillage: data?.grower?.entityRegNo?.villageId?.villageName || "",
+        growerTaluk: data?.grower?.entityRegNo?.taluqs?.talukaName,
+        growerBlock: data?.grower?.entityRegNo?.block?.blockName,
+        variety: data?.inspection?.productionPlan?.seedVariety,
+        rejectedLands: [],
+      };
+    } else if (cropType === 3) {
+      return {
+        ...basePayload,
+        // Step 1 fields
+        sourceOfSeed: formData.seedsource || "",
+        femaleParent: formData.femaleParent || "",
+        maleParent: formData.maleParent || "",
+        hybridCodeDesignation: formData.codeHybridDesignation || "",
+        plantingRatio: formData.plantingRatio || "",
+        areBothEndMaleRowsMarked: booleanToYesNo(
+          formData.areBothEndOfMaleRowsMarked
+        ),
+        methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
+        isolationDistanceMeters: parseFloat(formData.isolationDistanceMeters) || 0,
+        stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
+        stageOfSeedCropAtInspection:
+          formData.stageofseedcropatthisinspection || "",
+        dateOfInspection: convertDateFormat(formData.dateOfInspection),
+        // Step 2 fields
+        fieldCount: mapCountsData(formData.counts, 3),
+        // Step 3 fields
+        sideOfFieldFromWhichInspectionStarted:
+          formData.sideOfFieldFromWhichInspectionWasStarted || "",
+        cropCondition: formData.cropCondition || "",
+        numberOfTimesDetasselled: parseInt(formData.noOfTimesDetasselled) || 0,
+        frequencyOfDetasselling: formData.frequencyOfDetasselling || "",
+        detassellingDoneAtInspectionTime: booleanToYesNo(
+          formData.detassellingDoneAtInspectionTime
+        ),
+        qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
+        doesCropConformToStandards: booleanToYesNo(formData.doesCropConformToStandards),
+        estimatedSeedYieldQtlsOrAcres:
+          formData.estimatedSeedYieldKgsPerAcres || "0",
+        wasGrowerPresentAtInspection: booleanToYesNo(formData.growerPresent),
+        numberOfBorderRow: parseInt(formData.noOfBorderRow) || 0,
+        isFinalReport: booleanToYesNo(formData.isFinalReport),
+        areaRejectedHect: parseFloat(formData.areaRejectedHa) || 0,
+        areaCertifiedHect: parseFloat(formData.areaCertifiedHa) || 0,
+        remarks: formData.remarks || "",
+        programmeRejected: "No", // Default value
+        // Additional fields for Type 3
+        growerVillage: data?.grower?.entityRegNo?.villageId?.villageName || "",
+        growerTaluk: data?.grower?.entityRegNo?.taluqs?.talukaName || "",
+        growerBlock: data?.grower?.entityRegNo?.block?.blockName || "",
+        rejectedLands: [], // Default empty array
+      };
+    }
+
+    return basePayload;
+  };
+
+  const handleSubmit = async (inspectionStatus = "APPROVED") => {
+    const stepErrors = validateStep(3);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Map form data to API payload
+      const payload = mapFormDataToPayload(formData, cropFirTypeId, data);
+
+      // Update inspection status in payload
+      payload.inspectionStatus = inspectionStatus;
+
+      // Determine API endpoint based on crop type
+      let apiEndpoint;
+      switch (cropFirTypeId) {
+        case 1:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_A;
+          break;
+        case 2:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_B;
+          break;
+        case 3:
+          apiEndpoint = API_ROUTES.INSPECTION_SAVE_C;
+          break;
+        default:
+          throw new Error("Invalid crop FIR type");
+      }
+
+      console.log("Submitting data:", payload);
+      console.log("API Endpoint:", apiEndpoint);
+      const encryptedPayload = encryptWholeObject(payload);
+      const response = await apiRequest(apiEndpoint, "POST", encryptedPayload);
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log("API Response:", parsedDecrypted);
+
+      // Handle success response
+      if (
+        parsedDecrypted &&
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        console.log("Sucess");
+        showSuccessMessage(parsedDecrypted?.message);
+        navigation.push("FieldInspectionReport");
+      } else {
+        console.log("Error in ELse Block");
+      }
+    } catch (error) {
+      console.error("Error submitting inspection form:", error?.message);
+      alert("Failed to submit inspection form. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <WrapperContainer isLoading={loading}>
@@ -671,61 +1849,86 @@ const InspectionForm = ({ route }) => {
       {step === 2 && renderStep2()}
       {step === 3 && renderStep3()}
 
-      <View style={styles.navigation}>
+      <View style={{ padding: moderateScale(10) }}>
         {step === 1 && (
-          <TouchableOpacity
-            style={[styles.navButton, styles.nextButton, styles.nextButton2]}
-            onPress={nextStep}
-          >
-            <Text style={styles.navButtonText}>Next</Text>
-          </TouchableOpacity>
+          <CustomButton
+            text={"Next"}
+            buttonStyle={styles.nextButtonStyle}
+            textStyle={styles.buttonText}
+            handleAction={nextStep}
+          />
         )}
         {step === 2 && (
-          <View
-            style={{
-              flexDirection: "row",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
-          >
-            <TouchableOpacity style={styles.navButton} onPress={prevStep}>
-              <Text style={styles.navButtonText}>Previous</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.navButton, styles.nextButton]}
-              onPress={nextStep}
-            >
-              <Text style={styles.navButtonText}>Next</Text>
-            </TouchableOpacity>
+          <View style={styles.step2}>
+            <CustomButton
+              text={"Previous"}
+              buttonStyle={styles.prevButton}
+              textStyle={styles.buttonText}
+              handleAction={prevStep}
+            />
+            <CustomButton
+              text={"Next"}
+              buttonStyle={[styles.nextButtonStyle, { width: "45%" }]}
+              textStyle={styles.buttonText}
+              handleAction={nextStep}
+            />
           </View>
         )}
-        {step == 3 && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-            }}
+
+        {step === 3 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={true}
+            contentContainerStyle={styles.step3ButtonsContainer}
           >
-            <TouchableOpacity style={styles.navButton} onPress={prevStep}>
-              <Text style={styles.navButtonText}>Previous</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.navButton, styles.submitButton]}>
-              <Text style={styles.navButtonText}>Submit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.navButton, styles.rejectButton]}>
-              <Text style={styles.navButtonText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.navButton, styles.cancelButton]}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.navButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+            <CustomButton
+              text={"Previous"}
+              buttonStyle={[styles.prevButton, styles.hButton]}
+              textStyle={styles.buttonText}
+              handleAction={prevStep}
+            />
+
+            <CustomButton
+              text={"Submit"}
+              buttonStyle={[
+                styles.prevButton,
+                styles.hButton,
+                { backgroundColor: Colors.greenColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => handleSubmit("APPROVED")}
+            />
+            <CustomButton
+              text={"Reject"}
+              buttonStyle={[
+                styles.prevButton,
+                styles.hButton,
+                { backgroundColor: Colors.redThemeColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => handleSubmit("REJECTED")}
+            />
+            <CustomButton
+              text={"Cancel"}
+              buttonStyle={[
+                styles.nextButtonStyle,
+                styles.hButton,
+                { backgroundColor: Colors.diabledColor },
+              ]}
+              textStyle={styles.buttonText}
+              handleAction={() => navigation.goBack()}
+            />
+          </ScrollView>
         )}
       </View>
+      {showDatePicker && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onDateChange}
+        />
+      )}
     </WrapperContainer>
   );
 };
@@ -768,7 +1971,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: textScale(12),
-    // marginBottom: moderateScaleVertical(8),
     fontFamily: FontFamily.PoppinsMedium,
     color: Colors.textColor,
   },
@@ -805,55 +2007,80 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
   },
+  horizontalScrollContainer: {
+    marginBottom: moderateScaleVertical(20),
+  },
+  tableContainer: {
+    minWidth: moderateScale(800),
+  },
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: moderateScale(1),
+    borderBottomWidth: moderateScale(2),
     borderColor: Colors.lightGray,
-    paddingBottom: moderateScale(5),
-    marginBottom: moderateScale(5),
+    paddingBottom: moderateScale(8),
+    marginBottom: moderateScale(8),
+    backgroundColor: Colors.lightBackground,
   },
   tableRow: {
     flexDirection: "row",
-    marginBottom: moderateScaleVertical(8),
+    marginBottom: moderateScaleVertical(10),
+    paddingVertical: moderateScaleVertical(5),
   },
   tableFooter: {
     flexDirection: "row",
-    borderTopWidth: moderateScale(1),
+    borderTopWidth: moderateScale(2),
     borderColor: Colors.lightGray,
-    paddingTop: moderateScale(6),
-    marginTop: moderateScale(6),
+    paddingTop: moderateScale(8),
+    marginTop: moderateScale(8),
     marginBottom: moderateScaleVertical(10),
+    backgroundColor: Colors.lightBackground,
   },
   tableCell: {
-    flex: 1,
-    padding: moderateScale(4),
+    padding: moderateScale(8),
     justifyContent: "center",
     alignItems: "center",
+    marginHorizontal: moderateScale(2),
   },
   headerCell: {
-    fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(9),
+    fontFamily: FontFamily.PoppinsSemiBold,
+    fontSize: textScale(11),
     textAlign: "center",
     color: Colors.textColor,
+    fontWeight: "600",
   },
   countCell: {
-    fontFamily: FontFamily.PoppinsRegular,
+    fontFamily: FontFamily.PoppinsMedium,
     textAlign: "center",
     color: Colors.textColor,
-    fontSize: textScale(12),
+    fontSize: textScale(13),
+    fontWeight: "500",
   },
   inputCell: {
     borderWidth: moderateScale(1),
     borderColor: Colors.veryLightGrey,
     borderRadius: moderateScale(5),
-    padding: moderateScale(4),
+    padding: moderateScale(8),
     textAlign: "center",
-    height: moderateScale(40),
+    height: moderateScale(45),
+    fontSize: textScale(13),
+    fontFamily: FontFamily.PoppinsRegular,
+    backgroundColor: Colors.white,
   },
   footerCell: {
-    fontFamily: FontFamily.PoppinsRegular,
+    fontFamily: FontFamily.PoppinsSemiBold,
     textAlign: "center",
     fontSize: textScale(12),
+    fontWeight: "600",
+    color: Colors.greenColor,
+  },
+  errorInput: {
+    borderColor: Colors.redThemeColor,
+  },
+  errorText: {
+    color: Colors.redThemeColor,
+    fontSize: textScale(11),
+    marginTop: moderateScaleVertical(4),
+    fontFamily: FontFamily.PoppinsRegular,
   },
   twoColumnLayout: {
     flexDirection: "row",
@@ -908,5 +2135,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  nextButtonStyle: {
+    backgroundColor: Colors.greenColor,
+    height: moderateScale(45),
+  },
+  buttonText: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(14),
+  },
+  prevButton: {
+    backgroundColor: Colors.veryLightGrey,
+    width: "45%",
+    height: moderateScale(45),
+  },
+  step2: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  step3ButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: moderateScale(4),
+  },
+  hButton: {
+    width: moderateScale(140),
+    height: moderateScale(45),
+    marginRight: moderateScale(10),
   },
 });

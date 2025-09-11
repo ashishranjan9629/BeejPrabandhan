@@ -10,7 +10,8 @@ export const apiRequest = async (
   endPoint,
   method = "GET",
   data,
-  tokenOverride = null
+  tokenOverride = null,
+  axiosConfig = {}
 ) => {
   const token = tokenOverride || (await getUserToken());
   console.log(token, "line 11");
@@ -20,6 +21,7 @@ export const apiRequest = async (
     headers: {
       "Content-Type": "application/json",
     },
+    ...axiosConfig,
   };
 
   if (token) {

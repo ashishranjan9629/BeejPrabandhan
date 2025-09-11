@@ -11,14 +11,12 @@ import {
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
 import CustomButton from "../../../../components/CustomButton";
-import Entypo from "react-native-vector-icons/Entypo";
-import AntDesign from "react-native-vector-icons/AntDesign";
 import Octicons from "react-native-vector-icons/Octicons";
 import { useNavigation } from "@react-navigation/native";
 
 const StartInspection = ({ route }) => {
   const { data } = route.params;
-  console.log(data, "line 8");
+  // console.log(data?.inspection?.crop?.cropFirType?.cropFirTypeId, "line 8");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [selectedLands, setSelectedLands] = useState([]);
@@ -167,7 +165,14 @@ const StartInspection = ({ route }) => {
         textStyle={styles.textStyle}
         disabled={totalInspectedArea === 0}
         handleAction={() =>
-          navigation.navigate("InspectionForm", { data: data })
+          navigation.navigate("InspectionForm", {
+            data: {
+              ...data,
+              selectedLands,
+              totalInspectedArea,
+              cropFirTypeId: data?.inspection?.crop?.cropFirType?.cropFirTypeId,
+            },
+          })
         }
       />
     </WrapperContainer>

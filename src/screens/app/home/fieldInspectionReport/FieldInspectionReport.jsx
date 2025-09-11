@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Buffer } from "buffer";
 import {
   StyleSheet,
   Text,
@@ -10,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Alert,
+  PermissionsAndroid,
 } from "react-native";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
@@ -27,7 +30,10 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { getUserData } from "../../../../utils/Storage";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
+import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
+import { showSuccessMessage } from "../../../../utils/HelperFunction";
+import FileViewer from "react-native-file-viewer";
 
 // Mock data from screenshot
 const PROGRAMMES = [
@@ -98,11 +104,15 @@ const FieldInspectionReport = () => {
   const navigation = useNavigation();
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [selctedData, setSelctedData] = useState();
-
+  const [userDataVariable, setUserDataVariable] = useState();
+  const [showOpenShowPreviewModal, setShowOpenShowPreviewModal] =
+    useState(false);
   const animationRefs = useRef(
     PROGRAMMES.map(() => new Animated.Value(0))
   ).current;
 
+  const [fileUri, setFileUri] = useState(null);
+  const [fileName, setFileName] = useState("");
   useEffect(() => {
     // Animate each card in sequence
     Animated.stagger(
@@ -131,6 +141,7 @@ const FieldInspectionReport = () => {
     try {
       setLoading(true);
       const userData = await getUserData();
+      setUserDataVariable(userData);
       // console.log(userData, "line 132");
       const payloadData = {
         aoId: userData?.aoId,
@@ -221,7 +232,7 @@ const FieldInspectionReport = () => {
           <View style={styles.cardRow}>
             <Text style={styles.label}>Status</Text>
             <Text style={[styles.status, getStatusStyle(item.status)]}>
-              {item.status}
+              {item.productionStatus}
             </Text>
           </View>
         </Animated.View>
@@ -243,6 +254,86 @@ const FieldInspectionReport = () => {
         return {};
     }
   }
+
+  const downloadExcelFile = async () => {
+    try {
+      setLoading(true);
+      const payloadData = {
+        aoId: userDataVariable?.aoId,
+        growerMobileNo: mobileNo,
+        growerName: growerName,
+        page: 0,
+        pageSize: 25,
+        pcId: "",
+        planId: planId,
+        roId: userDataVariable?.roId,
+      };
+      const encryptedPayload = encryptWholeObject(payloadData);
+
+      // Request binary (Excel) data
+      const response = await apiRequest(
+        API_ROUTES.DOWNLOAD_PROGRAM_EXCEL_LIST,
+        "post",
+        encryptedPayload,
+        null,
+        { responseType: "arraybuffer" }
+      );
+      // console.log(response,"line 281")
+      const base64Data = Buffer.from(response, "binary").toString("base64");
+      const fileName = `Programme_List_${Date.now()}.xlsx`;
+      const dirPath =
+        Platform.OS === "ios"
+          ? RNFS.DocumentDirectoryPath
+          : RNFS.DownloadDirectoryPath;
+
+      if (Platform.OS === "android") {
+        try {
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+          );
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+        } catch (permErr) {
+          console.log("Permission error", permErr);
+        }
+      }
+
+      const filePath = `${dirPath}/${fileName}`;
+      await RNFS.writeFile(filePath, base64Data, "base64");
+      showSuccessMessage(`Download Complete,Saved to: ${filePath}`);
+      setShowOpenShowPreviewModal(true);
+      setFileUri(filePath);
+      setFileName(`Programme_List_${Date.now()}.xlsx`);
+    } catch (error) {
+      console.log(error, "downloadExcelFile error");
+      Alert.alert("Failed", "Unable to download file. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePreview = () => {
+    if (!fileUri) {
+      Alert.alert("Error", "No file path provided");
+      return;
+    }
+    try {
+      setLoading(true);
+      setShowOpenShowPreviewModal(false);
+      setTimeout(async () => {
+        if (Platform.OS === "android") {
+          await FileViewer.open(fileUri);
+        } else {
+          await FileViewer.open(fileUri);
+        }
+      }, 1000);
+    } catch (err) {
+      Alert.alert("Error", "Failed to open file: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <WrapperContainer isLoading={loading}>
@@ -304,7 +395,10 @@ const FieldInspectionReport = () => {
           <View style={styles.exportRow}>
             <Text style={styles.headerText}>Programme List</Text>
             {programmingList && (
-              <TouchableOpacity style={styles.exportBtn}>
+              <TouchableOpacity
+                style={styles.exportBtn}
+                onPress={() => downloadExcelFile()}
+              >
                 <Text style={styles.exportBtnText}>Export</Text>
               </TouchableOpacity>
             )}
@@ -353,6 +447,33 @@ const FieldInspectionReport = () => {
             setShowBottomSheet(false);
           }}
         />
+      </CustomBottomSheet>
+      <CustomBottomSheet
+        visible={showOpenShowPreviewModal}
+        onRequestClose={() => setShowOpenShowPreviewModal(false)}
+      >
+        <Text style={styles.headerText}>
+          Do you want to view the Export file
+        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: moderateScale(10),
+          }}
+        >
+          <CustomButton
+            text={"Preview"}
+            buttonStyle={styles.openButton}
+            handleAction={() => handlePreview()}
+          />
+          <CustomButton
+            text={"Close"}
+            buttonStyle={styles.closeButton}
+            handleAction={() => setShowOpenShowPreviewModal(false)}
+          />
+        </View>
       </CustomBottomSheet>
     </WrapperContainer>
   );
@@ -531,6 +652,14 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: textScale(14),
     textTransform: "capitalize",
+  },
+  openButton: {
+    width: "48%",
+    backgroundColor: Colors.greenColor,
+  },
+  closeButton: {
+    width: "48%",
+    backgroundColor: Colors.redThemeColor,
   },
 });
 
