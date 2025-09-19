@@ -1,6 +1,6 @@
 export const API_ROUTES = {
-  BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
-  // BASE_URL: "http://192.168.100.102:7830/api/", //(development)
+  // BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
+  BASE_URL: "http://192.168.100.102:7830/api/", //(development)
   // BASE_URL: "http://192.168.80.25:7930/api/",// (Nitesh Ip)
   // BASE_URL: "http://160.25.172.19:9052/api/", //Public Server
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
@@ -12,7 +12,7 @@ export const API_ROUTES = {
   PRODUCTION_INSPECTION_A: "prod_plan/prd-ins-type-a/find-by-filter",
   PRODUCTION_INSPECTION_B: "prod_plan/prd-ins-type-b/find-by-filter",
   PRODUCTION_INSPECTION_C: "prod_plan/prd-ins-type-c/find-by-filter",
-  DOWNLOAD_PROGRAM_EXCEL_LIST:"prod_plan/prd-schedule/download-excel",
+  DOWNLOAD_PROGRAM_EXCEL_LIST: "prod_plan/prd-schedule/download-excel",
   SEEDS_INTAKE_HISTORY: "prod_plan/prd-sch-seed-intake/find-by-filter",
   CHANGE_PASSWORD: "userauth/public/user/changePassword",
   CROP_LIST: "master/crop-master/find-by-filter",
@@ -21,7 +21,15 @@ export const API_ROUTES = {
   CROP_GROUP_MASTER: "master/crop-group-master/dd",
   ADD_CROP: "master/crop-master/save",
   UPDATE_CROP: "master/crop-master/update",
-  INSPECTION_SAVE_A:"prod_plan/prd-ins-type-a/save",
-  INSPECTION_SAVE_B:"prod_plan/prd-ins-type-b/save",
-  INSPECTION_SAVE_C:"prod_plan/prd-ins-type-c/save",
+  INSPECTION_SAVE_A: "prod_plan/prd-ins-type-a/save",
+  INSPECTION_SAVE_B: "prod_plan/prd-ins-type-b/save",
+  INSPECTION_SAVE_C: "prod_plan/prd-ins-type-c/save",
+  PRODUCTION_PLAN: "prod_plan/production-plan/find-by-filter",
+  SEASON_MASTER_DD: "master/season-master/dd",
+  FINANCIAL_MASTER_DD: "master/financial-year-master/dd",
+  CROP_MASTER_DD: "master/crop-master/dd",
+  SEED_VARIETY_MASTER: "master/seed-varieties-master/dd",
+  DP_REPORT: "prod_plan/dp-report/find-by-filter",
+  DP_REPORT_DETAILS:"prod_plan/dp-report/find-by-id",
+  
 };

@@ -15,6 +15,13 @@ import CropDetails from "../screens/app/home/crop/CropDetails";
 import EditCropDetails from "../screens/app/home/crop/EditCropDetails";
 import StartInspection from "../screens/app/home/fieldInspectionReport/StartInspection";
 import InspectionForm from "../screens/app/home/fieldInspectionReport/InspectionForm";
+import ModifyPlan from "../screens/app/home/DPR/ModifyPlan";
+import AssignPlan from "../screens/app/home/DPR/AssignPlan";
+import DailyProgressReportList from "../screens/app/home/DPR/DailyProgressReportList";
+import DPRDetails from "../screens/app/home/DPR/DPRDetails";
+import DPREdit from "../screens/app/home/DPR/DPREdit";
+import DPRSubmit from "../screens/app/home/DPR/DPRSubmit";
+import DPRRevision from "../screens/app/home/DPR/DPRRevision";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -43,6 +50,16 @@ const AppNavigation = () => {
       <Stack.Screen name="EditCropDetails" component={EditCropDetails} />
       <Stack.Screen name="StartInspection" component={StartInspection} />
       <Stack.Screen name="InspectionForm" component={InspectionForm} />
+      <Stack.Screen name="ModifyPlan" component={ModifyPlan} />
+      <Stack.Screen name="AssignPlan" component={AssignPlan} />
+      <Stack.Screen
+        name="DailyProgressReportList"
+        component={DailyProgressReportList}
+      />
+      <Stack.Screen name="DPRDetails" component={DPRDetails} />
+      <Stack.Screen name="DPREdit" component={DPREdit} />
+      <Stack.Screen name="DPRSubmit" component={DPRSubmit} />
+      <Stack.Screen name="DPRRevision" component={DPRRevision} />
     </Stack.Navigator>
   );
 };
