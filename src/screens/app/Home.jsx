@@ -85,7 +85,7 @@ const Home = () => {
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg2,
-      navigationScreenName: "DailyProgressReport",
+      navigationScreenName: "DailyProgressReportList",
     },
     {
       id: 3,

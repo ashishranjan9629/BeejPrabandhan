@@ -27,15 +27,14 @@ import { useNavigation } from "@react-navigation/native";
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
-  // console.log(item, "line 30");
+  console.log(item, "line 30");
   // console.log(item?.productionStatus, "line 30");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
-  const [expandedId, setExpandedId] = useState("1");
   const [cropFirTypeId, setCropFirTypeId] = useState(null);
   console.log(detailsData, "All the details Data");
-  console.log(cropFirTypeId,"cropFirTypeId")
+  console.log(cropFirTypeId, "cropFirTypeId");
   useEffect(() => {
     fethcProgramListDetails();
   }, []);
@@ -45,6 +44,7 @@ const FiledInspectionReportDetails = ({ route }) => {
     const payloadData = {
       id: item?.id,
     };
+    console.log(payloadData, "line 48");
     try {
       setLoading(true);
       const encryptedPayload = encryptWholeObject(payloadData);
@@ -55,7 +55,7 @@ const FiledInspectionReportDetails = ({ route }) => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-
+      console.log("PROGRAMME_LIST_DETAILS", parsedDecrypted);
       if (
         parsedDecrypted &&
         parsedDecrypted?.status === "SUCCESS" &&
@@ -87,7 +87,7 @@ const FiledInspectionReportDetails = ({ route }) => {
           ) {
             const cropFirId = parsedDecrypted?.data?.crop?.cropFirType?.id;
             const scheduleId = parsedDecrypted?.data?.schedule?.id;
-
+            console.log(scheduleId, "line scheduleId ");
             const inspectionPayloadData = { scheduleId };
             const encryptedInspectionPayloadData = encryptWholeObject(
               inspectionPayloadData
@@ -100,9 +100,10 @@ const FiledInspectionReportDetails = ({ route }) => {
               "post",
               encryptedInspectionPayloadData
             );
+            console.log(API_ROUTES.PRODUCTION_INSPECTION_C);
             const inspectionDecrypted = decryptAES(inspectionResponseData);
             const inspectionParsedDecrypted = JSON.parse(inspectionDecrypted);
-
+            console.log(inspectionParsedDecrypted, "line 106");
             if (
               inspectionParsedDecrypted &&
               inspectionParsedDecrypted?.status === "SUCCESS" &&
@@ -130,9 +131,11 @@ const FiledInspectionReportDetails = ({ route }) => {
               setDetailsData({
                 inspection: parsedDecrypted?.data,
                 grower: growerData,
-                productionInspection: inspectionParsedDecrypted?.data, 
+                productionInspection: inspectionParsedDecrypted?.data,
               });
-              setCropFirTypeId( parsedDecrypted?.data?.crop?.cropFirType?.cropFirTypeId);
+              setCropFirTypeId(
+                parsedDecrypted?.data?.crop?.cropFirType?.cropFirTypeId
+              );
             } else {
               showErrorMessage("Error in getting Inspection Data");
             }
@@ -273,7 +276,7 @@ const FiledInspectionReportDetails = ({ route }) => {
               <Text style={styles.headerText}>
                 Inspection Details {index + 1}
               </Text>
-              
+
               {/* Common fields for all types */}
               <Details
                 label={"Name of the Producer/Grower"}
@@ -358,7 +361,10 @@ const FiledInspectionReportDetails = ({ route }) => {
                     label={"Report Number"}
                     value={item?.reportNo || "N/A"}
                   />
-                  <Details label={"Time From"} value={item?.timeFrom || "N/A"} />
+                  <Details
+                    label={"Time From"}
+                    value={item?.timeFrom || "N/A"}
+                  />
                   <Details label={"Time To"} value={item?.timeTo || "N/A"} />
                   <Details
                     label={"Planting Ratio"}
@@ -556,10 +562,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                     label={"Production Quality"}
                     value={item?.productionQuality || "N/A"}
                   />
-                  <Details
-                    label={"Is Final"}
-                    value={item?.isFinal || "N/A"}
-                  />
+                  <Details label={"Is Final"} value={item?.isFinal || "N/A"} />
                   <Details
                     label={"Estimated Raw Seed Yield"}
                     value={item?.estimatedRawSeedYield || "N/A"}
@@ -580,14 +583,8 @@ const FiledInspectionReportDetails = ({ route }) => {
                     label={"Designation"}
                     value={item?.designation || "N/A"}
                   />
-                  <Details
-                    label={"Remarks"}
-                    value={item?.remarks || "N/A"}
-                  />
-                  <Details
-                    label={"Variety"}
-                    value={item?.variety || "N/A"}
-                  />
+                  <Details label={"Remarks"} value={item?.remarks || "N/A"} />
+                  <Details label={"Variety"} value={item?.variety || "N/A"} />
                 </>
               )}
 
@@ -685,10 +682,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                     label={"Area Rejected Hect"}
                     value={item?.areaRejectedHect || "N/A"}
                   />
-                  <Details
-                    label={"Remarks"}
-                    value={item?.remarks || "N/A"}
-                  />
+                  <Details label={"Remarks"} value={item?.remarks || "N/A"} />
                 </>
               )}
             </View>

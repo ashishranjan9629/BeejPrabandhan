@@ -36,7 +36,7 @@ import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
 
 const Login = () => {
-  const [email, setEmail] = useState("117812001");
+  const [email, setEmail] = useState("7777700001");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useDispatch();
@@ -102,6 +102,7 @@ const Login = () => {
           ) {
             console.log(parsedDecrypted.data,"line 103")
             const decryptedData = deepDecryptObject(parsedDecrypted.data);
+             console.log(decryptedData,"decryptedData user Data");
             dispatch(setUserData(decryptedData));
             saveUserData(decryptedData);
           } else {
@@ -124,6 +125,7 @@ const Login = () => {
       setPassword("");
     }
   };
+  
 
   return (
     <KeyboardAvoidingView
