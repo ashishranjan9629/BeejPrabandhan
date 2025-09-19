@@ -99,7 +99,7 @@ const DailyProgressReportList = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB"); // DD/MM/YYYY format
+    return date.toLocaleDateString("en-GB"); 
   };
 
   const handleCardPress = (item) => {
@@ -120,7 +120,7 @@ const DailyProgressReportList = () => {
       case "Submit":
         navigation.navigate("DPRSubmit", { data: selectedItem });
         break;
-      case "Revision":
+      case "Activity Log":
         navigation.navigate("DPRRevision", { data: selectedItem });
         break;
       default:
@@ -308,6 +308,15 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Details")}
           />
+           <CustomButton
+            text={"Activity Log"}
+            buttonStyle={[
+              styles.bottomSheetButton,
+              { backgroundColor: Colors.gray },
+            ]}
+            textStyle={styles.bottomSheetButtonText}
+            handleAction={() => handleBottomSheetAction("Activity Log")}
+          />
           <CustomButton
             text={"Edit"}
             buttonStyle={[
@@ -317,15 +326,7 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Edit")}
           />
-          <CustomButton
-            text={"Revision"}
-            buttonStyle={[
-              styles.bottomSheetButton,
-              { backgroundColor: Colors.gray },
-            ]}
-            textStyle={styles.bottomSheetButtonText}
-            handleAction={() => handleBottomSheetAction("Revision")}
-          />
+         
           <CustomButton
             text={"Submit"}
             buttonStyle={styles.bottomSheetButton}

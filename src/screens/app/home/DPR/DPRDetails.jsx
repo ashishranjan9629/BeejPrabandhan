@@ -1,83 +1,31 @@
-// import { StyleSheet, Text, View } from "react-native";
-// import React, { useEffect, useState } from "react";
-// import WrapperContainer from "../../../../utils/WrapperContainer";
-// import InnerHeader from "../../../../components/InnerHeader";
-// import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-// import { apiRequest } from "../../../../services/APIRequest";
-// import { API_ROUTES } from "../../../../services/APIRoutes";
-
-// const DPRDetails = ({ route }) => {
-//   const { data } = route.params;
-//   const [loading, setLoading] = useState(false);
-//   const [dprFullDetails, setDprFullDetails] = useState();
-
-//   useEffect(() => {
-//     fetchDPRFullDetails();
-//   }, []);
-
-//   const fetchDPRFullDetails = async () => {
-//     try {
-//       setLoading(true);
-//       const payloadData = {
-//         id: data?.id,
-//       };
-//       const encryptedPayload = encryptWholeObject(payloadData);
-//       const response = await apiRequest(
-//         API_ROUTES.DP_REPORT_DETAILS,
-//         "POST",
-//         encryptedPayload
-//       );
-//       const decrypted = decryptAES(response);
-//       const parsedDecrypted = JSON.parse(decrypted);
-//       console.log(parsedDecrypted, "line 43");
-//       if (
-//         parsedDecrypted?.status === "SUCCESS" &&
-//         parsedDecrypted?.statusCode === "200"
-//       ) {
-//         setDprFullDetails(parsedDecrypted?.data);
-//       } else {
-//         showErrorMessage(parsedDecrypted?.message || "Not getting Data");
-//       }
-//     } catch (error) {
-//       console.log(error, "Line errror");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <WrapperContainer isLoading={loading}>
-//       <InnerHeader title={"DRP Details"} />
-//     </WrapperContainer>
-//   );
-// };
-
-// export default DPRDetails;
-
-// const styles = StyleSheet.create({});
-
-
-
-import { StyleSheet, Text, View, ScrollView } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
-import { showErrorMessage } from "../../../../utils/HelperFunction";
 import {
   moderateScale,
   moderateScaleVertical,
+  scale,
   textScale,
 } from "../../../../utils/responsiveSize";
-import FontFamily from "../../../../utils/FontFamily";
 import Colors from "../../../../utils/Colors";
+import FontFamily from "../../../../utils/FontFamily";
 
 const DPRDetails = ({ route }) => {
   const { data } = route.params;
+  console.log(data, "line 26");
   const [loading, setLoading] = useState(false);
-  const [dprFullDetails, setDprFullDetails] = useState(null);
+  const [dprFullDetails, setDprFullDetails] = useState();
 
   useEffect(() => {
     fetchDPRFullDetails();
@@ -97,7 +45,7 @@ const DPRDetails = ({ route }) => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      console.log(parsedDecrypted, "line 43");
+      // console.log(parsedDecrypted, "line 43");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -113,209 +61,137 @@ const DPRDetails = ({ route }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB');
+  const DetailsRow = ({ lable, value }) => {
+    return (
+      <View style={styles.detailsView}>
+        <Text style={styles.label}>{lable}</Text>
+        <Text style={styles.value}>{value ? value : "-"}</Text>
+      </View>
+    );
   };
 
-  if (!dprFullDetails) {
-    return (
-      <WrapperContainer isLoading={loading}>
-        <InnerHeader title={"DRP Details"} />
-      </WrapperContainer>
-    );
-  }
+    const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB"); 
+  };
 
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={"DRP Details"} />
-      <ScrollView style={styles.container}>
-        {/* Header Section */}
-        <View style={styles.headerSection}>
-          <Text style={styles.headerTitle}>Daily Progress Report Detail</Text>
-        </View>
-
-        {/* Process Details Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Process Details</Text>
-          
-          <View style={styles.row}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Date</Text>
-              <Text style={styles.value}>{formatDate(dprFullDetails.reportDate)}</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={moderateScaleVertical(10)}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: moderateScaleVertical(40) }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.filterCard}>
+            <Text style={styles.headerText}>Process Details</Text>
+            <View style={styles.detailsHolder}>
+              <DetailsRow lable={"Date"} value={formatDate(data?.createdOn)} />
+              <DetailsRow lable={"Square Name"} value={data?.squareName} />
+              <DetailsRow lable={"Operation"} value={data?.operationName} />
+              <DetailsRow lable={"Financial Year"} value={data?.finYear} />
+              <DetailsRow lable={"Season"} value={data?.season} />
+              <DetailsRow lable={"Class"} value={data?.fromSeedClass} />
+              <DetailsRow lable={"Stage"} value={data?.toSeedStage} />
+              <DetailsRow
+                lable={"Required Output (ha)"}
+                value={data?.requiredOutputArea}
+              />
             </View>
           </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Source Name</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.squareName || "N/A"}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Class</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.fromSeedClass || "N/A"}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Operation</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.operationName || "N/A"}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Stage</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.fromSeedStage || "N/A"}</Text>
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <View style={styles.column}>
-              <Text style={styles.label}>Financial Year</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.finYear || "N/A"}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.label}>Required Output (ha)</Text>
-              <Text style={styles.boldValue}>{dprFullDetails.requiredOutputArea || "N/A"}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Agriculture Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Agriculture</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Serial No ↓</Text>
-          </View>
-        </View>
-
-        {/* Method Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Method</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Serial No ↓</Text>
-          </View>
-        </View>
-
-        {/* Mechanical Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Mechanical</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Serial No ↓</Text>
-          </View>
-        </View>
-
-        {/* Equipment Details */}
-        {dprFullDetails.dprMechanicals && dprFullDetails.dprMechanicals.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Equipment Details</Text>
-            {dprFullDetails.dprMechanicals.map((equipment, index) => (
-              <View key={index} style={styles.equipmentItem}>
-                <Text style={styles.equipmentName}>{equipment.equipmentName || "N/A"}</Text>
-                <View style={styles.equipmentDetails}>
-                  <Text style={styles.equipmentTime}>08:00</Text>
-                  <View style={styles.equipmentSubDetails}>
-                    <Text style={styles.equipmentText}>Furn Time</Text>
-                    <Text style={styles.equipmentText}>Equipment Name</Text>
-                    <Text style={styles.equipmentText}>Mac Name One</Text>
-                  </View>
+          {/* Agriculture */}
+          {data?.dprAgricultures.length > 0 ? (
+            <View style={styles.filterCard}>
+              <Text style={styles.headerText}>Agriculture</Text>
+              {data?.dprAgricultures.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.detailsHolder, styles.agicultureView]}
+                >
+                  <DetailsRow lable={"Serial No"} value={index + 1} />
+                  <DetailsRow
+                    lable={"Material Type"}
+                    value={item?.materialType}
+                  />
+                  <DetailsRow lable={"Material"} value={item?.itemName} />
+                  <DetailsRow lable={"Weightage"} value={item?.qty} />
                 </View>
-                {equipment.operatorName && (
-                  <Text style={styles.operatorText}>Operator: {equipment.operatorName}</Text>
-                )}
-                {equipment.cpNumber && (
-                  <Text style={styles.cpText}>CP Number: {equipment.cpNumber}</Text>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Labour Details */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Labour Details</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Serial No ↓</Text>
-          </View>
-        </View>
-
-        {/* Operation Labour */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Operation</Text>
-          <Text style={styles.boldValue}>{dprFullDetails.operationName || "N/A"}</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Labour Name ↓</Text>
-          </View>
-        </View>
-
-        {/* Material Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Material</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Material ↓</Text>
-          </View>
-        </View>
-
-        {/* Navigation Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Navigation (hz)</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Operation Name ↓</Text>
-          </View>
-        </View>
-
-        {/* Controller Name */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Controller Name</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Alcault Nora ↓</Text>
-          </View>
-        </View>
-
-        {/* Operator Name */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Operator Name</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Operator Name ↓</Text>
-          </View>
-        </View>
-
-        {/* Additional Sections as per screenshot */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Controller Name</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Alcault Nora ↓</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Labour Details</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Serial No ↓</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Operation</Text>
-          <Text style={styles.boldValue}>{dprFullDetails.operationName || "N/A"}</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>Labour Name ↓</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Material Time</Text>
-          <View style={styles.placeholderRow}>
-            <Text style={styles.placeholderText}>GT Time ↓</Text>
-          </View>
-        </View>
-      </ScrollView>
+              ))}
+            </View>
+          ) : null}
+          {/* Machinincal */}
+          {data?.dprMechanicals.length > 0 ? (
+            <View style={styles.filterCard}>
+              <Text style={styles.headerText}>Mechanical</Text>
+              {data?.dprMechanicals.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.detailsHolder, styles.agicultureView]}
+                >
+                  <DetailsRow lable={"Serial No"} value={index + 1} />
+                  <DetailsRow
+                    lable={"Equipment Name"}
+                    value={item?.equipmentName}
+                  />
+                  <DetailsRow
+                    lable={"Est. Hours"}
+                    value={item?.estimatedHours}
+                  />
+                  <DetailsRow
+                    lable={"Operator Name"}
+                    value={item?.operatorName}
+                  />
+                  <DetailsRow lable={"CP Number"} value={item?.cpNumber} />
+                  <DetailsRow
+                    lable={"From Time"}
+                    value={item?.fromWorkingHour}
+                  />
+                  <DetailsRow lable={"To Time"} value={item?.toWorkingHour} />
+                  <DetailsRow
+                    lable={"Actual Hours"}
+                    value={item?.totalWorkingHour}
+                  />
+                  <DetailsRow
+                    lable={"DRP Machine Status"}
+                    value={item?.dprMechStatus}
+                  />
+                  <DetailsRow lable={"Status"} value={item?.status} />
+                </View>
+              ))}
+            </View>
+          ) : null}
+          {/* Labour */}
+          {data?.dprLabour.length > 0 ? (
+            <View style={styles.filterCard}>
+              <Text style={styles.headerText}>Labour Details</Text>
+              {data?.dprLabour.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.detailsHolder, styles.agicultureView]}
+                >
+                  <DetailsRow lable={"Serial No"} value={index + 1} />
+                  <DetailsRow lable={"Operation"} value={data?.operationName} />
+                  <DetailsRow
+                    lable={"Labour Name"}
+                    value={item?.name}
+                  />
+                  <DetailsRow
+                    lable={"Actula Time"}
+                    value={item?.actualTime}
+                  />
+                  <DetailsRow lable={"OT Time"} value={item?.otTime} />
+                </View>
+              ))}
+            </View>
+          ) : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </WrapperContainer>
   );
 };
@@ -323,121 +199,57 @@ const DPRDetails = ({ route }) => {
 export default DPRDetails;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: moderateScale(16),
-  },
-  headerSection: {
-    marginBottom: moderateScaleVertical(20),
-  },
-  headerTitle: {
-    fontSize: textScale(18),
-    fontFamily: FontFamily.PoppinsBold,
-    color: Colors.black,
-    textAlign: 'center',
-  },
-  section: {
+  filterCard: {
     backgroundColor: Colors.white,
-    borderRadius: moderateScale(8),
-    padding: moderateScale(16),
-    marginBottom: moderateScaleVertical(16),
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 3,
+    marginHorizontal: moderateScale(15),
+    margin: moderateScaleVertical(10),
+    borderRadius: moderateScale(5),
+    elevation: moderateScale(5),
+    shadowColor: Colors.greenColor,
+    shadowOpacity: scale(0.08),
+    shadowRadius: moderateScale(5),
+    shadowOffset: { width: 0, height: 2 },
   },
-  sectionTitle: {
-    fontSize: textScale(16),
+  headerText: {
+    fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsSemiBold,
-    color: Colors.primary,
-    marginBottom: moderateScaleVertical(12),
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: moderateScaleVertical(8),
-  },
-  column: {
-    flex: 1,
+    color: Colors.greenColor,
+    marginBottom: moderateScaleVertical(4),
+    borderLeftWidth: moderateScale(2),
+    padding: moderateScale(5),
+    paddingHorizontal: moderateScale(10),
+    borderColor: Colors.primary,
   },
   label: {
-    fontSize: textScale(12),
     fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.darkGray,
-    marginBottom: moderateScaleVertical(4),
+    fontSize: textScale(12),
+    color: Colors.textColor,
+    letterSpacing: scale(0.2),
+    textTransform: "capitalize",
   },
   value: {
-    fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsMedium,
     color: Colors.black,
-  },
-  boldValue: {
     fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
-    color: Colors.black,
+    letterSpacing: scale(0.2),
+    textTransform: "capitalize",
   },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.lightGray,
-    marginVertical: moderateScaleVertical(12),
+  detailsHolder: {
+    padding: moderateScale(10),
+    flexDirection: "row",
+    alignItems: "center",
+    gap: moderateScale(10),
+    justifyContent: "space-between",
+    flexWrap: "wrap",
   },
-  placeholderRow: {
-    backgroundColor: Colors.lightGray,
-    padding: moderateScale(12),
-    borderRadius: moderateScale(4),
-    alignItems: 'center',
+  detailsView: {
+    width: "48%",
+    gap: moderateScale(5),
+    padding: moderateScale(5),
   },
-  placeholderText: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.darkGray,
-    fontStyle: 'italic',
-  },
-  equipmentItem: {
-    backgroundColor: Colors.veryLightGray,
-    padding: moderateScale(12),
-    borderRadius: moderateScale(6),
-    marginBottom: moderateScaleVertical(8),
-  },
-  equipmentName: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
-    color: Colors.black,
-    marginBottom: moderateScaleVertical(8),
-  },
-  equipmentDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: moderateScaleVertical(8),
-  },
-  equipmentTime: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.primary,
-    marginRight: moderateScale(12),
-  },
-  equipmentSubDetails: {
-    flex: 1,
-  },
-  equipmentText: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.darkGray,
-    marginBottom: moderateScaleVertical(2),
-  },
-  operatorText: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.black,
-    marginBottom: moderateScaleVertical(4),
-  },
-  cpText: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.darkGray,
+  agicultureView: {
+    borderBottomWidth: moderateScale(1),
+    marginVertical: moderateScaleVertical(5),
+    borderColor: Colors.gray,
   },
 });

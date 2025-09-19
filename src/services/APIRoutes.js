@@ -30,6 +30,8 @@ export const API_ROUTES = {
   CROP_MASTER_DD: "master/crop-master/dd",
   SEED_VARIETY_MASTER: "master/seed-varieties-master/dd",
   DP_REPORT: "prod_plan/dp-report/find-by-filter",
-  DP_REPORT_DETAILS:"prod_plan/dp-report/find-by-id",
-  
+  DP_REPORT_DETAILS: "prod_plan/dp-report/find-by-id",
+  SQUARE_MASTER_DD: "master/square-master/dd",
+  OPERATION_MASTER_DD: "master/operation-master/dd",
+  MACHINE_MASTER_DD: "master/machine-master/dd",
 };
