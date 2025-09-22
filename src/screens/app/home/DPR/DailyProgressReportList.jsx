@@ -34,6 +34,7 @@ const DailyProgressReportList = () => {
   const [dpReportList, setDpReportList] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+  console.log(selectedItem?.dprStatus, "selectedItem?.dprStatus");
 
   useEffect(() => {
     fetchUserData();
@@ -99,7 +100,7 @@ const DailyProgressReportList = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB"); 
+    return date.toLocaleDateString("en-GB");
   };
 
   const handleCardPress = (item) => {
@@ -275,7 +276,7 @@ const DailyProgressReportList = () => {
       {/* Create Row */}
       <View style={styles.exportRow}>
         <Text style={styles.headerText}>DPR Report</Text>
-        <TouchableOpacity style={styles.exportBtn}>
+        <TouchableOpacity style={styles.exportBtn} onPress={()=>navigation.navigate("CreateNewDPR",)}>
           <Text style={styles.exportBtnText}>Create New</Text>
         </TouchableOpacity>
       </View>
@@ -308,7 +309,7 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Details")}
           />
-           <CustomButton
+          <CustomButton
             text={"Activity Log"}
             buttonStyle={[
               styles.bottomSheetButton,
@@ -317,22 +318,25 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Activity Log")}
           />
-          <CustomButton
-            text={"Edit"}
-            buttonStyle={[
-              styles.bottomSheetButton,
-              { backgroundColor: Colors.primary },
-            ]}
-            textStyle={styles.bottomSheetButtonText}
-            handleAction={() => handleBottomSheetAction("Edit")}
-          />
-         
-          <CustomButton
-            text={"Submit"}
-            buttonStyle={styles.bottomSheetButton}
-            textStyle={styles.bottomSheetButtonText}
-            handleAction={() => handleBottomSheetAction("Submit")}
-          />
+          {selectedItem?.dprStatus != "SUBMITTED" && (
+            <CustomButton
+              text={"Edit"}
+              buttonStyle={[
+                styles.bottomSheetButton,
+                { backgroundColor: Colors.primary },
+              ]}
+              textStyle={styles.bottomSheetButtonText}
+              handleAction={() => handleBottomSheetAction("Edit")}
+            />
+          )}
+          {selectedItem?.dprStatus != "SUBMITTED" && (
+            <CustomButton
+              text={"Submit"}
+              buttonStyle={styles.bottomSheetButton}
+              textStyle={styles.bottomSheetButtonText}
+              handleAction={() => handleBottomSheetAction("Submit")}
+            />
+          )}
         </View>
       </CustomBottomSheet>
     </WrapperContainer>
