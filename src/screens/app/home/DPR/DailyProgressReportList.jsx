@@ -14,7 +14,10 @@ import { getUserData } from "../../../../utils/Storage";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
-import { showErrorMessage } from "../../../../utils/HelperFunction";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../../../utils/HelperFunction";
 import {
   moderateScale,
   moderateScaleVertical,
@@ -34,7 +37,10 @@ const DailyProgressReportList = () => {
   const [dpReportList, setDpReportList] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-  console.log(selectedItem?.dprStatus, "selectedItem?.dprStatus");
+  console.log(selectedItem, "selectedItem");
+
+  // PENDING_WITH_MECHANICAL_INCHARGE
+  //
 
   useEffect(() => {
     fetchUserData();
@@ -92,6 +98,8 @@ const DailyProgressReportList = () => {
         return Colors.blue;
       case "PENDING_WITH_MECHANICAL_INCHARGE":
         return Colors.purple;
+      case "REJECTED":
+        return Colors.redThemeColor;
       default:
         return Colors.gray;
     }
@@ -124,10 +132,91 @@ const DailyProgressReportList = () => {
       case "Activity Log":
         navigation.navigate("DPRRevision", { data: selectedItem });
         break;
+      case "Approve":
+        handleApproveMethod();
+        break;
+      case "Reject":
+        handleRejectMethod();
+        break;
       default:
         break;
     }
     setBottomSheetVisible(false);
+  };
+
+  const handleApproveMethod = async () => {
+    try {
+      setLoading(true);
+      const payloadData = {
+        dprStatus:
+          selectedItem?.equipment === true
+            ? "PENDING_WITH_MECHANICAL_INCHARGE"
+            : "PENDING_WITH_CHAK_INCHARGE",
+        id: selectedItem?.id,
+        subUnitId: userData?.subUnitId,
+        subUnitName: userData?.subUnitName,
+        unitId: userData?.blockId,
+        unitType: userData?.unitType,
+      };
+      const encryptedPayload = encryptWholeObject(payloadData);
+      const response = await apiRequest(
+        API_ROUTES.DP_REPORT_UPDATE,
+        "POST",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 164");
+      if (
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        showSuccessMessage(parsedDecrypted?.message || "success");
+        await fetchDPRList(userData);
+      } else {
+        showErrorMessage(`${parsedDecrypted?.message}` || "Error");
+      }
+    } catch (error) {
+      console.log(error, "Line error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectMethod = async () => {
+    try {
+      setLoading(true);
+      const payloadData = {
+        dprStatus: "REJECTED",
+        id: selectedItem?.id,
+        subUnitId: userData?.subUnitId,
+        subUnitName: userData?.subUnitName,
+        unitId: userData?.blockId,
+        unitType: userData?.unitType,
+      };
+      const encryptedPayload = encryptWholeObject(payloadData);
+      const response = await apiRequest(
+        API_ROUTES.DP_REPORT_UPDATE,
+        "POST",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 164");
+      if (
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        showSuccessMessage(parsedDecrypted?.message || "success");
+        await fetchDPRList(userData);
+      } else {
+        showErrorMessage(`${parsedDecrypted?.message}` || "Error");
+      }
+    } catch (error) {
+      console.log(error, "Line error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const AnimatedCard = ({ item, index }) => {
@@ -154,13 +243,13 @@ const DailyProgressReportList = () => {
 
     return (
       <TouchableOpacity onPress={() => handleCardPress(item)}>
-        <Animated.View
+        <View
           style={[
             styles.card,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
+            // {
+            //   opacity: fadeAnim,
+            //   transform: [{ translateY: slideAnim }],
+            // },
           ]}
         >
           {/* Header Row with Date and Status */}
@@ -172,7 +261,22 @@ const DailyProgressReportList = () => {
                 { backgroundColor: getStatusColor(item.dprStatus) },
               ]}
             >
-              <Text style={styles.statusText}>{item.dprStatus || "N/A"}</Text>
+              <Text style={styles.statusText}>
+                {(item.dprStatus === "SUBMITTED" && "Submitted") ||
+                  (item.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
+                    "Pending at Block In") ||
+                  (item.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
+                    "Pending at Mech. In") ||
+                  (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
+                    "Pending at Chack In") ||
+                  (item.dprStatus === "REJECTED" && "Rejected") ||
+                  (item.dprStatus === "PENDING" && "Pending") ||
+                  (item.dprStatus === "APPROVED" && "Approved") ||
+                  (item.dprStatus ===
+                    "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
+                    "Pending at Chak For Corr.") ||
+                  "N/A"}
+              </Text>
             </View>
           </View>
 
@@ -229,43 +333,8 @@ const DailyProgressReportList = () => {
                 </Text>
               </View>
             </View>
-
-            {/* Equipment Details */}
-            {/* {item.dprMechanicals && item.dprMechanicals.length > 0 && (
-              <View style={styles.equipmentSection}>
-                <Text style={styles.headerText}>Equipment Details</Text>
-                {item.dprMechanicals.map((equipment, index) => (
-                  <View key={index} style={styles.equipmentItem}>
-                    <Text style={styles.equipmentText}>
-                      {equipment.equipmentName || "N/A"} -{" "}
-                      {equipment.cpNumber || "N/A"}
-                    </Text>
-                    <Text style={styles.equipmentStatus}>
-                      Status: {equipment.dprMechStatus || "N/A"}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )} */}
-
-            {/* Workflow History */}
-            {/* {item.workflows && item.workflows.length > 0 && (
-              <View style={styles.equipmentSection}>
-                <Text style={styles.headerText}>Workflow History</Text>
-                {item.workflows.map((workflow, index) => (
-                  <View key={index} style={styles.equipmentItem}>
-                    <Text style={styles.equipmentText}>
-                      {workflow.toStatus} - {formatDate(workflow.updatedDate)}
-                    </Text>
-                    <Text style={styles.equipmentStatus}>
-                      Remarks: {workflow.remarks || "No remarks"}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )} */}
           </View>
-        </Animated.View>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -276,9 +345,14 @@ const DailyProgressReportList = () => {
       {/* Create Row */}
       <View style={styles.exportRow}>
         <Text style={styles.headerText}>DPR Report</Text>
-        <TouchableOpacity style={styles.exportBtn} onPress={()=>navigation.navigate("CreateNewDPR",)}>
-          <Text style={styles.exportBtnText}>Create New</Text>
-        </TouchableOpacity>
+        {userData?.unitType != "BLOCK" && (
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={() => navigation.navigate("CreateNewDPR")}
+          >
+            <Text style={styles.exportBtnText}>Create New</Text>
+          </TouchableOpacity>
+        )}
       </View>
       <FlatList
         data={dpReportList}
@@ -318,25 +392,60 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Activity Log")}
           />
-          {selectedItem?.dprStatus != "SUBMITTED" && (
-            <CustomButton
-              text={"Edit"}
-              buttonStyle={[
-                styles.bottomSheetButton,
-                { backgroundColor: Colors.primary },
-              ]}
-              textStyle={styles.bottomSheetButtonText}
-              handleAction={() => handleBottomSheetAction("Edit")}
-            />
-          )}
-          {selectedItem?.dprStatus != "SUBMITTED" && (
-            <CustomButton
-              text={"Submit"}
-              buttonStyle={styles.bottomSheetButton}
-              textStyle={styles.bottomSheetButtonText}
-              handleAction={() => handleBottomSheetAction("Submit")}
-            />
-          )}
+          {selectedItem?.dprStatus != "SUBMITTED" &&
+            userData?.unitType === "CHAK" && (
+              <CustomButton
+                text={"Edit"}
+                buttonStyle={[
+                  styles.bottomSheetButton,
+                  { backgroundColor: Colors.primary },
+                ]}
+                textStyle={styles.bottomSheetButtonText}
+                handleAction={() => handleBottomSheetAction("Edit")}
+              />
+            )}
+
+          {userData?.subUnitType === "WORKSHOP" &&
+            selectedItem?.dprStatus !== "REJECTED" &&
+            selectedItem?.dprStatus !== "SUBMITTED" && (
+              <CustomButton
+                text={"Submit"}
+                buttonStyle={styles.bottomSheetButton}
+                textStyle={styles.bottomSheetButtonText}
+                handleAction={() => handleBottomSheetAction("Submit")}
+              />
+            )}
+
+          {selectedItem?.dprStatus != "SUBMITTED" &&
+            userData?.unitType === "CHAK" && (
+              <CustomButton
+                text={"Submit"}
+                buttonStyle={styles.bottomSheetButton}
+                textStyle={styles.bottomSheetButtonText}
+                handleAction={() => handleBottomSheetAction("Submit")}
+              />
+            )}
+          {userData?.unitType === "BLOCK" &&
+            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" && (
+              <CustomButton
+                text={"Approve"}
+                buttonStyle={styles.bottomSheetButton}
+                textStyle={styles.bottomSheetButtonText}
+                handleAction={() => handleBottomSheetAction("Approve")}
+              />
+            )}
+          {userData?.unitType === "BLOCK" &&
+            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" && (
+              <CustomButton
+                text={"Reject"}
+                buttonStyle={[
+                  styles.bottomSheetButton,
+                  { backgroundColor: Colors.red },
+                ]}
+                textStyle={styles.bottomSheetButtonText}
+                handleAction={() => handleBottomSheetAction("Reject")}
+              />
+            )}
         </View>
       </CustomBottomSheet>
     </WrapperContainer>

@@ -35,4 +35,5 @@ export const API_ROUTES = {
   OPERATION_MASTER_DD: "master/operation-master/dd",
   MACHINE_MASTER_DD: "master/machine-master/dd",
   DP_REPORT_SAVE: "prod_plan/dp-report/save",
+  DP_REPORT_UPDATE: "prod_plan/dp-report/update",
 };
