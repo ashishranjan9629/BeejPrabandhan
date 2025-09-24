@@ -32,7 +32,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 const DPREdit = ({ route, navigation }) => {
   const { data } = route.params;
-  console.log(data.dprMechanicals, "line 35");
+  console.log(data, "line 35");
   const [loading, setLoading] = useState(false);
   const [squareList, setSquareList] = useState([]);
   const [operationList, setOperationList] = useState([]);

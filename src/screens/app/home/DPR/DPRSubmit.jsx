@@ -4,9 +4,12 @@ import {
   View,
   ScrollView,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
@@ -27,13 +30,76 @@ import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { getUserData } from "../../../../utils/Storage";
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 const DPRSubmit = ({ route, navigation }) => {
+  const [loading, setLoading] = useState(false);
   const { data } = route.params;
+  console.log(data.operationName, "data.operationName");
   const [userData, setUserData] = useState();
   const [mechanicalData, setMechanicalData] = useState([]);
-  console.log(userData,"userData")
-  // Initialize mechanical data state
+  const [agricultureData, setAgricultureData] = useState([]);
+  const [labourData, setLabourData] = useState([]);
+  // Add these states to your component
+  const [showMaterialTypeDropdown, setShowMaterialTypeDropdown] =
+    useState(false);
+  const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
+  const [materialTypeList, setMaterialTypeList] = useState([
+    "VALUE_ADDED",
+    "PACKAGING_MATERIAL",
+    "AGRO_CHEMICAL",
+    "SEED",
+    "SAPLING",
+  ]);
+  const [materialList, setMaterialList] = useState([]);
+  const [currentAgricultureIndex, setCurrentAgricultureIndex] = useState(0);
+
+  console.log(userData, "userData");
+  console.log(data, "data");
+  const MATERIAL_TYPE_ENUM = {
+    SEED: "SEED",
+    VALUE_ADDED: "VALUE_ADDED",
+    PACKAGING_MATERIAL: "PACKAGING_MATERIAL",
+    AGRO_CHEMICAL: "AGRO_CHEMICAL",
+    SAPLING: "SAPLING",
+  };
+
+  // Add this function to fetch material list
+  const fetchMaterialList = async (materialType, index) => {
+    try {
+      setLoading(true);
+      const payload = {
+        materialType: materialType,
+      };
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const response = await apiRequest(
+        API_ROUTES.MATERIAL_LIST,
+        "POST",
+        encryptedPayload
+      );
+
+      const decryptedResponse = decryptAES(response);
+      const parsedResponse = JSON.parse(decryptedResponse);
+      if (
+        parsedResponse?.status === "SUCCESS" &&
+        parsedResponse?.statusCode === "200"
+      ) {
+        setMaterialList(parsedResponse?.data);
+        setCurrentAgricultureIndex(index);
+        // setShowMaterialDropdown(true);
+        console.log(parsedResponse?.data, "line 91");
+      } else {
+        showErrorMessage("Unable to fetch material list");
+      }
+    } catch (error) {
+      console.error("Error fetching material list:", error);
+      showErrorMessage("Error fetching material list");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUserData();
@@ -53,7 +119,37 @@ const DPRSubmit = ({ route, navigation }) => {
       }));
       setMechanicalData(initialMechanicalData);
     }
-  }, [data.dprMechanicals]);
+
+    // Initialize agriculture data with correct structure
+    if (data.dprAgricultures && data.dprAgricultures.length > 0) {
+      setAgricultureData(data.dprAgricultures);
+    } else {
+      // Add default agriculture entry with correct structure
+      setAgricultureData([
+        {
+          material: "",
+          itemId: "",
+          qty: "",
+          uom: "",
+        },
+      ]);
+    }
+
+    // Initialize labour data with correct structure
+    if (data.dprLabour && data.dprLabour.length > 0) {
+      setLabourData(data.dprLabour);
+    } else {
+      // Add default labour entry with correct structure
+      setLabourData([
+        {
+          operation: data.operationName,
+          name: "",
+          actualTime: "",
+          otTime: "",
+        },
+      ]);
+    }
+  }, [data]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -79,58 +175,165 @@ const DPRSubmit = ({ route, navigation }) => {
     });
   };
 
-  const handleSubmit = () => {
-    // Validate all CP Numbers
-    for (let i = 0; i < mechanicalData.length; i++) {
-      if (!mechanicalData[i].cpNumber.trim()) {
-        showErrorMessage(`Please Enter the CP Number for Equipment ${i + 1}`);
-        return;
+  const updateAgricultureField = (index, field, value) => {
+    setAgricultureData((prev) => {
+      const newData = [...prev];
+      newData[index] = {
+        ...newData[index],
+        [field]: value,
+      };
+      return newData;
+    });
+  };
+
+  const updateLabourField = (index, field, value) => {
+    setLabourData((prev) => {
+      const newData = [...prev];
+      newData[index] = {
+        ...newData[index],
+        [field]: value,
+      };
+      return newData;
+    });
+  };
+
+  const addAgricultureEntry = () => {
+    const newId = Math.max(...agricultureData.map((item) => item.id), 0) + 1;
+    setAgricultureData((prev) => [
+      ...prev,
+      {
+        id: newId,
+        material: "",
+        itemId: "",
+        qty: "",
+        uom: "",
+      },
+    ]);
+  };
+
+  const removeAgricultureEntry = (index) => {
+    if (agricultureData.length === 1) {
+      showErrorMessage("At least one agriculture entry is required");
+      return;
+    }
+    setAgricultureData((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addLabourEntry = () => {
+    const newId = Math.max(...labourData.map((item) => item.id), 0) + 1;
+    setLabourData((prev) => [
+      ...prev,
+      {
+        id: newId,
+        name: "",
+        actualTime: "",
+        otTime: "",
+      },
+    ]);
+  };
+
+  const removeLabourEntry = (index) => {
+    if (labourData.length === 1) {
+      showErrorMessage("At least one labour entry is required");
+      return;
+    }
+    setLabourData((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    // Validate all CP Numbers for mechanical entries
+    if (
+      userData?.unitType === "BLOCK" &&
+      userData?.subUnitType === "WORKSHOP"
+    ) {
+      for (let i = 0; i < mechanicalData.length; i++) {
+        if (!mechanicalData[i].cpNumber.trim()) {
+          showErrorMessage(`Please Enter the CP Number for Equipment ${i + 1}`);
+          return;
+        }
+      }
+    }
+    // Validate agriculture entries
+    if (userData?.unitType === "CHAK") {
+      for (let i = 0; i < agricultureData.length; i++) {
+        const agri = agricultureData[i];
+        if (!agri.itemId.trim() || !agri.material.trim() || !agri.qty.trim()) {
+          showErrorMessage(
+            `Please fill all fields for Agriculture entry ${i + 1}`
+          );
+          return;
+        }
       }
     }
 
-    Alert.alert("Issue DPR", "Are you sure you want to issue this DPR?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Issue",
-        onPress: async () => {
-          const submitData = {
-            ...data,
-            unitId:userData?.unitType==="BLOCK"?userData?.blockId:null,
-            unitType:userData?.unitType,
-            dprMechanicals: data.dprMechanicals.map((mech, index) => ({
-              ...mech,
-              operatorName: mechanicalData[index]?.operatorName || "",
-              cpNumber: mechanicalData[index]?.cpNumber || "",
-            })),
-          };
-          console.log(submitData,"submitData")
-          const encryptedPayload = encryptWholeObject(submitData);
-          const response = await apiRequest(
-            API_ROUTES.DP_REPORT_UPDATE,
-            "post",
-            encryptedPayload
+    // Validate labour entries
+    if (userData?.unitType === "CHAK") {
+      for (let i = 0; i < labourData.length; i++) {
+        const labour = labourData[i];
+        if (!labour.name.trim() || !labour.actualTime.trim()) {
+          showErrorMessage(
+            `Please fill all required fields for Labour entry ${i + 1}`
           );
-          const decrypted = decryptAES(response);
-          const parsedDecrypted = JSON.parse(decrypted);
-          console.log(parsedDecrypted, "line 543");
-          if (
-            parsedDecrypted?.status === "SUCCESS" &&
-            parsedDecrypted?.statusCode === "200"
-          ) {
-            showSuccessMessage(
-              parsedDecrypted?.message || "Success,DPR Updated successfully "
-            );
-            navigation.goBack();
-          } else {
-            showErrorMessage(parsedDecrypted?.message || "Error");
-          }
-          // console.log("Final Submit Data:", submitData);
-        },
-      },
-    ]);
+          return;
+        }
+      }
+    }
+
+    try {
+      setLoading(true);
+      const submitData = {
+        ...data,
+        unitId:
+          userData?.unitType === "BLOCK" ? userData?.blockId : userData?.chakId,
+        unitType: userData?.unitType,
+        dprStatus:
+          userData?.unitType === "BLOCK" && userData?.subUnitType === "WORKSHOP"
+            ? "PENDING_WITH_CHAK_INCHARGE"
+            : "SUBMITTED",
+        dprMechanicals: data.dprMechanicals.map((mech, index) => ({
+          ...mech,
+          operatorName: mechanicalData[index]?.operatorName || "",
+          cpNumber: mechanicalData[index]?.cpNumber || "",
+        })),
+        dprAgricultures: agricultureData.map((agri) => ({
+          material: agri.material,
+          itemId: agri.itemId,
+          qty: agri.qty,
+          uom: agri.uom || "",
+        })),
+        dprLabour: labourData.map((labour) => ({
+          name: labour.name,
+          actualTime: labour.actualTime,
+          otTime: labour.otTime || "",
+        })),
+      };
+
+      console.log(submitData, "submitData");
+      const encryptedPayload = encryptWholeObject(submitData);
+      const response = await apiRequest(
+        API_ROUTES.DP_REPORT_UPDATE,
+        "post",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 543");
+      if (
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        showSuccessMessage(
+          parsedDecrypted?.message || "Success, DPR Updated successfully "
+        );
+        navigation.goBack();
+      } else {
+        showErrorMessage(parsedDecrypted?.message || "Error");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderProcessDetails = () => (
@@ -278,8 +481,287 @@ const DPRSubmit = ({ route, navigation }) => {
     </View>
   );
 
+  const renderAgricultureSection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Agriculture</Text>
+
+      {agricultureData.map((agri, index) => (
+        <View key={index} style={styles.agriContainer}>
+          <View style={styles.serialContainer}>
+            <Text style={styles.serialLabel}>Serial No</Text>
+            <Text style={styles.serialNumber}>{index + 1}</Text>
+            {agricultureData.length > 1 && (
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeAgricultureEntry(index)}
+              >
+                <Icon name="delete" size={20} color={Colors.error} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.agriDetails}>
+            {/* <aterial Type Drop Down */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Material Type *</Text>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => {
+                  setCurrentAgricultureIndex(index);
+                  setShowMaterialTypeDropdown(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownButtonText,
+                    !agri.materialType && styles.dropdownButtonPlaceholder,
+                  ]}
+                >
+                  {agri.materialType || "Select Material Type"}
+                </Text>
+                <Icon name="arrow-drop-down" size={24} color={Colors.grey} />
+              </TouchableOpacity>
+            </View>
+            {/* Material Dropdown */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Material *</Text>
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => {
+                  if (!agri.materialType) {
+                    showErrorMessage("Please select Material Type first");
+                    return;
+                  }
+                  setCurrentAgricultureIndex(index);
+                  setShowMaterialDropdown(true);
+                  // Material list will be fetched based on selected materialType
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownButtonText,
+                    !agri.material && styles.dropdownButtonPlaceholder,
+                  ]}
+                >
+                  {agri.material || "Select Material"}
+                </Text>
+                <Icon name="arrow-drop-down" size={24} color={Colors.grey} />
+              </TouchableOpacity>
+            </View>
+
+            {agri.uom && <Text style={styles.uomText}>Unit: {agri.uom}</Text>}
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Quantity (kg) *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={agri.qty || ""}
+                onChangeText={(text) =>
+                  updateAgricultureField(index, "qty", text)
+                }
+                placeholder="Enter quantity"
+                placeholderTextColor={Colors.grey}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+        </View>
+      ))}
+
+      <TouchableOpacity style={styles.addButton} onPress={addAgricultureEntry}>
+        <Icon name="add" size={20} color={Colors.white} />
+        <Text style={styles.addButtonText}>Add More</Text>
+      </TouchableOpacity>
+
+      {/* Material Type Dropdown Modal */}
+      <Modal
+        visible={showMaterialTypeDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowMaterialTypeDropdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMaterialTypeDropdown(false)}
+        >
+          <View style={styles.dropdownModal}>
+            <FlatList
+              data={materialTypeList}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.dropdownItem}
+                  onPress={async () => {
+                    updateAgricultureField(
+                      currentAgricultureIndex,
+                      "materialType",
+                      item
+                    );
+                    updateAgricultureField(
+                      currentAgricultureIndex,
+                      "material",
+                      ""
+                    );
+                    setShowMaterialTypeDropdown(false);
+                    await fetchMaterialList(item, currentAgricultureIndex);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+              style={styles.dropdownList}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Material Dropdown Modal */}
+      <Modal
+        visible={showMaterialDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowMaterialDropdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMaterialDropdown(false)}
+        >
+          <View style={styles.dropdownModal}>
+            <FlatList
+              data={materialList}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  key={index}
+                  onPress={() => {
+                    updateAgricultureField(
+                      currentAgricultureIndex,
+                      "material",
+                      item.itemName
+                    );
+                    updateAgricultureField(
+                      currentAgricultureIndex,
+                      "itemId",
+                      item.id.toString() // Convert to string to match your structure
+                    );
+                    updateAgricultureField(
+                      currentAgricultureIndex,
+                      "uom",
+                      item.uom // Add the UOM field
+                    );
+                    console.log(item, "selected Item List Material Drop Down");
+                    setShowMaterialDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>
+                    {item?.itemName || "N/A"}
+                  </Text>
+                  {item.uom && (
+                    <Text style={styles.dropdownItemSubText}>
+                      UOM: {item.uom}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              style={styles.dropdownList}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+
+  const renderLabourSection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Labour Details</Text>
+
+      {labourData.map((labour, index) => (
+        <View key={index} style={styles.labourContainer}>
+          <View style={styles.serialContainer}>
+            <Text style={styles.serialLabel}>Serial No</Text>
+            <Text style={styles.serialNumber}>{index + 1}</Text>
+            {labourData.length > 1 && (
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeLabourEntry(index)}
+              >
+                <Icon name="delete" size={20} color={Colors.error} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.labourDetails}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Operation</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { backgroundColor: Colors.lightBackground },
+                ]}
+                value={data?.operationName || ""}
+                editable={false}
+                placeholderTextColor={Colors.grey}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Labour Name *</Text>
+              <TextInput
+                style={styles.textInput}
+                value={labour.name || ""}
+                onChangeText={(text) => updateLabourField(index, "name", text)}
+                placeholder="Enter labour name"
+                placeholderTextColor={Colors.grey}
+              />
+            </View>
+
+            <View style={styles.row}>
+              <View
+                style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}
+              >
+                <Text style={styles.inputLabel}>Actual Time *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={labour.actualTime || ""}
+                  onChangeText={(text) =>
+                    updateLabourField(index, "actualTime", text)
+                  }
+                  placeholder="Actual time"
+                  placeholderTextColor={Colors.grey}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
+                <Text style={styles.inputLabel}>OT Time</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={labour.otTime || ""}
+                  onChangeText={(text) =>
+                    updateLabourField(index, "otTime", text)
+                  }
+                  placeholder="OT time"
+                  placeholderTextColor={Colors.grey}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      ))}
+
+      <TouchableOpacity style={styles.addButton} onPress={addLabourEntry}>
+        <Icon name="add" size={20} color={Colors.white} />
+        <Text style={styles.addButtonText}>Add More</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <WrapperContainer>
+    <WrapperContainer isLoading={loading}>
       <InnerHeader title={"DPR Submit"} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -292,7 +774,14 @@ const DPRSubmit = ({ route, navigation }) => {
           contentContainerStyle={styles.scrollContent}
         >
           {renderProcessDetails()}
-          {renderMechanicalSection()}
+
+          {/* Show sections based on user role and data availability */}
+          {userData?.unitType === "BLOCK" &&
+            userData?.subUnitType === "WORKSHOP" &&
+            renderMechanicalSection()}
+
+          {userData?.subUnitType != "WORKSHOP" && renderAgricultureSection()}
+          {userData?.subUnitType != "WORKSHOP" && renderLabourSection()}
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
@@ -316,6 +805,7 @@ const DPRSubmit = ({ route, navigation }) => {
 };
 
 export default DPRSubmit;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -327,7 +817,6 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: Colors.white,
     borderRadius: moderateScale(8),
-    // padding: moderateScale(16),
     marginBottom: moderateScaleVertical(16),
     shadowColor: Colors.black,
     shadowOffset: {
@@ -346,6 +835,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: moderateScale(3),
     paddingLeft: moderateScale(10),
     borderColor: Colors.primary,
+    paddingTop: moderateScale(10),
   },
   row: {
     flexDirection: "row",
@@ -405,6 +895,18 @@ const styles = StyleSheet.create({
     padding: moderateScale(12),
     marginBottom: moderateScaleVertical(8),
   },
+  agriContainer: {
+    backgroundColor: Colors.lightBackground,
+    borderRadius: moderateScale(6),
+    padding: moderateScale(12),
+    marginBottom: moderateScaleVertical(8),
+  },
+  labourContainer: {
+    backgroundColor: Colors.lightBackground,
+    borderRadius: moderateScale(6),
+    padding: moderateScale(12),
+    marginBottom: moderateScaleVertical(8),
+  },
   serialContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -429,9 +931,20 @@ const styles = StyleSheet.create({
     borderWidth: moderateScale(1),
     borderColor: Colors.textColor,
   },
+  removeButton: {
+    padding: moderateScale(5),
+  },
   mechDetails: {
     paddingHorizontal: moderateScale(4),
     gap: moderateScaleVertical(5),
+  },
+  agriDetails: {
+    paddingHorizontal: moderateScale(4),
+    gap: moderateScaleVertical(8),
+  },
+  labourDetails: {
+    paddingHorizontal: moderateScale(4),
+    gap: moderateScaleVertical(8),
   },
   mechRow: {
     flexDirection: "row",
@@ -472,6 +985,21 @@ const styles = StyleSheet.create({
     color: Colors.black,
     backgroundColor: Colors.white,
   },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.greenColor,
+    padding: moderateScale(12),
+    borderRadius: moderateScale(6),
+    marginTop: moderateScaleVertical(8),
+  },
+  addButtonText: {
+    color: Colors.white,
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsMedium,
+    marginLeft: moderateScale(8),
+  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -502,5 +1030,64 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsMedium,
+  },
+
+  dropdownButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: moderateScale(6),
+    padding: moderateScale(12),
+    backgroundColor: Colors.white,
+    minHeight: moderateScale(48),
+  },
+  dropdownButtonText: {
+    fontSize: textScale(14),
+    color: Colors.black,
+    flex: 1,
+  },
+  dropdownButtonPlaceholder: {
+    color: Colors.grey,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownModal: {
+    width: "80%",
+    maxHeight: "60%",
+    backgroundColor: Colors.white,
+    borderRadius: moderateScale(8),
+    padding: moderateScale(10),
+  },
+  dropdownList: {
+    maxHeight: moderateScaleVertical(300),
+  },
+  dropdownItem: {
+    padding: moderateScale(12),
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.lightGray,
+  },
+  dropdownItemText: {
+    fontSize: textScale(14),
+    color: Colors.black,
+    fontFamily: FontFamily.PoppinsRegular,
+  },
+  dropdownItemSubText: {
+    fontSize: textScale(10),
+    color: Colors.grey,
+    fontFamily: FontFamily.PoppinsRegular,
+    marginTop: moderateScaleVertical(2),
+  },
+  uomText: {
+    fontSize: textScale(10),
+    color: Colors.greenColor,
+    fontFamily: FontFamily.PoppinsRegular,
+    marginTop: moderateScaleVertical(4),
+    fontStyle: "italic",
   },
 });

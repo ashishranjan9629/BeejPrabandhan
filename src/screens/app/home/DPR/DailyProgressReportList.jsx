@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   View,
   FlatList,
-  ActivityIndicator,
   Animated,
 } from "react-native";
 import React, { useEffect, useState } from "react";
@@ -28,23 +27,21 @@ import FontFamily from "../../../../utils/FontFamily";
 import Colors from "../../../../utils/Colors";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import CustomButton from "../../../../components/CustomButton";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 
 const DailyProgressReportList = () => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState();
   const [dpReportList, setDpReportList] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-  console.log(selectedItem, "selectedItem");
-
-  // PENDING_WITH_MECHANICAL_INCHARGE
-  //
+  // console.log(userData, "selectedItem");
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [isFocused]);
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -54,7 +51,7 @@ const DailyProgressReportList = () => {
   };
 
   const fetchDPRList = async (userData) => {
-    console.log(userData, "line 23");
+    // console.log(userData, "line 23");
     setLoading(false);
     try {
       const payloadData = {
@@ -72,7 +69,7 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      console.log(parsedDecrypted, "line 43");
+      // console.log(parsedDecrypted, "line 43");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -117,31 +114,34 @@ const DailyProgressReportList = () => {
   };
 
   const handleBottomSheetAction = (action) => {
-    console.log(`${action} pressed for item:`, selectedItem);
+    // console.log(`${action} pressed for item:`, selectedItem);
     // Handle different actions here
-    switch (action) {
-      case "Details":
-        navigation.navigate("DPRDetails", { data: selectedItem });
-        break;
-      case "Edit":
-        navigation.navigate("DPREdit", { data: selectedItem });
-        break;
-      case "Submit":
-        navigation.navigate("DPRSubmit", { data: selectedItem });
-        break;
-      case "Activity Log":
-        navigation.navigate("DPRRevision", { data: selectedItem });
-        break;
-      case "Approve":
-        handleApproveMethod();
-        break;
-      case "Reject":
-        handleRejectMethod();
-        break;
-      default:
-        break;
-    }
-    setBottomSheetVisible(false);
+    setBottomSheetVisible(false); // Hide bottom sheet immediately
+
+    setTimeout(() => {
+      switch (action) {
+        case "Details":
+          navigation.navigate("DPRDetails", { data: selectedItem });
+          break;
+        case "Edit":
+          navigation.navigate("DPREdit", { data: selectedItem });
+          break;
+        case "Submit":
+          navigation.navigate("DPRSubmit", { data: selectedItem });
+          break;
+        case "Activity Log":
+          navigation.navigate("DPRRevision", { data: selectedItem });
+          break;
+        case "Approve":
+          handleApproveMethod();
+          break;
+        case "Reject":
+          handleRejectMethod();
+          break;
+        default:
+          break;
+      }
+    }, 1000); // 1000ms = 1 second delay
   };
 
   const handleApproveMethod = async () => {
@@ -166,7 +166,7 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      console.log(parsedDecrypted, "line 164");
+      // console.log(parsedDecrypted, "line 164");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -202,7 +202,7 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      console.log(parsedDecrypted, "line 164");
+      // console.log(parsedDecrypted, "line 164");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -392,7 +392,10 @@ const DailyProgressReportList = () => {
             textStyle={styles.bottomSheetButtonText}
             handleAction={() => handleBottomSheetAction("Activity Log")}
           />
-          {selectedItem?.dprStatus != "SUBMITTED" &&
+
+          {(selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" ||
+            selectedItem?.dprStatus ===
+              "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION") &&
             userData?.unitType === "CHAK" && (
               <CustomButton
                 text={"Edit"}
@@ -406,27 +409,32 @@ const DailyProgressReportList = () => {
             )}
 
           {userData?.subUnitType === "WORKSHOP" &&
-            selectedItem?.dprStatus !== "REJECTED" &&
-            selectedItem?.dprStatus !== "SUBMITTED" && (
+            selectedItem?.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" && (
               <CustomButton
                 text={"Submit"}
-                buttonStyle={styles.bottomSheetButton}
+                buttonStyle={[
+                  styles.bottomSheetButton,
+                  { backgroundColor: Colors.purple },
+                ]}
                 textStyle={styles.bottomSheetButtonText}
                 handleAction={() => handleBottomSheetAction("Submit")}
               />
             )}
 
-          {selectedItem?.dprStatus != "SUBMITTED" &&
-            userData?.unitType === "CHAK" && (
-              <CustomButton
-                text={"Submit"}
-                buttonStyle={styles.bottomSheetButton}
-                textStyle={styles.bottomSheetButtonText}
-                handleAction={() => handleBottomSheetAction("Submit")}
-              />
-            )}
+          {selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" ||
+            (selectedItem?.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
+              userData?.unitType === "CHAK" && (
+                <CustomButton
+                  text={"Submit"}
+                  buttonStyle={styles.bottomSheetButton}
+                  textStyle={styles.bottomSheetButtonText}
+                  handleAction={() => handleBottomSheetAction("Submit")}
+                />
+              ))}
+
           {userData?.unitType === "BLOCK" &&
-            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" && (
+            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
+            userData?.subUnitType != "WORKSHOP" && (
               <CustomButton
                 text={"Approve"}
                 buttonStyle={styles.bottomSheetButton}
@@ -435,7 +443,8 @@ const DailyProgressReportList = () => {
               />
             )}
           {userData?.unitType === "BLOCK" &&
-            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" && (
+            selectedItem?.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
+            userData?.subUnitType != "WORKSHOP" && (
               <CustomButton
                 text={"Reject"}
                 buttonStyle={[
