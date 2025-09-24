@@ -377,6 +377,7 @@ const styles = StyleSheet.create({
   timelineRow: {
     flexDirection: "row",
     minHeight: moderateScale(64),
+    // borderWidth:2
   },
   timelineLeft: {
     width: moderateScale(75),
@@ -420,7 +421,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
     gap: moderateScale(8),
     alignItems: "center",
   },
