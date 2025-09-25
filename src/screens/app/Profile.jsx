@@ -198,11 +198,11 @@ const Profile = () => {
     },
     {
       label: "Designation",
-      value: profileData?.desigName ? profileData?.desigName : "N/A",
+      value: profileData?.designation?.name ? profileData?.designation?.name : "N/A",
     },
     {
       label: "Department",
-      value: profileData?.departmentName ? profileData?.departmentName : "N/A",
+      value: profileData?.department?.name ? profileData?.department?.name : "N/A",
     },
     {
       label: "Date Of Appointment",

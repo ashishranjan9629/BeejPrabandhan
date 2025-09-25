@@ -56,14 +56,6 @@ const DPRSubmit = ({ route, navigation }) => {
 
   console.log(userData, "userData");
   console.log(data, "data");
-  const MATERIAL_TYPE_ENUM = {
-    SEED: "SEED",
-    VALUE_ADDED: "VALUE_ADDED",
-    PACKAGING_MATERIAL: "PACKAGING_MATERIAL",
-    AGRO_CHEMICAL: "AGRO_CHEMICAL",
-    SAPLING: "SAPLING",
-  };
-
   // Add this function to fetch material list
   const fetchMaterialList = async (materialType, index) => {
     try {
@@ -146,6 +138,7 @@ const DPRSubmit = ({ route, navigation }) => {
           name: "",
           actualTime: "",
           otTime: "",
+          totalHours: "0",
         },
       ]);
     }
@@ -219,6 +212,13 @@ const DPRSubmit = ({ route, navigation }) => {
     setAgricultureData((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Function to calculate total hours
+  const calculateTotalHours = (actualTime, otTime) => {
+    const actual = parseFloat(actualTime) || 0;
+    const ot = parseFloat(otTime) || 0;
+    return (actual + ot).toString();
+  };
+
   const addLabourEntry = () => {
     const newId = Math.max(...labourData.map((item) => item.id), 0) + 1;
     setLabourData((prev) => [
@@ -228,6 +228,7 @@ const DPRSubmit = ({ route, navigation }) => {
         name: "",
         actualTime: "",
         otTime: "",
+        totalHours: "0",
       },
     ]);
   };
@@ -305,6 +306,7 @@ const DPRSubmit = ({ route, navigation }) => {
           name: labour.name,
           actualTime: labour.actualTime,
           otTime: labour.otTime || "",
+          hours: (parseFloat(labour.actualTime) || 0) + (parseFloat(labour.otTime) || 0),
         })),
       };
 
