@@ -27,12 +27,17 @@ import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
 import { getUserData } from "../../../../utils/Storage";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { showErrorMessage } from "../../../../utils/HelperFunction";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../../../utils/HelperFunction";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
 
-const DPREdit = ({ route, navigation }) => {
+const DPREdit = ({ route }) => {
   const { data } = route.params;
-  console.log(data, "line 35");
+  // console.log(data, "line 38");
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [squareList, setSquareList] = useState([]);
   const [operationList, setOperationList] = useState([]);
@@ -53,12 +58,12 @@ const DPREdit = ({ route, navigation }) => {
   const [showVarietyDropdown, setShowVarietyDropdown] = useState(false);
   const [showWorkTypeDropdown, setShowWorkTypeDropdown] = useState(false);
   const [showSeedClassDropdown, setShowSeedClassDropdown] = useState(false);
-  const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false); 
+  const [showEquipmentDropdown, setShowEquipmentDropdown] = useState(false);
 
   const SEED_CLASSES = ["NS", "BS", "FS", "CS", "TL"];
   const WorkType = ["Contract", "Self"];
 
-  console.log(data, "line 8");
+  // console.log(userData, "line 64");
 
   useEffect(() => {
     fetchDropDownData();
@@ -359,13 +364,70 @@ const DPREdit = ({ route, navigation }) => {
     }));
   };
 
-  const handleSubmit = () => {
-    setLoading(true);
-    setTimeout(() => {
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      const payloadData = {
+        blockId: data?.blockId,
+        blockName: data?.blockName,
+        createdBy: data?.createdBy,
+        createdOn: data?.createdOn,
+        crop: formData?.crop,
+        cropId: formData?.cropId,
+        date: data?.reportDate,
+        dprAgricultures: data?.dprAgricultures,
+        dprLabour: data?.dprLabour,
+        dprStatus: data?.dprStatus,
+        equipment: data?.equipment,
+        dprMechanicals:formData?.equipmentList,
+        finYear: formData?.financialYear,
+        finYearId: formData?.financialYearId,
+        fromSeedClass: formData?.seedClass,
+        fromSeedStage: data?.fromSeedStage,
+        id: data?.id,
+        operationId: data?.operationId,
+        operationName: data?.operationName,
+        planId: data?.planId,
+        reportDate: data?.reportDate,
+        requiredOutputArea: formData?.requiredOutput,
+        season: formData?.season,
+        seasonId: formData?.seasonId,
+        seedVariety: formData?.variety,
+        seedVarietyId: formData?.varietyId,
+        squareId: formData?.squareId,
+        squareName: formData?.square,
+        status: formData?.status,
+        subUnitId: data?.subUnitId,
+        subUnitName: data?.subUnitName,
+        toSeedClass: data?.toSeedClass,
+        toSeedStage: data?.toSeedStage,
+        unitId:
+          userData?.unitType === "CHAK" ? userData?.chakId : userData?.blockId,
+        unitType: userData?.unitType,
+        workType: formData?.workType,
+        workflows: data?.workflows,
+        workingHours: data?.workingHours,
+      };
+      // console.log(payloadData, "line 365");
+      const encrypted = encryptWholeObject(payloadData);
+      const resp = await apiRequest(
+        API_ROUTES.DP_REPORT_UPDATE,
+        "POST",
+        encrypted
+      );
+      const decrypted = decryptAES(resp);
+      const parsed = JSON.parse(decrypted);
+      // console.log(parsed, "line 372");
+      if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
+        showSuccessMessage(parsed?.message);
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.log(error?.message, "Error in catch Block");
+      showErrorMessage(error?.message || "Error");
+    } finally {
       setLoading(false);
-      Alert.alert("Success", "DPR details updated successfully");
-      navigation.goBack();
-    }, 1500);
+    }
   };
 
   const handleCancel = () => {
@@ -595,7 +657,7 @@ const DPREdit = ({ route, navigation }) => {
                 {/* Add New Equipment Form */}
                 <View style={styles.addEquipmentCard}>
                   <Text style={styles.subSectionTitle}>Add Equipment</Text>
-                  
+
                   {/* Equipment Dropdown */}
                   {renderDropdown(
                     "equipment",

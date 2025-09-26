@@ -1807,8 +1807,8 @@ const InspectionForm = ({ route }) => {
           throw new Error("Invalid crop FIR type");
       }
 
-      console.log("Submitting data:", payload);
-      console.log("API Endpoint:", apiEndpoint);
+      // console.log("Submitting data:", payload);
+      // console.log("API Endpoint:", apiEndpoint);
       const encryptedPayload = encryptWholeObject(payload);
       const response = await apiRequest(apiEndpoint, "POST", encryptedPayload);
       const decrypted = decryptAES(response);
@@ -1821,7 +1821,7 @@ const InspectionForm = ({ route }) => {
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
       ) {
-        console.log("Sucess");
+        // console.log("Sucess");
         showSuccessMessage(parsedDecrypted?.message);
         navigation.push("FieldInspectionReport");
       } else {

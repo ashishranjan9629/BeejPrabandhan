@@ -68,7 +68,7 @@ const EditUserProfile = () => {
         userId: encryptAES(userData?.userId),
       };
 
-      console.log(payloadData, "payloadData");
+      // console.log(payloadData, "payloadData");
 
       const response = await apiRequest(
         API_ROUTES.CHANGE_PASSWORD,
@@ -76,7 +76,7 @@ const EditUserProfile = () => {
         payloadData
       );
 
-      console.log(response, "API Response");
+      // console.log(response, "API Response");
 
       if (response?.statusCode === "200" && response?.status === "Success") {
         showSuccessMessage("Your password has been changed successfully.");

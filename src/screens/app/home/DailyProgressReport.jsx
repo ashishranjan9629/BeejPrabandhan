@@ -87,10 +87,10 @@ const DailyProgressReport = () => {
         parsedDecryptedCropListData?.statusCode === "200"
       ) {
         setCropListData(parsedDecryptedCropListData?.data || []);
-        console.log(
-          parsedDecryptedCropListData?.data,
-          "parsedDecryptedCropListData?.data"
-        );
+        // console.log(
+        //   parsedDecryptedCropListData?.data,
+        //   "parsedDecryptedCropListData?.data"
+        // );
       } else {
         showErrorMessage("Unable to get the crop List Data");
         setCropListData([]);
@@ -117,7 +117,7 @@ const DailyProgressReport = () => {
       const parsed = JSON.parse(decrypted);
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
         setSeedVarietyList(parsed?.data || []);
-        console.log(parsed?.data, "parsed?.data seed Variety");
+        // console.log(parsed?.data, "parsed?.data seed Variety");
       } else {
         showErrorMessage("Unable to get the Seed Variety list");
         setSeedVarietyList([]);
@@ -133,7 +133,7 @@ const DailyProgressReport = () => {
   const fetchDropDownData = async () => {
     setLoading(true);
     const userdata = await getUserData();
-    console.log(userdata, "line 20");
+    // console.log(userdata, "line 20");
     setUserData(userdata);
     await fetchPlanList(userdata);
     const fetchFinancialListData = await apiRequest(
@@ -187,7 +187,7 @@ const DailyProgressReport = () => {
         toSeedClass: seedClass || null,
         toSeedStage: "",
       };
-      console.log(payload, "payload");
+      // console.log(payload, "payload");
       const payloadData = encryptWholeObject(payload);
       const planListData = await apiRequest(
         API_ROUTES.PRODUCTION_PLAN,
@@ -196,7 +196,7 @@ const DailyProgressReport = () => {
       );
       const decryptedCropListData = decryptAES(planListData);
       const parsedDecryptedCropListData = JSON.parse(decryptedCropListData);
-      console.log(parsedDecryptedCropListData, "line 187");
+      // console.log(parsedDecryptedCropListData, "line 187");
       if (
         parsedDecryptedCropListData?.status === "SUCCESS" &&
         parsedDecryptedCropListData?.statusCode === "200"
@@ -214,7 +214,7 @@ const DailyProgressReport = () => {
 
   const renderProgramme = ({ item, index }) => {
     const animatedValue = animationRefs[index];
-    console.log(item, "line 211");
+    // console.log(item, "line 211");
 
     return (
       <TouchableOpacity

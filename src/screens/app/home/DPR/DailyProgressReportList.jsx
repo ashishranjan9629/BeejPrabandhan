@@ -262,13 +262,13 @@ const DailyProgressReportList = () => {
               ]}
             >
               <Text style={styles.statusText}>
-                {(item.dprStatus === "SUBMITTED" && "Submitted") ||
+                {(item.dprStatus === "SUBMITTED" && "Completed") ||
                   (item.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
                     "Pending at Block In") ||
                   (item.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
                     "Pending at Mech. In") ||
                   (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
-                    "Pending at Chack In") ||
+                    "In Progress") ||
                   (item.dprStatus === "REJECTED" && "Rejected") ||
                   (item.dprStatus === "PENDING" && "Pending") ||
                   (item.dprStatus === "APPROVED" && "Approved") ||

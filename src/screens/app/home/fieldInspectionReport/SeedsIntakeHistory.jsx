@@ -26,7 +26,7 @@ const SeedsIntakeHistory = ({ route }) => {
   const { item } = route.params;
   const [loading, setLoading] = useState(false);
   const [seedsData, setSeedsData] = useState();
-  console.log(seedsData, "line 30");
+  // console.log(seedsData, "line 30");
   useEffect(() => {
     fetchSeedsIntakeHistory();
   }, []);

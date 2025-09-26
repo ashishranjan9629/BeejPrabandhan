@@ -70,7 +70,7 @@ const CreateNew = () => {
 
   const SEED_CLASSES = ["NS", "BS", "FS", "CS", "TL"];
   const WorkType = ["Contract", "Self"];
-  console.log(userData, "line userData ");
+  // console.log(userData, "line userData ");
   // State for multiple parent entries
   const [parentEntries, setParentEntries] = useState([
     {
@@ -606,7 +606,7 @@ const CreateNew = () => {
         };
       });
 
-      console.log(payloads, "payloads");
+      // console.log(payloads, "payloads");
       const encryptedPayload = encryptWholeObject(payloads);
       const response = await apiRequest(
         API_ROUTES.DP_REPORT_SAVE,
@@ -615,7 +615,7 @@ const CreateNew = () => {
       );
       const decryptedResponse = decryptAES(response);
       const parsedResponse = JSON.parse(decryptedResponse);
-      console.log(parsedResponse, "line 1455");
+      // console.log(parsedResponse, "line 1455");
       if (
         parsedResponse?.status === "SUCCESS" &&
         parsedResponse?.statusCode === "200"

@@ -72,7 +72,7 @@ const Login = () => {
         clientId: email,
         secretKey: password,
       };
-      console.log(payloadData, "line 73");
+      // console.log(payloadData, "line 73");
       setLoading(true);
       const response = await apiRequest(
         API_ROUTES.AUTHORIZE_LOGIN,
@@ -94,15 +94,15 @@ const Login = () => {
           );
           const decrypted = decryptAES(response2);
           const parsedDecrypted = JSON.parse(decrypted);
-          console.log(parsedDecrypted, "userData");
+          // console.log(parsedDecrypted, "userData");
           if (
             parsedDecrypted &&
             parsedDecrypted?.status === "Success" &&
             parsedDecrypted?.statusCode === "200"
           ) {
-            console.log(parsedDecrypted.data,"line 103")
+            // console.log(parsedDecrypted.data,"line 103")
             const decryptedData = deepDecryptObject(parsedDecrypted.data);
-             console.log(decryptedData,"decryptedData user Data");
+            //  console.log(decryptedData,"decryptedData user Data");
             dispatch(setUserData(decryptedData));
             saveUserData(decryptedData);
           } else {
@@ -119,7 +119,7 @@ const Login = () => {
       showErrorMessage(error?.message)
       console.log(error, "Error In Login API");
     } finally {
-      console.log("Finally Block");
+      // console.log("Finally Block");
       setLoading(false);
       setEmail("");
       setPassword("");

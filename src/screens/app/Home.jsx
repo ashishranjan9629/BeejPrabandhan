@@ -101,20 +101,6 @@ const Home = () => {
       backgroundColor: Colors.bg4,
       navigationScreenName: "FieldInspectionReport",
     },
-    {
-      id: 5,
-      name: "Daily Progress Reports",
-      icon: ImagePath.complaint,
-      backgroundColor: Colors.bg1,
-      navigationScreenName: "FieldInspectionReport",
-    },
-    {
-      id: 6,
-      name: "Daily Progress Reports",
-      icon: ImagePath.registrationIcon,
-      backgroundColor: Colors.bg2,
-      navigationScreenName: "FieldInspectionReport",
-    },
   ];
 
   useEffect(() => {
