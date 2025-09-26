@@ -26,7 +26,7 @@ const SwiperImage = ({ bannerImageList }) => {
           onPress={() => {}}
           activeOpacity={0.9}
         >
-          <Image source={item?.image} resizeMode="contain" style={styles.image} />
+          <Image source={item?.image} resizeMode="cover" style={styles.image} />
         </TouchableOpacity>
       ))}
     </Swiper>
@@ -46,11 +46,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.white,
+    // borderRadius:50,
+    // overflow:'hidden',
+    // borderTopRightRadius:moderateScale(70)
   },
   image: {
     width: width - 20,
     height: "100%", 
-    borderRadius: moderateScale(30),
+    borderRadius: moderateScale(40),
     backgroundColor:Colors.white
   },
   dotStyle: {

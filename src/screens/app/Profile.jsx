@@ -70,14 +70,14 @@ const Profile = () => {
 
   const fethchUserprofileData = async () => {
     const userData = await getUserData();
-    console.log(userData?.employeeId, "Line 72 userData");
+    // console.log(userData?.employeeId, "Line 72 userData");
     try {
       const payloadData = {
         id: userData?.employeeId,
       };
       setLoading(true);
       const encryptedPayload = encryptWholeObject(payloadData);
-      console.log(encryptedPayload, "line 77");
+      // console.log(encryptedPayload, "line 77");
       const response = await apiRequest(
         API_ROUTES.PROFILE_DETAILS,
         "post",
@@ -92,14 +92,14 @@ const Profile = () => {
         parsedDecrypted?.statusCode === "200"
       ) {
         setProfileData(parsedDecrypted?.data);
-        console.log(parsedDecrypted?.data, "line 92");
+        // console.log(parsedDecrypted?.data, "line 92");
       } else {
         showErrorMessage("Error");
       }
     } catch (error) {
       console.log(error, "line Error in Catch Bloack");
     } finally {
-      console.log("Finally Block Run");
+      // console.log("Finally Block Run");
       setLoading(false);
     }
   };

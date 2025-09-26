@@ -27,24 +27,24 @@ import { useNavigation } from "@react-navigation/native";
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
-  console.log(item, "line 30");
+  // console.log(item, "line 30");
   // console.log(item?.productionStatus, "line 30");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
   const [cropFirTypeId, setCropFirTypeId] = useState(null);
-  console.log(detailsData, "All the details Data");
-  console.log(cropFirTypeId, "cropFirTypeId");
+  // console.log(detailsData, "All the details Data");
+  // console.log(cropFirTypeId, "cropFirTypeId");
   useEffect(() => {
     fethcProgramListDetails();
   }, []);
 
   const fethcProgramListDetails = async () => {
-    console.log(item?.id, "line 40");
+    // console.log(item?.id, "line 40");
     const payloadData = {
       id: item?.id,
     };
-    console.log(payloadData, "line 48");
+    // console.log(payloadData, "line 48");
     try {
       setLoading(true);
       const encryptedPayload = encryptWholeObject(payloadData);
@@ -55,7 +55,7 @@ const FiledInspectionReportDetails = ({ route }) => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      console.log("PROGRAMME_LIST_DETAILS", parsedDecrypted);
+      // console.log("PROGRAMME_LIST_DETAILS", parsedDecrypted);
       if (
         parsedDecrypted &&
         parsedDecrypted?.status === "SUCCESS" &&
@@ -87,7 +87,7 @@ const FiledInspectionReportDetails = ({ route }) => {
           ) {
             const cropFirId = parsedDecrypted?.data?.crop?.cropFirType?.id;
             const scheduleId = parsedDecrypted?.data?.schedule?.id;
-            console.log(scheduleId, "line scheduleId ");
+            // console.log(scheduleId, "line scheduleId ");
             const inspectionPayloadData = { scheduleId };
             const encryptedInspectionPayloadData = encryptWholeObject(
               inspectionPayloadData
@@ -100,10 +100,10 @@ const FiledInspectionReportDetails = ({ route }) => {
               "post",
               encryptedInspectionPayloadData
             );
-            console.log(API_ROUTES.PRODUCTION_INSPECTION_C);
+            // console.log(API_ROUTES.PRODUCTION_INSPECTION_C);
             const inspectionDecrypted = decryptAES(inspectionResponseData);
             const inspectionParsedDecrypted = JSON.parse(inspectionDecrypted);
-            console.log(inspectionParsedDecrypted, "line 106");
+            // console.log(inspectionParsedDecrypted, "line 106");
             if (
               inspectionParsedDecrypted &&
               inspectionParsedDecrypted?.status === "SUCCESS" &&
