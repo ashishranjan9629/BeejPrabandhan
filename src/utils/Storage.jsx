@@ -1,7 +1,8 @@
 import { MMKV } from "react-native-mmkv";
-const storage = new MMKV();
-const USER_DATA_KEY = "BeejPrabandhan_UserData";
-const USER_TOKEN_KEY = "BeejPrabandhan_Token";
+export const storage = new MMKV();
+export const FCM_TOKEN_KEY = "fcmToken";
+export const USER_DATA_KEY = "BeejPrabandhan_UserData";
+export const USER_TOKEN_KEY = "BeejPrabandhan_Token";
 
 
 //  Function to save User data
@@ -53,6 +54,7 @@ export const removeUserData = () => {
   try {
     storage.delete(USER_DATA_KEY);
     storage.delete(USER_TOKEN_KEY);
+    storage.delete(FCM_TOKEN_KEY);
     console.log("User data removed successfully");
   } catch (error) {
     console.error("Error removing user data:", error);

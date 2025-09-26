@@ -1,7 +1,4 @@
-import {
-  LogBox,
-  StyleSheet,
-} from "react-native";
+import { LogBox, Platform, StyleSheet } from "react-native";
 import React, { useEffect, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import JailMonkey from "jail-monkey";
@@ -14,10 +11,18 @@ import { PersistGate } from "redux-persist/integration/react";
 import { Provider } from "react-redux";
 import { persistor, store } from "./src/redux/Store";
 import Route from "./src/navigation/Route";
+import {
+  initAndroidNotifications,
+  requestUserPermission,
+  setupForegroundHandler,
+  setupBackgroundHandler,
+  checkInitialNotification
+} from "./src/utils/firebaseNotification";
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(true);
   const [isRooted, setIsRooted] = useState(false);
+  
   LogBox.ignoreLogs(["Warning: ..."]);
   LogBox.ignoreAllLogs();
   LogBox.ignoreLogs(["Remote debugger"]);
@@ -27,8 +32,34 @@ const App = () => {
       setIsConnected(state.isConnected);
     });
     checkPhoneRooted();
+    
+    // Setup notification handlers
+    setupNotificationHandlers();
+    
     return () => checkNetwork();
-  });
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      initAndroidNotifications();
+      requestUserPermission();
+    } else if (Platform.OS === "ios") {
+      requestUserPermission();
+    }
+  }, []);
+
+  const setupNotificationHandlers = async () => {
+    // Setup foreground handler
+    const unsubscribeForeground = setupForegroundHandler();
+    
+    // Setup background handler
+    setupBackgroundHandler();
+    
+    // Check if app was opened by notification
+    await checkInitialNotification();
+    
+    return unsubscribeForeground;
+  };
 
   const checkPhoneRooted = () => {
     if (JailMonkey.isJailBroken()) {
