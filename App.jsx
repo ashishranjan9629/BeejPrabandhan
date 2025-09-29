@@ -16,13 +16,13 @@ import {
   requestUserPermission,
   setupForegroundHandler,
   setupBackgroundHandler,
-  checkInitialNotification
+  checkInitialNotification,
 } from "./src/utils/firebaseNotification";
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(true);
   const [isRooted, setIsRooted] = useState(false);
-  
+
   LogBox.ignoreLogs(["Warning: ..."]);
   LogBox.ignoreAllLogs();
   LogBox.ignoreLogs(["Remote debugger"]);
@@ -32,10 +32,10 @@ const App = () => {
       setIsConnected(state.isConnected);
     });
     checkPhoneRooted();
-    
-    // Setup notification handlers
-    setupNotificationHandlers();
-    
+    {
+      Platform.OS === "android" && setupNotificationHandlers();
+    }
+
     return () => checkNetwork();
   }, []);
 
@@ -43,21 +43,19 @@ const App = () => {
     if (Platform.OS === "android") {
       initAndroidNotifications();
       requestUserPermission();
-    } else if (Platform.OS === "ios") {
-      requestUserPermission();
     }
   }, []);
 
   const setupNotificationHandlers = async () => {
     // Setup foreground handler
     const unsubscribeForeground = setupForegroundHandler();
-    
+
     // Setup background handler
     setupBackgroundHandler();
-    
+
     // Check if app was opened by notification
     await checkInitialNotification();
-    
+
     return unsubscribeForeground;
   };
 
