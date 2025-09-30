@@ -64,7 +64,6 @@ export const getFcmToken = async () => {
   }
 };
 
-// Call once at app startup (e.g., in App.tsx)
 export const initAndroidNotifications = () => {
   if (Platform.OS !== 'android') return;
   

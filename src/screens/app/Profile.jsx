@@ -26,6 +26,7 @@ import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
 import { showErrorMessage } from "../../utils/HelperFunction";
 import { getUserData } from "../../utils/Storage";
 import { useNavigation } from "@react-navigation/native";
+import en from "../../constants/en";
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState("personal");
@@ -70,14 +71,12 @@ const Profile = () => {
 
   const fethchUserprofileData = async () => {
     const userData = await getUserData();
-    // console.log(userData?.employeeId, "Line 72 userData");
     try {
       const payloadData = {
         id: userData?.employeeId,
       };
       setLoading(true);
       const encryptedPayload = encryptWholeObject(payloadData);
-      // console.log(encryptedPayload, "line 77");
       const response = await apiRequest(
         API_ROUTES.PROFILE_DETAILS,
         "post",
@@ -92,14 +91,12 @@ const Profile = () => {
         parsedDecrypted?.statusCode === "200"
       ) {
         setProfileData(parsedDecrypted?.data);
-        // console.log(parsedDecrypted?.data, "line 92");
       } else {
-        showErrorMessage("Error");
+        showErrorMessage(en.PROFILE.ERROR);
       }
     } catch (error) {
       console.log(error, "line Error in Catch Bloack");
     } finally {
-      // console.log("Finally Block Run");
       setLoading(false);
     }
   };
@@ -107,167 +104,167 @@ const Profile = () => {
   // Profile data organized in arrays for mapping
   const profileDetails = [
     {
-      label: "Employee ID",
-      value: profileData?.empCode ? profileData?.empCode : "N/A",
+      label: en.PROFILE.EMPLOYEE_ID,
+      value: profileData?.empCode ? profileData?.empCode : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Email",
-      value: profileData?.emailId ? profileData?.emailId : "N/A",
+      label: en.PROFILE.EMAIL,
+      value: profileData?.emailId ? profileData?.emailId : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const personalDetails = [
     {
-      label: "Full Name",
-      value: profileData?.firstName ? profileData?.firstName : "N/A",
+      label: en.PROFILE.DETAILS.FULL_NAME,
+      value: profileData?.firstName ? profileData?.firstName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Gender",
-      value: profileData?.gender ? profileData?.gender : "N/A",
+      label: en.PROFILE.DETAILS.GENDER,
+      value: profileData?.gender ? profileData?.gender : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Date of Birth",
-      value: profileData?.dob ? profileData?.dob : "N/A",
+      label: en.PROFILE.DETAILS.DATE_OF_BIRTH,
+      value: profileData?.dob ? profileData?.dob : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Contact",
-      value: profileData?.mobileNo ? profileData?.mobileNo : "N/A",
+      label: en.PROFILE.DETAILS.CONTACT,
+      value: profileData?.mobileNo ? profileData?.mobileNo : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Blood Group",
-      value: profileData?.bloodGroup ? profileData?.bloodGroup : "N/A",
+      label: en.PROFILE.DETAILS.BLOOD_GROUP,
+      value: profileData?.bloodGroup ? profileData?.bloodGroup : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Religion",
-      value: profileData?.religion ? profileData?.religion : "N/A",
+      label: en.PROFILE.DETAILS.RELIGION,
+      value: profileData?.religion ? profileData?.religion : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "State",
-      value: profileData?.stateName ? profileData?.stateName : "N/A",
+      label: en.PROFILE.DETAILS.STATE,
+      value: profileData?.stateName ? profileData?.stateName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Nationality",
-      value: profileData?.nationName ? profileData?.nationName : "N/A",
+      label: en.PROFILE.DETAILS.NATIONALITY,
+      value: profileData?.nationName ? profileData?.nationName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Category",
-      value: profileData?.empCategory ? profileData?.empCategory : "N/A",
+      label: en.PROFILE.DETAILS.CATEGORY,
+      value: profileData?.empCategory ? profileData?.empCategory : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Father's Name",
-      value: profileData?.fatherName ? profileData?.fatherName : "N/A",
+      label: en.PROFILE.DETAILS.FATHERS_NAME,
+      value: profileData?.fatherName ? profileData?.fatherName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Spouse's Name",
-      value: profileData?.spouseName ? profileData?.spouseName : "N/A",
+      label: en.PROFILE.DETAILS.SPOUSE_NAME,
+      value: profileData?.spouseName ? profileData?.spouseName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Identification Mark 1",
+      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1,
       value: profileData?.identificationMarkOne
         ? profileData?.identificationMarkOne
-        : "N/A",
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Identification Mark 2",
+      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2,
       value: profileData?.identificationMarkTwo
         ? profileData?.identificationMarkTwo
-        : "N/A",
+        : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const professionalDetails = [
     {
-      label: "Employee ID",
-      value: profileData?.empCode ? profileData?.empCode : "N/A",
+      label: en.PROFILE.EMPLOYEE_ID,
+      value: profileData?.empCode ? profileData?.empCode : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Employment Type",
-      value: profileData?.employmentType ? profileData?.employmentType : "N/A",
+      label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE,
+      value: profileData?.employmentType ? profileData?.employmentType : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Grade Id",
-      value: profileData?.gradeId ? profileData?.gradeId : "N/A",
+      label: en.PROFILE.DETAILS.GRADE_ID,
+      value: profileData?.gradeId ? profileData?.gradeId : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Grade Name",
-      value: profileData?.gradeName ? profileData?.gradeName : "N/A",
+      label: en.PROFILE.DETAILS.GRADE_NAME,
+      value: profileData?.gradeName ? profileData?.gradeName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Grade Short Name",
-      value: profileData?.gradeShortName ? profileData?.gradeShortName : "N/A",
+      label: en.PROFILE.DETAILS.GRADE_SHORT_NAME,
+      value: profileData?.gradeShortName ? profileData?.gradeShortName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Designation",
-      value: profileData?.designation?.name ? profileData?.designation?.name : "N/A",
+      label: en.PROFILE.DETAILS.DESIGNATION,
+      value: profileData?.designation?.name ? profileData?.designation?.name : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Department",
-      value: profileData?.department?.name ? profileData?.department?.name : "N/A",
+      label: en.PROFILE.DETAILS.DEPARTMENT,
+      value: profileData?.department?.name ? profileData?.department?.name : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Date Of Appointment",
+      label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT,
       value: profileData?.dateOfAppointment
         ? profileData?.dateOfAppointment
-        : "N/A",
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Unit Type",
-      value: profileData?.unitType ? profileData?.unitType : "N/A",
+      label: en.PROFILE.DETAILS.UNIT_TYPE,
+      value: profileData?.unitType ? profileData?.unitType : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Office Phone",
-      value: profileData?.officePhone ? profileData?.officePhone : "N/A",
+      label: en.PROFILE.DETAILS.OFFICE_PHONE,
+      value: profileData?.officePhone ? profileData?.officePhone : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "DOJ the Designation",
+      label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION,
       value: profileData?.designationDate
         ? profileData?.designationDate
-        : "N/A",
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "DOJ the Department",
-      value: profileData?.departmentDate ? profileData?.departmentDate : "N/A",
+      label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT,
+      value: profileData?.departmentDate ? profileData?.departmentDate : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Unit Date",
-      value: profileData?.unitDate ? profileData?.unitDate : "N/A",
+      label: en.PROFILE.DETAILS.UNIT_DATE,
+      value: profileData?.unitDate ? profileData?.unitDate : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "RO Name",
-      value: profileData?.roName ? profileData?.roName : "N/A",
+      label: en.PROFILE.DETAILS.RO_NAME,
+      value: profileData?.roName ? profileData?.roName : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "AO Name",
-      value: profileData?.aoName ? profileData?.aoName : "N/A",
+      label: en.PROFILE.DETAILS.AO_NAME,
+      value: profileData?.aoName ? profileData?.aoName : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const contactDetails = [
     {
-      label: "Phone",
-      value: profileData?.mobileNo ? profileData?.mobileNo : "N/A",
+      label: en.PROFILE.DETAILS.PHONE,
+      value: profileData?.mobileNo ? profileData?.mobileNo : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Office Phone",
-      value: profileData?.officePhone ? profileData?.officePhone : "N/A",
+      label: en.PROFILE.DETAILS.OFFICE_PHONE,
+      value: profileData?.officePhone ? profileData?.officePhone : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Residence Phone",
-      value: profileData?.residancePhone ? profileData?.residancePhone : "N/A",
+      label: en.PROFILE.DETAILS.RESIDENCE_PHONE,
+      value: profileData?.residancePhone ? profileData?.residancePhone : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Permanent Address",
-      value: profileData?.permanentAdd ? profileData?.permanentAdd : "N/A",
+      label: en.PROFILE.DETAILS.PERMANENT_ADDRESS,
+      value: profileData?.permanentAdd ? profileData?.permanentAdd : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Permanent Address Pincode",
-      value: profileData?.pinCode ? profileData?.pinCode : "N/A",
+      label: en.PROFILE.DETAILS.PERMANENT_ADDRESS_PINCODE,
+      value: profileData?.pinCode ? profileData?.pinCode : en.PROFILE.NOT_AVAILABLE,
     },
     {
-      label: "Residential Address",
+      label: en.PROFILE.DETAILS.RESIDENTIAL_ADDRESS,
       value: profileData?.temporaryAddress
         ? profileData?.temporaryAddress
-        : "N/A",
+        : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
@@ -353,7 +350,7 @@ const Profile = () => {
             activeSection === "personal" && styles.activeNavText,
           ]}
         >
-          Personal
+          {en.PROFILE.NAVIGATION.PERSONAL}
         </Animated.Text>
       </TouchableOpacity>
 
@@ -371,7 +368,7 @@ const Profile = () => {
             activeSection === "professional" && styles.activeNavText,
           ]}
         >
-          Professional
+          {en.PROFILE.NAVIGATION.PROFESSIONAL}
         </Animated.Text>
       </TouchableOpacity>
 
@@ -389,7 +386,7 @@ const Profile = () => {
             activeSection === "contact" && styles.activeNavText,
           ]}
         >
-          Contact
+          {en.PROFILE.NAVIGATION.CONTACT}
         </Animated.Text>
       </TouchableOpacity>
     </Animated.View>
@@ -430,7 +427,7 @@ const Profile = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>
-              {profileData?.firstName ? profileData?.firstName : "N/A"}
+              {profileData?.firstName ? profileData?.firstName : en.PROFILE.NOT_AVAILABLE}
             </Text>
             {profileDetails.map((item, index) => (
               <Animated.Text
@@ -475,7 +472,7 @@ const Profile = () => {
         >
           {activeSection === "personal" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Personal Details</Text>
+              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.PERSONAL_DETAILS}</Text>
               {personalDetails.map((item, index) => (
                 <DetailRow
                   key={index}
@@ -489,7 +486,7 @@ const Profile = () => {
 
           {activeSection === "professional" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Professional Details</Text>
+              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}</Text>
               {professionalDetails.map((item, index) => (
                 <DetailRow
                   key={index}
@@ -503,7 +500,7 @@ const Profile = () => {
 
           {activeSection === "contact" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Contact Details</Text>
+              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.CONTACT_DETAILS}</Text>
               {contactDetails.map((item, index) => (
                 <DetailRow
                   key={index}

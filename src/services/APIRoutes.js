@@ -1,7 +1,7 @@
 export const API_ROUTES = {
   // BASE_URL: "http://192.168.100.102:7930/api/",//(Q.A)
   BASE_URL: "http://192.168.100.102:7830/api/", //(development)
-  // BASE_URL: "http://192.168.80.43:7830/api/",// (Nitesh Ip)
+  // BASE_URL: "http://192.168.80.142:7830/api/",// (Nitesh Ip)
   // BASE_URL: "http://160.25.172.19:9052/api/", //Public Server
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
@@ -37,4 +37,5 @@ export const API_ROUTES = {
   DP_REPORT_SAVE: "prod_plan/dp-report/save",
   DP_REPORT_UPDATE: "prod_plan/dp-report/update",
   MATERIAL_LIST: "master/item-master/dd",
+  forgetPassword:'userauth/public/user/forgot-password',
 };

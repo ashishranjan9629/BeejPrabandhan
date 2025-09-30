@@ -33,6 +33,7 @@ import CustomButton from "../../components/CustomButton";
 import { useDispatch } from "react-redux";
 import { clearUserData } from "../../redux/slice/UserSlice";
 import { useNavigation } from "@react-navigation/native";
+import en from "../../constants/en";
 
 const UserProfile = () => {
   const navigation = useNavigation();
@@ -108,18 +109,18 @@ const UserProfile = () => {
 
   const profileDetails = [
     {
-      label: "Employee ID",
+      label: en.PROFILE.EMPLOYEE_ID,
       value: profileData?.empCode ? profileData?.empCode : "N/A",
     },
     {
-      label: "Email",
+      label: en.PROFILE.EMAIL,
       value: profileData?.emailId ? profileData?.emailId : "N/A",
     },
   ];
 
   const settingsOptions = [
     {
-      label: "Privacy Policy",
+      label: en.PROFILE.PRIVACY_POLICY,
       icon: "shield-checkmark-outline",
       onPress: () => {
         navigation.navigate("WebViewPreview", {
@@ -129,7 +130,7 @@ const UserProfile = () => {
       },
     },
     {
-      label: "Terms & Conditions",
+      label:en.PROFILE.TERMS_CONDITIONS,
       icon: "document-text-outline",
       onPress: () => {
         navigation.navigate("WebViewPreview", {
@@ -139,7 +140,7 @@ const UserProfile = () => {
       },
     },
     {
-      label: "About Us",
+      label: en.PROFILE.ABOUT_US,
       icon: "information-circle-outline",
       onPress: () => {
         navigation.navigate("WebViewPreview", {
@@ -158,19 +159,18 @@ const UserProfile = () => {
   ];
 
   const handleLogout = async () => {
-    console.log("Clicked on the logout button");
     setLoading(true);
     setTimeout(() => {
       dispatch(clearUserData());
       removeUserData();
-      showSuccessMessage("Logout successful");
+      showSuccessMessage(en?.PROFILE.LOGOUT_SUCCESS);
     }, 500);
   };
 
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader
-        title={"Profile"}
+        title={en.PROFILE.TITLE}
         rightIcon={
           <TouchableOpacity
             activeOpacity={0.5}
@@ -249,7 +249,7 @@ const UserProfile = () => {
       </Animated.View>
       {/* Setting List */}
       <View style={styles.settingsListContainer}>
-        <Text style={styles.headerText}>App Setting</Text>
+        <Text style={styles.headerText}>{en.PROFILE.APP_SETTING}</Text>
         {settingsOptions.map((item, index) => (
           <TouchableOpacity
             key={index}
@@ -276,7 +276,7 @@ const UserProfile = () => {
         visible={showLogoutBottomSheet}
         onRequestClose={() => setShowLogoutBottomSheet(false)}
       >
-        <Text style={styles.headerText}>Confirm Logout</Text>
+        <Text style={styles.headerText}>{en.PROFILE.CONFIRM_LOGOUT}</Text>
         <View
           style={{
             flexDirection: "row",
@@ -285,13 +285,13 @@ const UserProfile = () => {
           }}
         >
           <CustomButton
-            text={"Cancel"}
+            text={en.PROFILE.CANCEL}
             buttonStyle={styles.buttonStyle}
             textStyle={styles.buttonText}
             handleAction={() => setShowLogoutBottomSheet(false)}
           />
           <CustomButton
-            text={"Logout"}
+            text={en.PROFILE.LOGOUT}
             textStyle={styles.buttonText}
             buttonStyle={styles.buttonStyle2}
             handleAction={() => handleLogout()}
