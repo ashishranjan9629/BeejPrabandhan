@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import React, { useState } from "react";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons"; 
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import WrapperContainer from "../../utils/WrapperContainer";
 import InnerHeader from "../../components/InnerHeader";
 import Colors from "../../utils/Colors";
@@ -24,11 +24,16 @@ import {
   showSuccessMessage,
 } from "../../utils/HelperFunction";
 import { getUserData, removeUserData } from "../../utils/Storage";
-import { decryptAES, encryptAES } from "../../utils/decryptData";
+import {
+  decryptAES,
+  encryptAES,
+  encryptWholeObject,
+} from "../../utils/decryptData";
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
 import { useDispatch } from "react-redux";
 import { clearUserData } from "../../redux/slice/UserSlice";
+import en from "../../constants/en";
 
 const EditUserProfile = () => {
   const [loading, setLoading] = useState(false);
@@ -44,17 +49,17 @@ const EditUserProfile = () => {
 
   const onSubmit = async () => {
     if (!oldPassword || oldPassword.length === 0) {
-      showErrorMessage("Please enter the old password.");
+      showErrorMessage(en.EDIT_PROFILE.VALIDATION.OLD_PASSWORD_REQUIRED);
       return;
     }
 
     if (!newPassword || newPassword.length < 6) {
-      showErrorMessage("Password must be at least 6 characters long.");
+      showErrorMessage(en.EDIT_PROFILE.VALIDATION.PASSWORD_LENGTH);
       return;
     }
 
     if (newPassword !== confirmNewPassword) {
-      showErrorMessage("Passwords do not match.");
+      showErrorMessage(en.EDIT_PROFILE.VALIDATION.PASSWORD_MISMATCH);
       return;
     }
 
@@ -62,24 +67,27 @@ const EditUserProfile = () => {
       setLoading(true);
 
       const userData = await getUserData();
-      const payloadData = {
-        newpwdKey: encryptAES(newPassword),
-        pwdKey: encryptAES(oldPassword),
-        userId: encryptAES(userData?.userId),
-      };
+      // const payloadData = {
+      //   newpwdKey: encryptAES(newPassword),
+      //   pwdKey: encryptAES(oldPassword),
+      //   userId: encryptAES(userData?.userId),
+      // };
 
-      // console.log(payloadData, "payloadData");
+      const payloadData = {
+        newpwdKey: newPassword,
+        pwdKey: oldPassword,
+        userId: userData?.userId,
+      };
+      const encryption = encryptWholeObject(payloadData);
 
       const response = await apiRequest(
         API_ROUTES.CHANGE_PASSWORD,
         "post",
-        payloadData
+        encryption
       );
 
-      // console.log(response, "API Response");
-
       if (response?.statusCode === "200" && response?.status === "Success") {
-        showSuccessMessage("Your password has been changed successfully.");
+        showSuccessMessage(en.EDIT_PROFILE.SUCCESS.PASSWORD_CHANGED);
         setTimeout(() => {
           dispatch(clearUserData());
           removeUserData();
@@ -89,22 +97,21 @@ const EditUserProfile = () => {
         response?.status === "Error"
       ) {
         showErrorMessage(
-          response?.message ||
-            "Old password and new password cannot be the same."
+          response?.message || en.EDIT_PROFILE.ERROR.SAME_PASSWORD
         );
       } else if (
         response?.statusCode === "404" &&
         response?.status === "Fail"
       ) {
-        showErrorMessage(response?.message || "Invalid user ID or password!");
-      } else {
         showErrorMessage(
-          response?.message || "Something went wrong, try again."
+          response?.message || en.EDIT_PROFILE.ERROR.INVALID_CREDENTIALS
         );
+      } else {
+        showErrorMessage(response?.message || en.EDIT_PROFILE.ERROR.GENERIC);
       }
     } catch (error) {
       console.log(error, "API Error");
-      showErrorMessage("An unexpected error occurred. Please try again.");
+      showErrorMessage(en.EDIT_PROFILE.VALIDATION.UNEXPECTED_ERROR);
     } finally {
       setLoading(false);
     }
@@ -112,7 +119,7 @@ const EditUserProfile = () => {
 
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"Change Password"} />
+      <InnerHeader title={en.EDIT_PROFILE.TITLE} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.main}
@@ -125,13 +132,15 @@ const EditUserProfile = () => {
         >
           {/* Old Password */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Old Password</Text>
+            <Text style={styles.label}>
+              {en.EDIT_PROFILE.OLD_PASSWORD.LABEL}
+            </Text>
             <View style={styles.passwordWrapper}>
               <TextInput
                 style={styles.input}
                 value={oldPassword}
                 onChangeText={setOldPassword}
-                placeholder="Enter old password"
+                placeholder={en.EDIT_PROFILE.OLD_PASSWORD.PLACEHOLDER}
                 secureTextEntry={!showOld}
                 autoCapitalize="none"
               />
@@ -150,13 +159,15 @@ const EditUserProfile = () => {
 
           {/* New Password */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>New Password</Text>
+            <Text style={styles.label}>
+              {en.EDIT_PROFILE.NEW_PASSWORD.LABEL}
+            </Text>
             <View style={styles.passwordWrapper}>
               <TextInput
                 style={styles.input}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={en.EDIT_PROFILE.NEW_PASSWORD.PLACEHOLDER}
                 secureTextEntry={!showNew}
                 autoCapitalize="none"
               />
@@ -175,13 +186,15 @@ const EditUserProfile = () => {
 
           {/* Confirm New Password */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirm New Password</Text>
+            <Text style={styles.label}>
+              {en.EDIT_PROFILE.CONFIRM_PASSWORD.LABEL}
+            </Text>
             <View style={styles.passwordWrapper}>
               <TextInput
                 style={styles.input}
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
-                placeholder="Confirm new password"
+                placeholder={en.EDIT_PROFILE.CONFIRM_PASSWORD.PLACEHOLDER}
                 secureTextEntry={!showConfirm}
                 autoCapitalize="none"
               />
@@ -203,7 +216,9 @@ const EditUserProfile = () => {
             onPress={onSubmit}
             activeOpacity={0.8}
           >
-            <Text style={styles.submitText}>Change Password</Text>
+            <Text style={styles.submitText}>
+              {en.EDIT_PROFILE.SUBMIT_BUTTON}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
