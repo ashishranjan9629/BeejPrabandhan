@@ -39,6 +39,7 @@ const Login = () => {
   const [email, setEmail] = useState("7777700001");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Add this state
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -125,7 +126,11 @@ const Login = () => {
       setPassword("");
     }
   };
-  
+
+  // Add this function to toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -173,9 +178,10 @@ const Login = () => {
               value={password}
               onChangeText={(text) => setPassword(text)}
               keyboardType={"default"}
-              rightIcon={"eye"}
-              resetvalue={() => setPassword("")}
-              secureTextEntry={true}
+              rightIcon={showPassword ? "eye" : "eyeo"} // Change icon based on visibility
+              resetvalue={togglePasswordVisibility} // Use toggle function for eye icon
+              secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
+              isPasswordField={true} // Add this prop to identify password field
             />
             <View style={styles.rememberView}>
               <TouchableOpacity

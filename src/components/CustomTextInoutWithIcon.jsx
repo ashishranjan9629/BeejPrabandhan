@@ -1,10 +1,11 @@
-import { Image, StyleSheet, Text, TextInput, View,TouchableOpacity } from "react-native";
+import { Image, StyleSheet, Text, TextInput, View, TouchableOpacity } from "react-native";
 import React from "react";
 import ImagePath from "../utils/ImagePath";
 import Colors from "../utils/Colors";
 import { moderateScale, scale, textScale } from "../utils/responsiveSize";
 import FontFamily from "../utils/FontFamily";
-import AntDesign from 'react-native-vector-icons/AntDesign'
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
 const CustomTextInoutWithIcon = ({
   label,
   leftIcon,
@@ -15,7 +16,8 @@ const CustomTextInoutWithIcon = ({
   rightIcon,
   resetvalue,
   props,
-  secureTextEntry=false
+  secureTextEntry = false,
+  isPasswordField = false 
 }) => {
   return (
     <View style={styles.formHolder}>
@@ -40,13 +42,14 @@ const CustomTextInoutWithIcon = ({
           multiline={false}
           style={styles.inputBox}
           secureTextEntry={secureTextEntry}
+          {...props}
         />
         {value?.length > 0 && (
           <TouchableOpacity onPress={resetvalue}>
             <AntDesign
               name={rightIcon}
               size={moderateScale(25)}
-              color={Colors.black}
+              color={isPasswordField ? Colors.greenColor : Colors.black} 
             />
           </TouchableOpacity>
         )}

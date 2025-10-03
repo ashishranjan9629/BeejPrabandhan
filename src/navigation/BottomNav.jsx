@@ -61,8 +61,8 @@ const BottomNav = () => {
             </View>
           ),
         }}
-      /> */}
-      {/* <Tab.Screen
+      /> 
+       <Tab.Screen
         name="Cart"
         component={Cart}
         options={{
