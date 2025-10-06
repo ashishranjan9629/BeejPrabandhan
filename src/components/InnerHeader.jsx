@@ -9,6 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Colors from "../utils/Colors";
 import FontFamily from "../utils/FontFamily";
+import PropTypes from "prop-types";
 
 const InnerHeader = ({ title, rightIcon = null }) => {
   const navigation = useNavigation();
@@ -37,6 +38,11 @@ const InnerHeader = ({ title, rightIcon = null }) => {
   );
 };
 
+InnerHeader.propTypes = {
+  title: PropTypes.string.isRequired, 
+  rightIcon: PropTypes.element,
+};
+
 export default InnerHeader;
 
 const styles = StyleSheet.create({
@@ -49,7 +55,6 @@ const styles = StyleSheet.create({
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    // elevation: 4,
     justifyContent: "space-between",
   },
   backButton: {
@@ -73,7 +78,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontFamily: FontFamily.PoppinsMedium,
     color: Colors.textColor,
-    fontSize: textScale(18),
+    fontSize: textScale(14),
     textAlign: "center",
     letterSpacing: 0.5,
   },

@@ -1,9 +1,9 @@
-import {StyleSheet, Text, TouchableOpacity} from 'react-native';
-import React from 'react';
-import {BallIndicator} from 'react-native-indicators';
-import PropTypes from 'prop-types';
-import Colors from '../utils/Colors';
-import {moderateScale, textScale} from '../utils/responsiveSize';
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import React from "react";
+import { BallIndicator } from "react-native-indicators";
+import PropTypes from "prop-types";
+import Colors from "../utils/Colors";
+import { moderateScale, textScale } from "../utils/responsiveSize";
 
 const CustomButton = ({
   text,
@@ -19,39 +19,40 @@ const CustomButton = ({
       style={[
         styles.main,
         buttonStyle,
-        disabled && {backgroundColor: Colors.lightGray},
+        disabled && { backgroundColor: Colors.lightGray },
       ]}
       onPress={handleAction}
       activeOpacity={0.8}
       disabled={disabled}
-      {...props}>
+      {...props}
+    >
       {isloading ? (
-        <BallIndicator color={Colors.white} size={moderateScale(22)} />
+        <BallIndicator color={Colors.white} size={moderateScale(28)} />
       ) : (
-        <Text style={[styles.text, {...textStyle}]}>{text}</Text>
+        <Text style={[styles.text, { ...textStyle }]}>{text}</Text>
       )}
     </TouchableOpacity>
   );
 };
 
-// ✅ PropTypes validation
 CustomButton.propTypes = {
   text: PropTypes.string.isRequired,
   handleAction: PropTypes.func.isRequired,
   buttonStyle: PropTypes.object,
   textStyle: PropTypes.object,
   isloading: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
 
 export default CustomButton;
 
 const styles = StyleSheet.create({
   main: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
     padding: moderateScale(10),
-    borderRadius: moderateScale(10),
+    borderRadius: moderateScale(5),
   },
   text: {
     color: Colors.white,

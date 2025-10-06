@@ -28,6 +28,142 @@ import Colors from "../../../../utils/Colors";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import CustomButton from "../../../../components/CustomButton";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
+import en from "../../../../constants/en";
+
+const AnimatedCard = ({
+  item,
+  index,
+  handleCardPress,
+  getStatusColor,
+  formatDate,
+}) => {
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(20)).current;
+
+  React.useEffect(() => {
+    // Simple fade and slide up animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <TouchableOpacity onPress={() => handleCardPress(item)} style={styles.card}>
+      {/* Header Row with Date and Status */}
+      <View style={styles.cardHeader}>
+        <Text style={styles.dateText}>{formatDate(item.reportDate)}</Text>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: getStatusColor(item.dprStatus) },
+          ]}
+        >
+          <Text style={styles.statusText}>
+            {(item.dprStatus === "SUBMITTED" && "Completed") ||
+              (item.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
+                "Pending at Block In") ||
+              (item.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
+                "Pending at Mech. In") ||
+              (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
+                "In Progress") ||
+              (item.dprStatus === "REJECTED" && "Rejected") ||
+              (item.dprStatus === "PENDING" && "Pending") ||
+              (item.dprStatus === "APPROVED" && "Approved") ||
+              (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
+                "Pending at Chak For Corr.") ||
+              "N/A"}
+          </Text>
+        </View>
+      </View>
+
+      {/* Main Content */}
+      <View>
+        {/* Square and Operation Row */}
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label}>Square Name</Text>
+            <Text style={styles.value}>{item.squareName || "N/A"}</Text>
+          </View>
+          <View style={styles.column}>
+            <Text style={styles.label}>Operation</Text>
+            <Text style={styles.value}>{item.operationName || "N/A"}</Text>
+          </View>
+        </View>
+
+        {/* Financial Year and Crop Row */}
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label}>Financial Year</Text>
+            <Text style={styles.value}>{item.finYear || "N/A"}</Text>
+          </View>
+          <View style={styles.column}>
+            <Text style={styles.label}>Crop</Text>
+            <Text style={styles.value}>{item.crop || "N/A"}</Text>
+          </View>
+        </View>
+
+        {/* Season and Class Row */}
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label}>Season</Text>
+            <Text style={styles.value}>{item.season || "N/A"}</Text>
+          </View>
+          <View style={styles.column}>
+            <Text style={styles.label}>Class</Text>
+            <Text style={styles.value}>{item.fromSeedClass || "N/A"}</Text>
+          </View>
+        </View>
+
+        {/* Required Output and Equipment Row */}
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label}>Required Output (ha)</Text>
+            <Text style={styles.value}>{item.requiredOutputArea || "N/A"}</Text>
+          </View>
+          <View style={styles.column}>
+            <Text style={styles.label}>Equipment</Text>
+            <Text style={styles.value}>{item.equipment ? "Yes" : "No"}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+AnimatedCard.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    reportDate: PropTypes.string,
+    dprStatus: PropTypes.string,
+    squareName: PropTypes.string,
+    operationName: PropTypes.string,
+    finYear: PropTypes.string,
+    crop: PropTypes.string,
+    season: PropTypes.string,
+    fromSeedClass: PropTypes.string,
+    requiredOutputArea: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+    equipment: PropTypes.bool,
+  }).isRequired,
+  index: PropTypes.number.isRequired,
+  handleCardPress: PropTypes.func.isRequired,
+  getStatusColor: PropTypes.func.isRequired,
+  formatDate: PropTypes.func.isRequired,
+};
 
 const DailyProgressReportList = () => {
   const navigation = useNavigation();
@@ -37,7 +173,6 @@ const DailyProgressReportList = () => {
   const [dpReportList, setDpReportList] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-  // console.log(userData, "selectedItem");
 
   useEffect(() => {
     fetchUserData();
@@ -51,13 +186,13 @@ const DailyProgressReportList = () => {
   };
 
   const fetchDPRList = async (userData) => {
-    // console.log(userData, "line 23");
     setLoading(false);
     try {
       const payloadData = {
         blockId: userData?.unitType === "BLOCK" ? userData?.blockId : null,
         chakId: userData?.unitType === "CHAK" ? userData?.chakId : null,
-        equipment: userData?.subUnitType === "WORKSHOP" ? true : false,
+        // equipment: userData?.subUnitType === "WORKSHOP" ? true : false,
+        equipment: userData?.subUnitType === "WORKSHOP",
         page: 0,
         pageSize: 25,
       };
@@ -69,7 +204,6 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      // console.log(parsedDecrypted, "line 43");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -85,39 +219,13 @@ const DailyProgressReportList = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "SUBMITTED":
-        return Colors.greenColor;
-      case "PENDING_WITH_CHAK_INCHARGE":
-        return Colors.orange;
-      case "PENDING_WITH_BLOCK_INCHARGE":
-        return Colors.blue;
-      case "PENDING_WITH_MECHANICAL_INCHARGE":
-        return Colors.purple;
-      case "REJECTED":
-        return Colors.redThemeColor;
-      default:
-        return Colors.gray;
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB");
-  };
-
   const handleCardPress = (item) => {
     setSelectedItem(item);
     setBottomSheetVisible(true);
   };
 
   const handleBottomSheetAction = (action) => {
-    // console.log(`${action} pressed for item:`, selectedItem);
-    // Handle different actions here
-    setBottomSheetVisible(false); // Hide bottom sheet immediately
-
+    setBottomSheetVisible(false);
     setTimeout(() => {
       switch (action) {
         case "Details":
@@ -166,7 +274,6 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      // console.log(parsedDecrypted, "line 164");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -202,7 +309,6 @@ const DailyProgressReportList = () => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      // console.log(parsedDecrypted, "line 164");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -219,152 +325,62 @@ const DailyProgressReportList = () => {
     }
   };
 
-  const AnimatedCard = ({ item, index }) => {
-    const fadeAnim = React.useRef(new Animated.Value(0)).current;
-    const slideAnim = React.useRef(new Animated.Value(20)).current;
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB");
+  };
 
-    React.useEffect(() => {
-      // Simple fade and slide up animation
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 400,
-          delay: index * 100,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    return (
-      <TouchableOpacity onPress={() => handleCardPress(item)}>
-        <View
-          style={[
-            styles.card,
-            // {
-            //   opacity: fadeAnim,
-            //   transform: [{ translateY: slideAnim }],
-            // },
-          ]}
-        >
-          {/* Header Row with Date and Status */}
-          <View style={styles.cardHeader}>
-            <Text style={styles.dateText}>{formatDate(item.reportDate)}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                { backgroundColor: getStatusColor(item.dprStatus) },
-              ]}
-            >
-              <Text style={styles.statusText}>
-                {(item.dprStatus === "SUBMITTED" && "Completed") ||
-                  (item.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
-                    "Pending at Block In") ||
-                  (item.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
-                    "Pending at Mech. In") ||
-                  (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
-                    "In Progress") ||
-                  (item.dprStatus === "REJECTED" && "Rejected") ||
-                  (item.dprStatus === "PENDING" && "Pending") ||
-                  (item.dprStatus === "APPROVED" && "Approved") ||
-                  (item.dprStatus ===
-                    "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
-                    "Pending at Chak For Corr.") ||
-                  "N/A"}
-              </Text>
-            </View>
-          </View>
-
-          {/* Main Content */}
-          <View style={styles.cardContent}>
-            {/* Square and Operation Row */}
-            <View style={styles.row}>
-              <View style={styles.column}>
-                <Text style={styles.label}>Square Name</Text>
-                <Text style={styles.value}>{item.squareName || "N/A"}</Text>
-              </View>
-              <View style={styles.column}>
-                <Text style={styles.label}>Operation</Text>
-                <Text style={styles.value}>{item.operationName || "N/A"}</Text>
-              </View>
-            </View>
-
-            {/* Financial Year and Crop Row */}
-            <View style={styles.row}>
-              <View style={styles.column}>
-                <Text style={styles.label}>Financial Year</Text>
-                <Text style={styles.value}>{item.finYear || "N/A"}</Text>
-              </View>
-              <View style={styles.column}>
-                <Text style={styles.label}>Crop</Text>
-                <Text style={styles.value}>{item.crop || "N/A"}</Text>
-              </View>
-            </View>
-
-            {/* Season and Class Row */}
-            <View style={styles.row}>
-              <View style={styles.column}>
-                <Text style={styles.label}>Season</Text>
-                <Text style={styles.value}>{item.season || "N/A"}</Text>
-              </View>
-              <View style={styles.column}>
-                <Text style={styles.label}>Class</Text>
-                <Text style={styles.value}>{item.fromSeedClass || "N/A"}</Text>
-              </View>
-            </View>
-
-            {/* Required Output and Equipment Row */}
-            <View style={styles.row}>
-              <View style={styles.column}>
-                <Text style={styles.label}>Required Output (ha)</Text>
-                <Text style={styles.value}>
-                  {item.requiredOutputArea || "N/A"}
-                </Text>
-              </View>
-              <View style={styles.column}>
-                <Text style={styles.label}>Equipment</Text>
-                <Text style={styles.value}>
-                  {item.equipment ? "Yes" : "No"}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "SUBMITTED":
+        return Colors.greenColor;
+      case "PENDING_WITH_CHAK_INCHARGE":
+        return Colors.orange;
+      case "PENDING_WITH_BLOCK_INCHARGE":
+        return Colors.blue;
+      case "PENDING_WITH_MECHANICAL_INCHARGE":
+        return Colors.purple;
+      case "REJECTED":
+        return Colors.redThemeColor;
+      default:
+        return Colors.gray;
+    }
   };
 
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"DPR PROCESS"} />
+      <InnerHeader title={en.DAILY_PROGRESS_REPORT.TITLE} />
       {/* Create Row */}
       <View style={styles.exportRow}>
-        <Text style={styles.headerText}>DPR Report</Text>
+        <Text style={styles.headerText}>{en.DAILY_PROGRESS_REPORT.HEADER}</Text>
         {userData?.unitType != "BLOCK" && (
-          <TouchableOpacity
-            style={styles.exportBtn}
-            onPress={() => navigation.navigate("CreateNewDPR")}
-          >
-            <Text style={styles.exportBtnText}>Create New</Text>
-          </TouchableOpacity>
+          <CustomButton
+            text={en.DAILY_PROGRESS_REPORT.CREATE_NEW}
+            handleAction={() => navigation.navigate("CreateNewDPR")}
+            buttonStyle={styles.exportBtn}
+          />
         )}
       </View>
       <FlatList
         data={dpReportList}
         renderItem={({ item, index }) => (
-          <AnimatedCard item={item} index={index} />
+          <AnimatedCard
+            item={item}
+            index={index}
+            handleCardPress={handleCardPress}
+            getStatusColor={getStatusColor}
+            formatDate={formatDate}
+          />
         )}
         keyExtractor={(item) => item.id?.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No DPR reports found</Text>
+            <Text style={styles.emptyText}>
+              {en.DAILY_PROGRESS_REPORT.NO_DATA}
+            </Text>
           </View>
         }
       />
@@ -373,9 +389,11 @@ const DailyProgressReportList = () => {
         onRequestClose={() => setBottomSheetVisible(false)}
       >
         <View style={styles.bottomSheetContent}>
-          <Text style={styles.headerText}>Select Action</Text>
+          <Text style={styles.headerText}>
+            {en.DAILY_PROGRESS_REPORT.SELECT_ACTION}
+          </Text>
           <CustomButton
-            text={"View Details"}
+            text={en.DAILY_PROGRESS_REPORT.VIEW_DETAILS}
             buttonStyle={[
               styles.bottomSheetButton,
               { backgroundColor: Colors.lightGray },
@@ -384,7 +402,7 @@ const DailyProgressReportList = () => {
             handleAction={() => handleBottomSheetAction("Details")}
           />
           <CustomButton
-            text={"Activity Log"}
+            text={en.DAILY_PROGRESS_REPORT.ACTIVITY_LOG}
             buttonStyle={[
               styles.bottomSheetButton,
               { backgroundColor: Colors.gray },
@@ -486,6 +504,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: moderateScale(15),
     padding: moderateScaleVertical(7),
     borderRadius: moderateScale(5),
+    width: "45%",
   },
   exportBtnText: {
     color: Colors.white,
@@ -517,27 +536,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: moderateScaleVertical(12),
     borderBottomWidth: 1,
-    borderBottomColor: Colors.textColor,
+    borderBottomColor: Colors.diabledColor,
     paddingBottom: moderateScaleVertical(8),
   },
   dateText: {
-    fontSize: textScale(14),
+    fontSize: textScale(13),
     fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
   },
   statusBadge: {
     paddingHorizontal: moderateScale(12),
     paddingVertical: moderateScaleVertical(4),
-    borderRadius: moderateScale(12),
+    borderRadius: moderateScale(5),
   },
   statusText: {
-    fontSize: textScale(10),
+    fontSize: textScale(11),
     fontFamily: FontFamily.PoppinsRegular,
     color: Colors.white,
   },
-  cardContent: {
-    marginBottom: moderateScaleVertical(16),
-  },
+
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -550,14 +567,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: textScale(12),
     fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.textColor,
+    color: Colors.gray,
     marginBottom: moderateScaleVertical(2),
     textTransform: "capitalize",
   },
   value: {
     fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.black,
+    color: Colors.textColor,
     textTransform: "capitalize",
   },
   equipmentSection: {
@@ -608,5 +625,15 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsMedium,
+  },
+  notificationHolder: {
+    borderWidth: 2,
+    width: moderateScale(50),
+    height: moderateScale(50),
+    borderRadius: moderateScale(25),
+    backgroundColor: Colors.bg3,
+    borderColor: Colors.bg3,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

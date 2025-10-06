@@ -18,7 +18,7 @@ export default {
     },
     PASSWORD: {
       LABEL: "Password",
-      PLACEHOLDER: "enter your password",
+      PLACEHOLDER: "Enter your password",
     },
     REMEMBER_ME: "Remember Me",
     FORGOT_PASSWORD: "Forgot Password?",
@@ -128,6 +128,40 @@ export default {
       SAME_PASSWORD: "Old password and new password cannot be the same.",
       INVALID_CREDENTIALS: "Invalid user ID or password!",
       GENERIC: "Something went wrong, try again."
+    }
+  },
+  DAILY_PROGRESS_REPORT: {
+    TITLE: "DPR PROCESS",
+    HEADER: "DPR Report",
+    CREATE_NEW: "Create New",
+    NO_DATA: "No DPR reports found",
+    SQUARE_NAME: "Square Name",
+    OPERATION: "Operation",
+    FINANCIAL_YEAR: "Financial Year",
+    CROP: "Crop",
+    SEASON: "Season",
+    CLASS: "Class",
+    REQUIRED_OUTPUT: "Required Output (ha)",
+    EQUIPMENT: "Equipment",
+    YES: "Yes",
+    NO: "No",
+    SELECT_ACTION: "Select Action",
+    VIEW_DETAILS: "View Details",
+    ACTIVITY_LOG: "Activity Log",
+    EDIT: "Edit",
+    SUBMIT: "Submit",
+    APPROVE: "Approve",
+    REJECT: "Reject",
+    STATUS: {
+      SUBMITTED: "Completed",
+      PENDING_WITH_BLOCK_INCHARGE: "Pending at Block In",
+      PENDING_WITH_MECHANICAL_INCHARGE: "Pending at Mech. In",
+      PENDING_WITH_CHAK_INCHARGE: "In Progress",
+      REJECTED: "Rejected",
+      PENDING: "Pending",
+      APPROVED: "Approved",
+      PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION: "Pending at Chak For Corr.",
+      NA: "N/A"
     }
   }
 };

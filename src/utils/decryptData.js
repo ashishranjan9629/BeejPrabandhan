@@ -18,11 +18,6 @@ const getPmh = () => {
 const secretKeyStr = getPmh();
 const secretKey = CryptoJS.enc.Utf8.parse(secretKeyStr);
 
-/**
- * Decrypt AES-encrypted string
- * @param {string} val - Encrypted string from server
- * @returns {string|null} - Decrypted string or null
- */
 export const decryptAES = (val) => {
   if (!val) return null;
 
@@ -42,71 +37,36 @@ export const decryptAES = (val) => {
   }
 };
 
-// export const deepDecryptObject = (obj) => {
-//   if (!obj || typeof obj !== "object") return obj;
-
-//   const decrypted = {};
-
-//   for (const key in obj) {
-//     if (!obj.hasOwnProperty(key)) continue;
-
-//     const value = obj[key];
-
-//     if (typeof value === "string") {
-//       decrypted[key] = decryptAES(value) ?? value; // fallback to original if decryption fails
-//     } else if (typeof value === "object" && value !== null) {
-//       decrypted[key] = deepDecryptObject(value); // recursive for nested objects
-//     } else {
-//       decrypted[key] = value;
-//     }
-//   }
-
-//   return decrypted;
-// };
-
 export const deepDecryptObject = (obj) => {
-  if (!obj || typeof obj !== "object") return obj;
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
 
   const decrypted = Array.isArray(obj) ? [] : {};
 
-  for (const key in obj) {
-    if (!obj.hasOwnProperty(key)) continue;
-
-    const value = obj[key];
-
+  Object.entries(obj).forEach(([key, value]) => {
     if (typeof value === "string") {
-      // Only attempt to decrypt if it looks like Base64 encrypted data
-      if (isLikelyEncrypted(value)) {
-        const decryptedValue = decryptAES(value);
-        // If decryption returns null, keep it as null instead of the encrypted string
-        decrypted[key] = decryptedValue !== null ? decryptedValue : null;
-      } else {
-        // For regular strings, keep as is
-        decrypted[key] = value;
-      }
-    } else if (typeof value === "object" && value !== null) {
-      decrypted[key] = deepDecryptObject(value); // recursive for nested objects
+      decrypted[key] = isLikelyEncrypted(value) ? decryptAES(value) ?? null : value;
+    } else if (value && typeof value === "object") {
+      decrypted[key] = deepDecryptObject(value);
     } else {
       decrypted[key] = value;
     }
-  }
+  });
 
   return decrypted;
 };
 
-// Helper function to detect if a string is likely encrypted
-const isLikelyEncrypted = (value) => {
-  // Check if it's a Base64 string (common pattern for encrypted data)
-  const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
 
-  // Also check if it's not obviously unencrypted data
+const isLikelyEncrypted = (value) => {
+  const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
   return (
     base64Regex.test(value) &&
-    value.length >= 16 && // Minimum length for meaningful encrypted data
-    !value.includes(" ") && // Encrypted data usually doesn't have spaces
-    !value.startsWith("{") && // Not JSON
-    !value.startsWith("[") && // Not array
-    !value.includes("@") // Not email
+    value.length >= 16 &&
+    !value.includes(" ") &&
+    !value.startsWith("{") &&
+    !value.startsWith("[") &&
+    !value.includes("@")
   );
 };
 
@@ -165,11 +125,6 @@ export const encryptFullPayload = (obj) => {
   }
 };
 
-/**
- * Encrypt entire object into a single encrypted string
- * @param {Object} obj - The object to encrypt
- * @returns {string|null} - Encrypted string
- */
 export const encryptWholeObject = (obj) => {
   if (!obj || typeof obj !== "object") return null;
 

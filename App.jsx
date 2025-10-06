@@ -1,4 +1,4 @@
-import { LogBox, Platform, StyleSheet } from "react-native";
+import { LogBox, Platform } from "react-native";
 import React, { useEffect, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import JailMonkey from "jail-monkey";
@@ -32,8 +32,8 @@ const App = () => {
       setIsConnected(state.isConnected);
     });
     checkPhoneRooted();
-    {
-      Platform.OS === "android" && setupNotificationHandlers();
+    if (Platform.OS === "android") {
+      setupNotificationHandlers();
     }
 
     return () => checkNetwork();
@@ -92,9 +92,3 @@ const App = () => {
 };
 
 export default App;
-
-const styles = StyleSheet.create({
-  main: {
-    flex: 1,
-  },
-});

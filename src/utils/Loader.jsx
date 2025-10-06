@@ -1,4 +1,4 @@
-import { Modal, StyleSheet, Text, View } from "react-native";
+import { Modal, StyleSheet, View } from "react-native";
 import React from "react";
 import { BallIndicator } from "react-native-indicators";
 import Colors from "./Colors";

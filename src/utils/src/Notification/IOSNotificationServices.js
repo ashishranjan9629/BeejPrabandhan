@@ -18,9 +18,8 @@ const getFcmToken = async () => {
   if (!checkToken) {
     try {
       const fcmToken = await messaging().getToken();
-      if (!!fcmToken) {
+      if (fcmToken) {
         console.log("Fcm Token Generated", fcmToken);
-        // storage.set(FCM_TOKEN_KEY, fcmToken);
       }
     } catch (error) {
       console.log("Error in FCM Token", error);

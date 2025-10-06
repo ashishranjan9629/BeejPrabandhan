@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
   Animated,
@@ -34,7 +33,6 @@ import { useNavigation } from "@react-navigation/native";
 const DailyProgressReport = () => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState();
-  const [type, setType] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [financialYear, setfinancialYear] = useState();
@@ -45,14 +43,13 @@ const DailyProgressReport = () => {
   const [isCropOpen, setIsCropOpen] = useState(false);
   const [cropId, setCropId] = useState(null);
   const [seedVariety, setSeedVariety] = useState();
-  const [financialListData, setFinancialYearData] = useState([]);
+  const [financialYearData, setFinancialYearData] = useState([]);
   const [seasonListData, setSeasonListData] = useState([]);
   const [cropListData, setCropListData] = useState([]);
   const [isFyOpen, setIsFyOpen] = useState(false);
   const [isSeasonOpen, setIsSeasonOpen] = useState(false);
   const [isSeedVarietyOpen, setIsSeedVarietyOpen] = useState(false);
   const [seedVarietyList, setSeedVarietyList] = useState([]);
-  const [seedVarietyId, setSeedVarietyId] = useState(null);
   const [isSeedClassOpen, setIsSeedClassOpen] = useState(false);
   const [seedClass, setSeedClass] = useState("");
   const [planList, setPlanList] = useState([]);
@@ -87,16 +84,12 @@ const DailyProgressReport = () => {
         parsedDecryptedCropListData?.statusCode === "200"
       ) {
         setCropListData(parsedDecryptedCropListData?.data || []);
-        // console.log(
-        //   parsedDecryptedCropListData?.data,
-        //   "parsedDecryptedCropListData?.data"
-        // );
       } else {
         showErrorMessage("Unable to get the crop List Data");
         setCropListData([]);
       }
-    } catch (e) {
-      showErrorMessage("Error fetching crops");
+    } catch (error) {
+      showErrorMessage(`Error fetching crops ${error}`);
       setCropListData([]);
     } finally {
       setLoading(false);
@@ -117,13 +110,12 @@ const DailyProgressReport = () => {
       const parsed = JSON.parse(decrypted);
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
         setSeedVarietyList(parsed?.data || []);
-        // console.log(parsed?.data, "parsed?.data seed Variety");
       } else {
         showErrorMessage("Unable to get the Seed Variety list");
         setSeedVarietyList([]);
       }
-    } catch (e) {
-      showErrorMessage("Error fetching Seed Variety");
+    } catch (error) {
+      showErrorMessage(`Error fetching Seed Variety ${error}`);
       setSeedVarietyList([]);
     } finally {
       setLoading(false);
@@ -133,7 +125,6 @@ const DailyProgressReport = () => {
   const fetchDropDownData = async () => {
     setLoading(true);
     const userdata = await getUserData();
-    // console.log(userdata, "line 20");
     setUserData(userdata);
     await fetchPlanList(userdata);
     const fetchFinancialListData = await apiRequest(
@@ -153,7 +144,6 @@ const DailyProgressReport = () => {
       );
       const decryptedSeasonListData = decryptAES(seasonListData);
       const parsedDecryptedSeasonList = JSON.parse(decryptedSeasonListData);
-      // console.log(parsedDecryptedSeasonList, "parsedDecryptedSeasonList");
       if (
         parsedDecryptedSeasonList?.status === "SUCCESS" &&
         parsedDecryptedSeasonList?.statusCode === "200"
@@ -187,7 +177,6 @@ const DailyProgressReport = () => {
         toSeedClass: seedClass || null,
         toSeedStage: "",
       };
-      // console.log(payload, "payload");
       const payloadData = encryptWholeObject(payload);
       const planListData = await apiRequest(
         API_ROUTES.PRODUCTION_PLAN,
@@ -196,7 +185,6 @@ const DailyProgressReport = () => {
       );
       const decryptedCropListData = decryptAES(planListData);
       const parsedDecryptedCropListData = JSON.parse(decryptedCropListData);
-      // console.log(parsedDecryptedCropListData, "line 187");
       if (
         parsedDecryptedCropListData?.status === "SUCCESS" &&
         parsedDecryptedCropListData?.statusCode === "200"
@@ -214,7 +202,6 @@ const DailyProgressReport = () => {
 
   const renderProgramme = ({ item, index }) => {
     const animatedValue = animationRefs[index];
-    // console.log(item, "line 211");
 
     return (
       <TouchableOpacity
@@ -270,6 +257,16 @@ const DailyProgressReport = () => {
     );
   };
 
+  const renderEmpty = () => {
+    return (
+      <View style={{ padding: 20, alignItems: "center" }}>
+        <Text style={{ fontSize: textScale(14), color: Colors.textColor }}>
+          No results found.
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader
@@ -314,7 +311,7 @@ const DailyProgressReport = () => {
                 {isFyOpen && (
                   <View style={styles.dropdownList}>
                     <ScrollView style={{ maxHeight: moderateScale(200) }}>
-                      {financialListData.map((fy) => (
+                      {financialYearData.map((fy) => (
                         <TouchableOpacity
                           key={fy?.id}
                           style={styles.dropdownItem}
@@ -403,7 +400,6 @@ const DailyProgressReport = () => {
                             setCropId(c?.id);
                             setIsCropOpen(false);
                             setSeedVariety("");
-                            setSeedVarietyId(null);
                             setIsSeedVarietyOpen(false);
                             await fetchSeedVarietiesByCrop(c?.id);
                           }}
@@ -443,7 +439,6 @@ const DailyProgressReport = () => {
                           onPress={() => {
                             const label = sv?.seedVarietyName;
                             setSeedVariety(label);
-                            setSeedVarietyId(sv?.id);
                             setIsSeedVarietyOpen(false);
                           }}
                         >
@@ -505,7 +500,6 @@ const DailyProgressReport = () => {
                     setCrop(null);
                     setCropId(null);
                     setSeedVariety("");
-                    setSeedVarietyId(null);
                     setIsFyOpen(false);
                     setIsSeasonOpen(false);
                     setIsCropOpen(false);
@@ -539,15 +533,7 @@ const DailyProgressReport = () => {
             keyExtractor={(item) => item.id}
             renderItem={renderProgramme}
             scrollEnabled={false}
-            ListEmptyComponent={() => (
-              <View style={{ padding: 20, alignItems: "center" }}>
-                <Text
-                  style={{ fontSize: textScale(14), color: Colors.textColor }}
-                >
-                  No results found.
-                </Text>
-              </View>
-            )}
+            ListEmptyComponent={renderEmpty}
           />
         </ScrollView>
         <CustomBottomSheet

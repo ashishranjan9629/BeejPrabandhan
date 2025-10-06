@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
-  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import Colors from "../../utils/Colors";
@@ -39,41 +38,17 @@ const Login = () => {
   const [email, setEmail] = useState("7777700001");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Add this state
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-
-  const validatePassword = (password) => {
-    return password.length >= 6;
-  };
-
   const handleLogin = async () => {
-    // if (!validateEmail(email)) {
-    //   showErrorMessage(en.LOGIN.VALIDATION.INVALID_EMAIL);
-    //   return;
-    // }
-
-    // if (!validatePassword(password)) {
-    //   showErrorMessage(en.LOGIN.VALIDATION.WEAK_PASSWORD);
-    //   return;
-    // }
-    // const response = {
-    //   name: "Ashish Ranjan",
-    //   email: email,
-    //   password: password,
-    // };
     try {
       const payloadData = {
         clientId: email,
         secretKey: password,
       };
-      // console.log(payloadData, "line 73");
       setLoading(true);
       const response = await apiRequest(
         API_ROUTES.AUTHORIZE_LOGIN,
@@ -95,15 +70,12 @@ const Login = () => {
           );
           const decrypted = decryptAES(response2);
           const parsedDecrypted = JSON.parse(decrypted);
-          // console.log(parsedDecrypted, "userData");
           if (
             parsedDecrypted &&
             parsedDecrypted?.status === "Success" &&
             parsedDecrypted?.statusCode === "200"
           ) {
-            // console.log(parsedDecrypted.data,"line 103")
             const decryptedData = deepDecryptObject(parsedDecrypted.data);
-            //  console.log(decryptedData,"decryptedData user Data");
             dispatch(setUserData(decryptedData));
             saveUserData(decryptedData);
           } else {
@@ -117,10 +89,9 @@ const Login = () => {
         showErrorMessage(response?.errorMsg);
       }
     } catch (error) {
-      showErrorMessage(error?.message)
+      showErrorMessage(error?.message);
       console.log(error, "Error In Login API");
     } finally {
-      // console.log("Finally Block");
       setLoading(false);
       setEmail("");
       setPassword("");
@@ -178,10 +149,10 @@ const Login = () => {
               value={password}
               onChangeText={(text) => setPassword(text)}
               keyboardType={"default"}
-              rightIcon={showPassword ? "eye" : "eyeo"} // Change icon based on visibility
-              resetvalue={togglePasswordVisibility} // Use toggle function for eye icon
-              secureTextEntry={!showPassword} // Toggle secureTextEntry based on showPassword state
-              isPasswordField={true} // Add this prop to identify password field
+              rightIcon={showPassword ? "eye" : "eyeo"}
+              resetvalue={togglePasswordVisibility}
+              secureTextEntry={!showPassword}
+              isPasswordField={true}
             />
             <View style={styles.rememberView}>
               <TouchableOpacity
@@ -268,17 +239,17 @@ const styles = StyleSheet.create({
     height: moderateScale(133),
   },
   signInText: {
-    fontFamily: FontFamily.RubikMedium,
+    fontFamily: FontFamily.RubikRegular,
     fontSize: textScale(14),
     alignSelf: "flex-start",
     padding: moderateScale(5),
-    borderBottomWidth: moderateScale(4),
+    borderBottomWidth: moderateScale(2.5),
     borderColor: Colors.greenColor,
   },
   forgotPasswordText: {
-    fontFamily: FontFamily.RubikSemiBold,
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
-    fontSize: textScale(14),
+    fontSize: textScale(13),
   },
   rememberView: {
     width: "95%",
@@ -308,7 +279,7 @@ const styles = StyleSheet.create({
     height: moderateScale(50),
   },
   buttonText: {
-    fontFamily: FontFamily.RubikMedium,
+    fontFamily: FontFamily.RubikRegular,
     color: Colors.white,
     textTransform: "capitalize",
     letterSpacing: scale(0.4),

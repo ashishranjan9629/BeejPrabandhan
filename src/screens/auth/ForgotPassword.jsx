@@ -5,14 +5,10 @@ import {
   View,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
-import WrapperContainer from "../../utils/WrapperContainer";
-import InnerHeader from "../../components/InnerHeader";
 import ImagePath from "../../utils/ImagePath";
 import {
   moderateScale,
@@ -33,16 +29,18 @@ import {
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
 import { encryptWholeObject } from "../../utils/decryptData";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const ForgotPassword = () => {
   const navigation = useNavigation();
-  const [userid, setUserId] = useState("");
+  const [userId, setuserId] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const payloadData = { email: userid };
+      const payloadData = { email: userId };
+      console.log(payloadData, "payloadData");
       const encryptionPayload = encryptWholeObject(payloadData);
 
       const response = await apiRequest(
@@ -50,7 +48,7 @@ const ForgotPassword = () => {
         "POST",
         encryptionPayload
       );
-
+      console.log(response, "response");
       if (response?.status === "Success" && response?.statusCode === "200") {
         showSuccessMessage(response?.message);
         navigation.goBack();
@@ -61,68 +59,82 @@ const ForgotPassword = () => {
       showErrorMessage(error.message);
     } finally {
       setLoading(false);
-      setUserId("");
+      setuserId("");
     }
   };
 
   return (
-    <WrapperContainer isLoading={loading}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? moderateScale(40) : moderateScale(20)
-          }
-        >
-          <InnerHeader title={en.LOGIN.FORGOT_PASSWORD} />
-
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.main}
+      keyboardVerticalOffset={Platform.OS === "ios" ? moderateScale(40) : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentContainer}>
+          <Image
+            source={ImagePath.logoBgImage}
+            resizeMode="stretch"
+            style={{ width: "100%" }}
+          />
+          <View style={styles.logoImageHolder}>
+            <Image
+              source={ImagePath.logoImage}
+              resizeMode="contain"
+              style={styles.imageIcon}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.backButton}
+            activeOpacity={0.7}
+            onPress={() => navigation.goBack()}
           >
-            <View style={styles.contentHolder}>
-              <Image
-                source={ImagePath.nsclLogo}
-                resizeMode="stretch"
-                style={styles.imageHolder}
-              />
-              <Text style={styles.headerText}>{en.LOGIN.FORGOT_PASSWORD}</Text>
+            <Ionicons
+              name="chevron-back"
+              size={moderateScale(22)}
+              color={Colors.greenColor}
+            />
+          </TouchableOpacity>
 
-              <CustomTextInoutWithIcon
-                label={en.LOGIN.EMAIL.LABEL}
-                leftIcon={ImagePath.emailIcon}
-                placeholder={en.LOGIN.EMAIL.PLACEHOLDER}
-                value={userid}
-                onChangeText={setUserId}
-                keyboardType="email-address"
-                rightIcon="close"
-                resetvalue={() => setUserId("")}
-                secureTextEntry={false}
-              />
+          <View style={styles.formContainer}>
+            <Text style={styles.signInText}>{en.LOGIN.FORGOT_PASSWORD}</Text>
+            <CustomTextInoutWithIcon
+              label={en.LOGIN.EMAIL.LABEL}
+              leftIcon={ImagePath.emailIcon}
+              placeholder={en.LOGIN.EMAIL.PLACEHOLDER}
+              value={userId}
+              onChangeText={setuserId}
+              keyboardType="email-address"
+              rightIcon="close"
+              resetvalue={() => setuserId("")}
+              secureTextEntry={false}
+            />
 
-              <CustomButton
-                text={en.FORGOT_PASSWORD.SUBMIT_BUTTON}
-                buttonStyle={styles.buttonStyle}
-                textStyle={styles.buttonText}
-                disabled={loading || userid.length === 0}
-                handleAction={handleSubmit}
-              />
+            <CustomButton
+              text={en.FORGOT_PASSWORD.SUBMIT_BUTTON}
+              buttonStyle={styles.buttonStyle}
+              textStyle={styles.buttonText}
+              disabled={loading || userId.length === 0}
+              handleAction={handleSubmit}
+              isloading={loading}
+            />
 
-              <TouchableOpacity
-                style={styles.view}
-                onPress={() => navigation.goBack()}
-              >
-                <Text style={styles.footerText}>
-                 {en.FORGOT_PASSWORD.BACK_TO_LOGIN}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </WrapperContainer>
+            <TouchableOpacity
+              style={styles.view}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.footerText}>
+                {en.FORGOT_PASSWORD.BACK_TO_LOGIN}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -136,21 +148,6 @@ const styles = StyleSheet.create({
     height: moderateScale(75),
     alignSelf: "center",
     marginBottom: moderateScaleVertical(50),
-  },
-  contentHolder: {
-    width: "95%",
-    alignSelf: "center",
-    gap: moderateScaleVertical(20),
-    justifyContent: "center",
-    flex: 1,
-    padding: moderateScale(5),
-  },
-  headerText: {
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.textColor,
-    fontSize: textScale(15),
-    textTransform: "capitalize",
-    letterSpacing: scale(0.3),
   },
   buttonStyle: {
     backgroundColor: Colors.greenColor,
@@ -174,5 +171,57 @@ const styles = StyleSheet.create({
     color: Colors.textColor,
     fontSize: textScale(14),
     letterSpacing: scale(0.3),
+  },
+  main: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  formContainer: {
+    marginTop: moderateScaleVertical(-100),
+    padding: moderateScale(10),
+    gap: moderateScale(20),
+    paddingBottom: moderateScale(100),
+  },
+  logoImageHolder: {
+    position: "absolute",
+    top: moderateScaleVertical(125),
+    right: 0,
+    left: 0,
+    alignItems: "center",
+  },
+  imageIcon: {
+    width: moderateScale(81),
+    height: moderateScale(133),
+  },
+  signInText: {
+    fontFamily: FontFamily.RubikRegular,
+    fontSize: textScale(14),
+    alignSelf: "flex-start",
+    padding: moderateScale(5),
+    borderBottomWidth: moderateScale(2.5),
+    borderColor: Colors.greenColor,
+  },
+  backButton: {
+    width: moderateScale(38),
+    height: moderateScale(38),
+    borderRadius: moderateScale(19),
+    backgroundColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+    zIndex: 1,
+    position: "absolute",
+    top: moderateScaleVertical(50),
+    left: moderateScale(25),
   },
 });
