@@ -35,7 +35,7 @@ import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
 
 const Login = () => {
-  const [email, setEmail] = useState("7777700001");
+  const [email, setEmail] = useState("90909090");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

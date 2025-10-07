@@ -4,7 +4,6 @@ import {
   Text,
   View,
   ScrollView,
-  TouchableOpacity,
   FlatList,
   Alert,
 } from "react-native";
@@ -24,140 +23,183 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { showErrorMessage } from "../../../../utils/HelperFunction";
 import CustomButton from "../../../../components/CustomButton";
 import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
+
+const Details = ({ label, value }) => {
+  return (
+    <View style={styles.detailsHolderView}>
+      <Text style={styles.labelText}>{label}</Text>
+      <Text style={styles.valueText}>{value}</Text>
+    </View>
+  );
+};
+
+Details.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.node,
+  ]),
+};
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
-  // console.log(item, "line 30");
-  // console.log(item?.productionStatus, "line 30");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
   const [cropFirTypeId, setCropFirTypeId] = useState(null);
-  // console.log(detailsData, "All the details Data");
-  // console.log(cropFirTypeId, "cropFirTypeId");
   useEffect(() => {
     fethcProgramListDetails();
   }, []);
 
   const fethcProgramListDetails = async () => {
-    // console.log(item?.id, "line 40");
-    const payloadData = {
-      id: item?.id,
-    };
-    // console.log(payloadData, "line 48");
     try {
       setLoading(true);
-      const encryptedPayload = encryptWholeObject(payloadData);
-      const response = await apiRequest(
-        API_ROUTES.PROGRAMME_LIST_DETAILS,
-        "post",
-        encryptedPayload
-      );
-      const decrypted = decryptAES(response);
-      const parsedDecrypted = JSON.parse(decrypted);
-      // console.log("PROGRAMME_LIST_DETAILS", parsedDecrypted);
-      if (
-        parsedDecrypted &&
-        parsedDecrypted?.status === "SUCCESS" &&
-        parsedDecrypted?.statusCode === "200"
-      ) {
-        const inspectionLandIds = Array.isArray(
-          parsedDecrypted?.data?.schedule?.landDetails
-        )
-          ? parsedDecrypted.data.schedule.landDetails.map((ld) => ld.landId)
-          : [];
+      const programDetails = await fetchProgramDetails();
 
-        try {
-          const payloadData2 = {
-            id: parsedDecrypted?.data?.growerId,
-          };
-          const encryptedPayload2 = encryptWholeObject(payloadData2);
-          const growerResponse = await apiRequest(
-            API_ROUTES.GROWER_DETAILS,
-            "post",
-            encryptedPayload2
-          );
-          const growerDecrypted = decryptAES(growerResponse);
-          const growerParsedDecrypted = JSON.parse(growerDecrypted);
-
-          if (
-            growerParsedDecrypted &&
-            growerParsedDecrypted?.status === "SUCCESS" &&
-            growerParsedDecrypted?.statusCode === "200"
-          ) {
-            const cropFirId = parsedDecrypted?.data?.crop?.cropFirType?.id;
-            const scheduleId = parsedDecrypted?.data?.schedule?.id;
-            // console.log(scheduleId, "line scheduleId ");
-            const inspectionPayloadData = { scheduleId };
-            const encryptedInspectionPayloadData = encryptWholeObject(
-              inspectionPayloadData
-            );
-
-            const inspectionResponseData = await apiRequest(
-              (cropFirId === 1 && API_ROUTES.PRODUCTION_INSPECTION_A) ||
-                (cropFirId === 2 && API_ROUTES.PRODUCTION_INSPECTION_B) ||
-                (cropFirId === 3 && API_ROUTES.PRODUCTION_INSPECTION_C),
-              "post",
-              encryptedInspectionPayloadData
-            );
-            // console.log(API_ROUTES.PRODUCTION_INSPECTION_C);
-            const inspectionDecrypted = decryptAES(inspectionResponseData);
-            const inspectionParsedDecrypted = JSON.parse(inspectionDecrypted);
-            // console.log(inspectionParsedDecrypted, "line 106");
-            if (
-              inspectionParsedDecrypted &&
-              inspectionParsedDecrypted?.status === "SUCCESS" &&
-              inspectionParsedDecrypted?.statusCode === "200"
-            ) {
-              let growerData =
-                growerParsedDecrypted?.data &&
-                Array.isArray(growerParsedDecrypted.data)
-                  ? growerParsedDecrypted.data[0]
-                  : growerParsedDecrypted.data;
-
-              if (
-                growerData &&
-                Array.isArray(growerData.landDetails) &&
-                inspectionLandIds.length > 0
-              ) {
-                growerData = {
-                  ...growerData,
-                  landDetails: growerData.landDetails.filter((ld) =>
-                    inspectionLandIds.includes(ld.id)
-                  ),
-                };
-              }
-
-              setDetailsData({
-                inspection: parsedDecrypted?.data,
-                grower: growerData,
-                productionInspection: inspectionParsedDecrypted?.data,
-              });
-              setCropFirTypeId(
-                parsedDecrypted?.data?.crop?.cropFirType?.cropFirTypeId
-              );
-            } else {
-              showErrorMessage("Error in getting Inspection Data");
-            }
-          } else {
-            showErrorMessage("Error in Getting Grower Data");
-          }
-        } catch (error) {
-          console.log(error, "Error in Getting Grower Data");
-          setDetailsData({
-            inspection: parsedDecrypted?.data,
-            grower: null,
-            productionInspection: null,
-          });
-        }
-      } else {
+      if (!programDetails) {
         showErrorMessage("Error");
+        return;
+      }
+
+      const inspectionLandIds = extractInspectionLandIds(programDetails);
+
+      try {
+        const growerData = await fetchGrowerData(programDetails.data.growerId);
+        await fetchInspectionData(
+          programDetails,
+          growerData,
+          inspectionLandIds
+        );
+      } catch (error) {
+        console.log(error, "Error in Getting Grower Data");
+        setDetailsData({
+          inspection: programDetails.data,
+          grower: null,
+          productionInspection: null,
+        });
       }
     } catch (error) {
       console.log(error, "line 133");
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper functions
+  const fetchProgramDetails = async () => {
+    const payloadData = { id: item?.id };
+    const encryptedPayload = encryptWholeObject(payloadData);
+    const response = await apiRequest(
+      API_ROUTES.PROGRAMME_LIST_DETAILS,
+      "post",
+      encryptedPayload
+    );
+    const decrypted = decryptAES(response);
+    const parsedDecrypted = JSON.parse(decrypted);
+
+    return isSuccessResponse(parsedDecrypted) ? parsedDecrypted : null;
+  };
+
+  const extractInspectionLandIds = (programDetails) => {
+    return Array.isArray(programDetails?.data?.schedule?.landDetails)
+      ? programDetails.data.schedule.landDetails.map((ld) => ld.landId)
+      : [];
+  };
+
+  const fetchGrowerData = async (growerId) => {
+    const payloadData2 = { id: growerId };
+    const encryptedPayload2 = encryptWholeObject(payloadData2);
+    const growerResponse = await apiRequest(
+      API_ROUTES.GROWER_DETAILS,
+      "post",
+      encryptedPayload2
+    );
+    const growerDecrypted = decryptAES(growerResponse);
+    const growerParsedDecrypted = JSON.parse(growerDecrypted);
+
+    if (!isSuccessResponse(growerParsedDecrypted)) {
+      throw new Error("Error in Getting Grower Data");
+    }
+
+    return growerParsedDecrypted;
+  };
+
+  const fetchInspectionData = async (
+    programDetails,
+    growerData,
+    inspectionLandIds
+  ) => {
+    const cropFirId = programDetails?.data?.crop?.cropFirType?.id;
+    const scheduleId = programDetails?.data?.schedule?.id;
+    const inspectionPayloadData = { scheduleId };
+    const encryptedInspectionPayloadData = encryptWholeObject(
+      inspectionPayloadData
+    );
+
+    const inspectionEndpoint = getInspectionEndpoint(cropFirId);
+    const inspectionResponseData = await apiRequest(
+      inspectionEndpoint,
+      "post",
+      encryptedInspectionPayloadData
+    );
+
+    const inspectionDecrypted = decryptAES(inspectionResponseData);
+    const inspectionParsedDecrypted = JSON.parse(inspectionDecrypted);
+
+    if (!isSuccessResponse(inspectionParsedDecrypted)) {
+      showErrorMessage("Error in getting Inspection Data");
+      return;
+    }
+
+    const processedGrowerData = processGrowerData(
+      growerData,
+      inspectionLandIds
+    );
+
+    setDetailsData({
+      inspection: programDetails.data,
+      grower: processedGrowerData,
+      productionInspection: inspectionParsedDecrypted.data,
+    });
+
+    setCropFirTypeId(programDetails.data?.crop?.cropFirType?.cropFirTypeId);
+  };
+
+  const getInspectionEndpoint = (cropFirId) => {
+    const endpointMap = {
+      1: API_ROUTES.PRODUCTION_INSPECTION_A,
+      2: API_ROUTES.PRODUCTION_INSPECTION_B,
+      3: API_ROUTES.PRODUCTION_INSPECTION_C,
+    };
+    return endpointMap[cropFirId] || API_ROUTES.PRODUCTION_INSPECTION_A;
+  };
+
+  const processGrowerData = (growerData, inspectionLandIds) => {
+    let processedData =
+      growerData?.data && Array.isArray(growerData.data)
+        ? growerData.data[0]
+        : growerData.data;
+
+    if (
+      processedData &&
+      Array.isArray(processedData.landDetails) &&
+      inspectionLandIds.length > 0
+    ) {
+      processedData = {
+        ...processedData,
+        landDetails: processedData.landDetails.filter((ld) =>
+          inspectionLandIds.includes(ld.id)
+        ),
+      };
+    }
+
+    return processedData;
+  };
+
+  const isSuccessResponse = (response) => {
+    return response?.status === "SUCCESS" && response?.statusCode === "200";
   };
 
   const renderItem = ({ item }) => {
@@ -169,19 +211,9 @@ const FiledInspectionReportDetails = ({ route }) => {
     );
   };
 
-  const Details = ({ label, value }) => {
-    return (
-      <View style={styles.detailsHolderView}>
-        <Text style={styles.labelText}>{label}</Text>
-        <Text style={styles.valueText}>{value}</Text>
-      </View>
-    );
-  };
-
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={"Program Inspection"} />
-
       {Array.isArray(detailsData) ? (
         <FlatList
           data={detailsData}
@@ -272,7 +304,7 @@ const FiledInspectionReportDetails = ({ route }) => {
           </View>
           {/* Inspection Details */}
           {detailsData?.productionInspection?.map((item, index) => (
-            <View style={styles.containerStyle} key={index}>
+            <View style={styles.containerStyle} key={item?.id}>
               <Text style={styles.headerText}>
                 Inspection Details {index + 1}
               </Text>
@@ -331,7 +363,7 @@ const FiledInspectionReportDetails = ({ route }) => {
               />
 
               {/* Type-specific fields */}
-              {cropFirTypeId === 1 && (
+              {cropFirTypeId == 1 && (
                 <>
                   <Details
                     label={"Seed Source"}
@@ -464,7 +496,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                 </>
               )}
 
-              {cropFirTypeId === 2 && (
+              {cropFirTypeId == 2 && (
                 <>
                   <Details
                     label={"Nature of Programme"}
@@ -588,7 +620,7 @@ const FiledInspectionReportDetails = ({ route }) => {
                 </>
               )}
 
-              {cropFirTypeId === 3 && (
+              {cropFirTypeId == 3 && (
                 <>
                   <Details
                     label={"Source of Seed"}
@@ -704,6 +736,13 @@ const FiledInspectionReportDetails = ({ route }) => {
     </WrapperContainer>
   );
 };
+FiledInspectionReportDetails.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      item: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
+};
 
 export default FiledInspectionReportDetails;
 
@@ -728,9 +767,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   labelText: {
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
     color: Colors.gray,
-    fontSize: textScale(13),
+    fontSize: textScale(12),
     letterSpacing: scale(0.2),
     textTransform: "capitalize",
     flex: 1,
@@ -739,13 +778,12 @@ const styles = StyleSheet.create({
   valueText: {
     fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
-    fontSize: textScale(14),
+    fontSize: textScale(13),
     letterSpacing: scale(0.2),
     flex: 1,
     textAlign: "right",
   },
   detailsHolderView: {
-    // borderBottomWidth: 2,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -754,8 +792,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerText: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontSize: textScale(13),
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
     marginBottom: moderateScaleVertical(4),
     borderLeftWidth: moderateScale(2),
@@ -778,10 +816,10 @@ const styles = StyleSheet.create({
   tableCell: {
     paddingHorizontal: moderateScale(12),
     fontSize: textScale(12),
-    color: Colors.textColor,
+    color: Colors.gray,
     textAlign: "centers",
     textTransform: "capitalize",
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
   },
   cellSerial: {
     minWidth: moderateScale(75),

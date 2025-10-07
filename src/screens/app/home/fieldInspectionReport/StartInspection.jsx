@@ -13,27 +13,31 @@ import FontFamily from "../../../../utils/FontFamily";
 import CustomButton from "../../../../components/CustomButton";
 import Octicons from "react-native-vector-icons/Octicons";
 import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
+
+const DataShownView = ({ label, value }) => {
+  return (
+    <View style={styles.cardRow}>
+      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.valueText}>{value || "N/A"}</Text>
+    </View>
+  );
+};
+
+DataShownView.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
 
 const StartInspection = ({ route }) => {
   const { data } = route.params;
-  // console.log(data?.inspection?.crop?.cropFirType?.cropFirTypeId, "line 8");
   const navigation = useNavigation();
-  const [loading, setLoading] = useState(false);
   const [selectedLands, setSelectedLands] = useState([]);
 
   // Calculate total inspected area
   const totalInspectedArea = selectedLands.reduce((total, land) => {
     return total + (parseFloat(land.landArea) || 0);
   }, 0);
-
-  const DataShownView = ({ label, value }) => {
-    return (
-      <View style={styles.cardRow}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={styles.valueText}>{value ? value : "N/A"}</Text>
-      </View>
-    );
-  };
 
   const toggleLandSelection = (land) => {
     // Check if the land is already selected
@@ -53,7 +57,7 @@ const StartInspection = ({ route }) => {
   };
 
   return (
-    <WrapperContainer isLoading={loading}>
+    <WrapperContainer>
       <InnerHeader title={"Verify Inspection Details"} />
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
@@ -124,7 +128,7 @@ const StartInspection = ({ route }) => {
                     : Colors.white,
                 },
               ]}
-              key={index}
+              key={item?.id}
             >
               <Text style={styles.headerText}>Select the land {index + 1}</Text>
               <DataShownView label={"Land Address"} value={item?.landAddress} />
@@ -179,6 +183,65 @@ const StartInspection = ({ route }) => {
   );
 };
 
+// Prop Types validation
+StartInspection.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      data: PropTypes.shape({
+        grower: PropTypes.shape({
+          partyName: PropTypes.string,
+          entityRegNo: PropTypes.shape({
+            stateId: PropTypes.shape({
+              stateName: PropTypes.string,
+            }),
+            districtId: PropTypes.shape({
+              districtName: PropTypes.string,
+            }),
+            block: PropTypes.shape({
+              taluqs: PropTypes.shape({
+                talukaName: PropTypes.string,
+              }),
+              blockName: PropTypes.string,
+            }),
+            villageId: PropTypes.shape({
+              villageName: PropTypes.string,
+            }),
+          }),
+          landDetails: PropTypes.arrayOf(
+            PropTypes.shape({
+              id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+              landAddress: PropTypes.string,
+              typeOfLand: PropTypes.string,
+              soilType: PropTypes.string,
+              landArea: PropTypes.oneOfType([
+                PropTypes.string,
+                PropTypes.number,
+              ]),
+            })
+          ),
+        }),
+        inspection: PropTypes.shape({
+          crop: PropTypes.shape({
+            seedCropName: PropTypes.string,
+            cropFirType: PropTypes.shape({
+              cropFirTypeId: PropTypes.oneOfType([
+                PropTypes.string,
+                PropTypes.number,
+              ]),
+            }),
+          }),
+          productionPlan: PropTypes.shape({
+            seedVariety: PropTypes.string,
+            season: PropTypes.string,
+            toSeedClass: PropTypes.string,
+            toSeedStage: PropTypes.string,
+          }),
+        }),
+      }).isRequired,
+    }).isRequired,
+  }).isRequired,
+};
+
 export default StartInspection;
 
 const styles = StyleSheet.create({
@@ -202,21 +265,22 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.textColor,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
+    color: Colors.gray,
+    fontSize: textScale(12),
     textAlign: "left",
   },
   valueText: {
     flex: 1,
     fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(14),
-    color: Colors.black,
+    fontSize: textScale(13),
+    color: Colors.textColor,
     textAlign: "right",
+    textTransform: "capitalize",
   },
   headerText: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontSize: textScale(13),
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
     marginBottom: moderateScaleVertical(4),
     borderLeftWidth: moderateScale(2),

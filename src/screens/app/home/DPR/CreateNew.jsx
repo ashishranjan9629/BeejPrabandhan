@@ -70,8 +70,6 @@ const CreateNew = () => {
 
   const SEED_CLASSES = ["NS", "BS", "FS", "CS", "TL"];
   const WorkType = ["Contract", "Self"];
-  // console.log(userData, "line userData ");
-  // State for multiple parent entries
   const [parentEntries, setParentEntries] = useState([
     {
       id: 1,
@@ -276,8 +274,8 @@ const CreateNew = () => {
       } else {
         showErrorMessage("Unable to get the crop List Data");
       }
-    } catch (e) {
-      showErrorMessage("Error fetching crops");
+    } catch (error) {
+      showErrorMessage(`Error fetching crops ${error.message}`);
       setCropList([]);
     } finally {
       setLoading(false);
@@ -302,8 +300,8 @@ const CreateNew = () => {
         showErrorMessage("Unable to get the Seed Variety list");
         setVarietyList([]);
       }
-    } catch (e) {
-      showErrorMessage("Error fetching Seed Variety");
+    } catch (error) {
+      showErrorMessage(`Error fetching Seed Variety ${error?.message}`);
       setVarietyList([]);
     } finally {
       setLoading(false);
@@ -503,139 +501,148 @@ const CreateNew = () => {
     }
     setParentEntries((prev) => prev.filter((entry) => entry.id !== parentId));
   };
-
+  
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      for (const entry of parentEntries) {
-        const { formData } = entry;
 
-        if (!formData.requiredDate) {
-          showErrorMessage("Please select a date for all entries");
-          return;
-        }
-
-        if (!formData.workType) {
-          showErrorMessage("Please select work type for all entries");
-          return;
-        }
-
-        if (!formData.seedClass) {
-          showErrorMessage("Please select seed class for all entries");
-          return;
-        }
-
-        if (!formData.squareId) {
-          showErrorMessage("Please select square for all entries");
-          return;
-        }
-
-        if (!formData.operationId) {
-          showErrorMessage("Please select operation for all entries");
-          return;
-        }
-
-        if (!formData.financialYearId) {
-          showErrorMessage("Please select financial year for all entries");
-          return;
-        }
-
-        if (!formData.seasonId) {
-          showErrorMessage("Please select season for all entries");
-          return;
-        }
-
-        if (!formData.cropId) {
-          showErrorMessage("Please select crop for all entries");
-          return;
-        }
-
-        if (!formData.varietyId) {
-          showErrorMessage("Please select seed variety for all entries");
-          return;
-        }
-
-        if (!formData.requiredOutput) {
-          showErrorMessage("Please enter required output for all entries");
-          return;
-        }
+      if (!validateAllEntries()) {
+        return;
       }
 
-      // Prepare payload for each parent entry
-      const payloads = parentEntries.map((entry) => {
-        const { formData } = entry;
-        return {
-          blockId: userData?.blockId || "",
-          blockName: userData?.blockName || "",
-          class: formData.seedClass,
-          crop: formData.crop,
-          cropId: formData.cropId,
-          date: formatDateForAPI(formData.requiredDate),
-          dprMechanicals: formData.equipmentList.map((item) => ({
-            equipmentId: item.equipmentId,
-            equipmentName: item.equipmentName,
-            estimatedHours: item.estimatedHours,
-            operator: item.operator,
-            operatorName: item.operatorName || "",
-          })),
-          equipment: formData.equipment ? 1 : 0,
-          finYear: formData.financialYear,
-          finYearId: formData.financialYearId,
-          financialYear: formData.financialYear,
-          fromSeedClass: formData.seedClass,
-          operation: formData.operation,
-          operationId: formData.operationId,
-          operationName: formData.operation,
-          output: formData.requiredOutput,
-          reportDate: formatDateForAPI(formData.requiredDate),
-          requiredOutputArea: formData.requiredOutput,
-          season: formData.season,
-          seasonId: formData.seasonId,
-          seedVariety: formData.variety,
-          seedVarietyId: formData.varietyId,
-          square: formData.square,
-          squareId: formData.squareId,
-          squareName: formData.square,
-          stage: "",
-          unitId:
-            userData?.unitType === "CHAK"
-              ? userData?.chakId
-              : userData?.blockId,
-          unitType: userData?.unitType,
-          workType: formData.workType.toLowerCase(),
-        };
-      });
-
-      // console.log(payloads, "payloads");
-      const encryptedPayload = encryptWholeObject(payloads);
-      const response = await apiRequest(
-        API_ROUTES.DP_REPORT_SAVE,
-        "POST",
-        encryptedPayload
-      );
-      const decryptedResponse = decryptAES(response);
-      const parsedResponse = JSON.parse(decryptedResponse);
-      // console.log(parsedResponse, "line 1455");
-      if (
-        parsedResponse?.status === "SUCCESS" &&
-        parsedResponse?.statusCode === "200"
-      ) {
-        showSuccessMessage(`${parsedResponse?.message} `);
-        navigation.goBack();
-      } else if (
-        parsedResponse?.status === "FAILED" &&
-        parsedResponse?.statusCode === "300"
-      ) {
-        showErrorMessage(`${parsedResponse?.message} `);
-        // navigation.goBack();
-      } else {
-        showErrorMessage("Error in filling form");
-      }
+      const payloads = preparePayloads();
+      await submitDPRData(payloads);
     } catch (error) {
       console.error("Error creating DPR:", error);
       showErrorMessage("Error creating DPR. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Validation functions
+  const validateAllEntries = () => {
+    const validations = [
+      {
+        field: "requiredDate",
+        message: "Please select a date for all entries",
+      },
+      { field: "workType", message: "Please select work type for all entries" },
+      {
+        field: "seedClass",
+        message: "Please select seed class for all entries",
+      },
+      { field: "squareId", message: "Please select square for all entries" },
+      {
+        field: "operationId",
+        message: "Please select operation for all entries",
+      },
+      {
+        field: "financialYearId",
+        message: "Please select financial year for all entries",
+      },
+      { field: "seasonId", message: "Please select season for all entries" },
+      { field: "cropId", message: "Please select crop for all entries" },
+      {
+        field: "varietyId",
+        message: "Please select seed variety for all entries",
+      },
+      {
+        field: "requiredOutput",
+        message: "Please enter required output for all entries",
+      },
+    ];
+
+    for (const entry of parentEntries) {
+      const { formData } = entry;
+
+      for (const validation of validations) {
+        if (!formData[validation.field]) {
+          showErrorMessage(validation.message);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  // Payload preparation
+  const preparePayloads = () => {
+    return parentEntries.map((entry) => {
+      const { formData } = entry;
+      return {
+        blockId: userData?.blockId || "",
+        blockName: userData?.blockName || "",
+        class: formData.seedClass,
+        crop: formData.crop,
+        cropId: formData.cropId,
+        date: formatDateForAPI(formData.requiredDate),
+        dprMechanicals: formData.equipmentList.map(prepareEquipmentData),
+        equipment: formData.equipment ? 1 : 0,
+        finYear: formData.financialYear,
+        finYearId: formData.financialYearId,
+        financialYear: formData.financialYear,
+        fromSeedClass: formData.seedClass,
+        operation: formData.operation,
+        operationId: formData.operationId,
+        operationName: formData.operation,
+        output: formData.requiredOutput,
+        reportDate: formatDateForAPI(formData.requiredDate),
+        requiredOutputArea: formData.requiredOutput,
+        season: formData.season,
+        seasonId: formData.seasonId,
+        seedVariety: formData.variety,
+        seedVarietyId: formData.varietyId,
+        square: formData.square,
+        squareId: formData.squareId,
+        squareName: formData.square,
+        stage: "",
+        unitId: getUserUnitId(),
+        unitType: userData?.unitType,
+        workType: formData.workType.toLowerCase(),
+      };
+    });
+  };
+
+  const prepareEquipmentData = (item) => ({
+    equipmentId: item.equipmentId,
+    equipmentName: item.equipmentName,
+    estimatedHours: item.estimatedHours,
+    operator: item.operator,
+    operatorName: item.operatorName || "",
+  });
+
+  const getUserUnitId = () => {
+    return userData?.unitType === "CHAK" ? userData?.chakId : userData?.blockId;
+  };
+
+  // API submission
+  const submitDPRData = async (payloads) => {
+    const encryptedPayload = encryptWholeObject(payloads);
+    const response = await apiRequest(
+      API_ROUTES.DP_REPORT_SAVE,
+      "POST",
+      encryptedPayload
+    );
+
+    const decryptedResponse = decryptAES(response);
+    const parsedResponse = JSON.parse(decryptedResponse);
+
+    handleApiResponse(parsedResponse);
+  };
+
+  const handleApiResponse = (response) => {
+    if (response?.status === "SUCCESS" && response?.statusCode === "200") {
+      showSuccessMessage(`${response?.message} `);
+      navigation.goBack();
+    } else if (
+      response?.status === "FAILED" &&
+      response?.statusCode === "300"
+    ) {
+      showErrorMessage(`${response?.message} `);
+    } else {
+      showErrorMessage("Error in filling form");
     }
   };
 
@@ -660,27 +667,27 @@ const CreateNew = () => {
     navigation.goBack();
   };
 
+  const getDropdownItemText = (item, type) => {
+    const textMap = {
+      square: item.squareName,
+      operation: item.operationName,
+      financialYear: item.finYearShortName,
+      season: item.seasonType,
+      crop: item.seedCropName,
+      variety: item.seedVarietyName,
+      equipment: item.macName,
+    };
+
+    return textMap[type] || item;
+  };
+
   const renderDropdownItem = ({ item, type, parentId }) => (
     <TouchableOpacity
       style={styles.dropdownItem}
       onPress={() => handleDropdownSelect(parentId, type, item)}
     >
       <Text style={styles.dropdownItemText}>
-        {type === "square"
-          ? item.squareName
-          : type === "operation"
-          ? item.operationName
-          : type === "financialYear"
-          ? item.finYearShortName
-          : type === "season"
-          ? item.seasonType
-          : type === "crop"
-          ? item.seedCropName
-          : type === "variety"
-          ? item.seedVarietyName
-          : type === "equipment"
-          ? item.macName
-          : item}
+        {getDropdownItemText(item, type)}
       </Text>
     </TouchableOpacity>
   );
@@ -863,7 +870,7 @@ const CreateNew = () => {
             </View>
 
             <View style={styles.row}>
-              <View style={[styles.inputContainer, styles.fullWidth]}>
+              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Required Output (ha)</Text>
                 <TextInput
                   style={styles.input}
@@ -879,7 +886,7 @@ const CreateNew = () => {
             </View>
 
             <View style={styles.row}>
-              <View style={[styles.inputContainer, styles.fullWidth]}>
+              <View style={styles.inputContainer}>
                 <Text style={styles.label}>Required Date</Text>
                 <TextInput
                   style={styles.input}
@@ -1029,7 +1036,7 @@ const CreateNew = () => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -1073,7 +1080,11 @@ const CreateNew = () => {
                 style={styles.addParentButton}
                 onPress={addNewParent}
               >
-                <Icon name="add" size={24} color={Colors.white} />
+                <Icon
+                  name="add"
+                  size={moderateScale(25)}
+                  color={Colors.white}
+                />
                 <Text style={styles.addParentButtonText}>Add New Entry</Text>
               </TouchableOpacity>
 
@@ -1136,9 +1147,17 @@ const CreateNew = () => {
               />
               <TouchableOpacity
                 onPress={() => setIosVisible(false)}
-                style={{ padding: 12, alignItems: "center" }}
+                style={[
+                  styles.buttonStyle,
+                  {
+                    width: "90%",
+                    alignSelf: "center",
+                    backgroundColor: Colors.greenColor,
+                    borderRadius: moderateScale(10),
+                  },
+                ]}
               >
-                <Text>Done</Text>
+                <Text style={styles.doneText}>Done</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1153,12 +1172,15 @@ export default CreateNew;
 const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: moderateScaleVertical(20),
-    gap: moderateScaleVertical(5),
+    gap: moderateScaleVertical(8),
+    paddingHorizontal: moderateScale(10),
   },
   label: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsMedium,
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
+    textTransform: "capitalize",
+    letterSpacing: scale(0.2),
   },
   input: {
     borderWidth: moderateScale(1),
@@ -1177,8 +1199,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     width: moderateScale(50),
     padding: moderateScale(10),
-    backgroundColor: Colors.veryLightGrey,
-    borderColor: Colors.veryLightGrey,
+    backgroundColor: Colors.greenColor,
+    borderColor: Colors.greenColor,
     borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
@@ -1204,14 +1226,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: moderateScale(16),
+    padding: moderateScale(8),
     paddingBottom: moderateScale(20),
   },
   section: {
     marginBottom: moderateScaleVertical(24),
     backgroundColor: Colors.white,
-    borderRadius: moderateScale(8),
-    padding: moderateScale(16),
+    // borderRadius: moderateScale(8),
+    // padding: moderateScale(16),
     shadowColor: Colors.black,
     shadowOffset: {
       width: 0,
@@ -1225,7 +1247,7 @@ const styles = StyleSheet.create({
     fontSize: textScale(16),
     fontFamily: FontFamily.PoppinsSemiBold,
     color: Colors.greenColor,
-    marginBottom: moderateScaleVertical(16),
+    marginVertical: moderateScaleVertical(16),
     borderLeftWidth: moderateScale(3),
     paddingLeft: moderateScale(10),
     borderColor: Colors.primary,
@@ -1237,8 +1259,8 @@ const styles = StyleSheet.create({
     marginBottom: moderateScaleVertical(12),
   },
   row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    // flexDirection: "row",
+    // justifyContent: "space-between",
     marginBottom: moderateScaleVertical(12),
   },
   inputContainer: {
@@ -1383,7 +1405,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: moderateScaleVertical(16),
+    // marginTop: moderateScaleVertical(16),
   },
   cancelButton: {
     backgroundColor: Colors.white,
@@ -1416,6 +1438,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: moderateScale(8),
     overflow: "hidden",
+    // borderWidth:2,
   },
   parentHeader: {
     flexDirection: "row",
@@ -1438,7 +1461,7 @@ const styles = StyleSheet.create({
     padding: moderateScale(5),
   },
   parentContent: {
-    padding: moderateScale(16),
+    // padding: moderateScale(16),
   },
   addParentButton: {
     flexDirection: "row",
@@ -1446,7 +1469,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.greenColor,
     padding: moderateScale(12),
-    borderRadius: moderateScale(8),
+    borderRadius: moderateScale(5),
     marginBottom: moderateScaleVertical(16),
   },
   addParentButtonText: {
@@ -1455,42 +1478,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.PoppinsMedium,
     marginLeft: moderateScale(8),
   },
-
-  // Keep all your existing styles below
-  inputGroup: {
-    marginBottom: moderateScaleVertical(20),
-    gap: moderateScaleVertical(5),
-  },
-  label: {
-    fontSize: textScale(12),
+  doneText: {
     fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.textColor,
-  },
-  input: {
-    borderWidth: moderateScale(1),
-    borderColor: Colors.lightGray,
-    borderRadius: moderateScale(5),
-    padding: moderateScale(12),
+    color: Colors.white,
     fontSize: textScale(14),
-    color: Colors.black,
-  },
-  dateViewHolder: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  calendarView: {
-    borderWidth: 2,
-    width: moderateScale(50),
-    padding: moderateScale(10),
-    backgroundColor: Colors.veryLightGrey,
-    borderColor: Colors.veryLightGrey,
-    borderRadius: moderateScale(10),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonStyle: {
-    width: "45%",
-    borderColor: Colors.di,
+    padding: moderateScale(8),
+    textAlign: "center",
   },
 });

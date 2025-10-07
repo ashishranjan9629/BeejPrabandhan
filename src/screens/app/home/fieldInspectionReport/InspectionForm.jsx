@@ -16,7 +16,6 @@ import {
   moderateScale,
   moderateScaleVertical,
   textScale,
-  width,
 } from "../../../../utils/responsiveSize";
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
@@ -31,7 +30,6 @@ import { showSuccessMessage } from "../../../../utils/HelperFunction";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
-  // console.log(data, "line 32");
   const navigation = useNavigation();
   console.log(data?.cropFirTypeId, "line 7");
   const [loading, setLoading] = useState(false);
@@ -1945,8 +1943,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lightBackground,
   },
   stepText: {
-    fontSize: textScale(13),
-    fontFamily: FontFamily.PoppinsMedium,
+    fontSize: textScale(12),
+    fontFamily: FontFamily.PoppinsRegular,
     marginBottom: moderateScaleVertical(8),
   },
   progressBar: {
@@ -1960,10 +1958,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lightGreen,
   },
   sectionTitle: {
-    fontSize: textScale(15),
-    fontFamily: FontFamily.PoppinsMedium,
-    marginBottom: moderateScaleVertical(15),
-    marginTop: moderateScaleVertical(8),
+    fontSize: textScale(13),
+    fontFamily: FontFamily.PoppinsRegular,
+    marginVertical:moderateScaleVertical(10),
   },
   inputGroup: {
     marginBottom: moderateScaleVertical(20),
@@ -1971,7 +1968,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
   },
   input: {

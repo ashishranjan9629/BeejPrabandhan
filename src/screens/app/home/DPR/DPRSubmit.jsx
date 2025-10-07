@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
-  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
@@ -80,7 +79,6 @@ const DPRSubmit = ({ route, navigation }) => {
       ) {
         setMaterialList(parsedResponse?.data);
         setCurrentAgricultureIndex(index);
-        // setShowMaterialDropdown(true);
         console.log(parsedResponse?.data, "line 91");
       } else {
         showErrorMessage("Unable to fetch material list");
