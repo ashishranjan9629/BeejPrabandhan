@@ -1,8 +1,9 @@
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import Swiper from "react-native-swiper";
 import { moderateScale, width } from "../utils/responsiveSize";
 import Colors from "../utils/Colors";
+import PropTypes from "prop-types";
 
 const SwiperImage = ({ bannerImageList }) => {
   return (
@@ -21,7 +22,7 @@ const SwiperImage = ({ bannerImageList }) => {
     >
       {bannerImageList.map((item, index) => (
         <TouchableOpacity
-          key={index}
+          key={item.id}
           style={styles.slide}
           onPress={() => {}}
           activeOpacity={0.9}
@@ -31,6 +32,21 @@ const SwiperImage = ({ bannerImageList }) => {
       ))}
     </Swiper>
   );
+};
+
+
+SwiperImage.propTypes = {
+  bannerImageList: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      image: PropTypes.oneOfType([
+        PropTypes.number, 
+        PropTypes.shape({
+          uri: PropTypes.string, 
+        }),
+      ]).isRequired,
+    })
+  ).isRequired,
 };
 
 export default SwiperImage;
@@ -46,15 +62,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: Colors.white,
-    // borderRadius:50,
-    // overflow:'hidden',
-    // borderTopRightRadius:moderateScale(70)
   },
   image: {
     width: width - 20,
-    height: "100%", 
+    height: "100%",
     borderRadius: moderateScale(40),
-    backgroundColor:Colors.white
+    backgroundColor: Colors.white,
   },
   dotStyle: {
     width: moderateScale(8),

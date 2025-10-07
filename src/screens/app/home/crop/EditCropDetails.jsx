@@ -5,11 +5,9 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Modal,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
-  Alert,
+  Platform
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
@@ -406,7 +404,6 @@ const EditCropDetails = ({ route }) => {
       );
       const decrypted = decryptAES(cropGroupResponse);
       const parsedDecrypted = JSON.parse(decrypted);
-
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -431,7 +428,6 @@ const EditCropDetails = ({ route }) => {
           );
           const decryptedForSeason = decryptAES(seasonResponse);
           const parsedDecryptedForSeason = JSON.parse(decryptedForSeason);
-
           if (
             parsedDecryptedForSeason?.status === "SUCCESS" &&
             parsedDecryptedForSeason?.statusCode === "200"
@@ -552,7 +548,6 @@ const EditCropDetails = ({ route }) => {
   ) => (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{label} *</Text>
-      {/* {console.log(label,"line 519")} */}
       <Dropdown
         style={[styles.dropdown, errors[fieldName] && styles.dropdownError]}
         placeholderStyle={styles.placeholderStyle}

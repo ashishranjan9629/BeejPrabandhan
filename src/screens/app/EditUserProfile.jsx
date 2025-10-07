@@ -24,24 +24,19 @@ import {
   showSuccessMessage,
 } from "../../utils/HelperFunction";
 import { getUserData, removeUserData } from "../../utils/Storage";
-import {
-  decryptAES,
-  encryptAES,
-  encryptWholeObject,
-} from "../../utils/decryptData";
+import { encryptWholeObject } from "../../utils/decryptData";
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
 import { useDispatch } from "react-redux";
 import { clearUserData } from "../../redux/slice/UserSlice";
 import en from "../../constants/en";
+import CustomButton from "../../components/CustomButton";
 
 const EditUserProfile = () => {
   const [loading, setLoading] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-
-  // 👇 Password visibility states
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -67,12 +62,6 @@ const EditUserProfile = () => {
       setLoading(true);
 
       const userData = await getUserData();
-      // const payloadData = {
-      //   newpwdKey: encryptAES(newPassword),
-      //   pwdKey: encryptAES(oldPassword),
-      //   userId: encryptAES(userData?.userId),
-      // };
-
       const payloadData = {
         newpwdKey: newPassword,
         pwdKey: oldPassword,
@@ -144,16 +133,18 @@ const EditUserProfile = () => {
                 secureTextEntry={!showOld}
                 autoCapitalize="none"
               />
-              <TouchableOpacity
-                onPress={() => setShowOld(!showOld)}
-                style={styles.eyeIcon}
-              >
-                <Icon
-                  name={showOld ? "eye-off" : "eye"}
-                  size={22}
-                  color={Colors.textColor}
-                />
-              </TouchableOpacity>
+              {oldPassword.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setShowOld(!showOld)}
+                  style={styles.eyeIcon}
+                >
+                  <Icon
+                    name={showOld ? "eye-off" : "eye"}
+                    size={22}
+                    color={Colors.textColor}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -171,16 +162,18 @@ const EditUserProfile = () => {
                 secureTextEntry={!showNew}
                 autoCapitalize="none"
               />
-              <TouchableOpacity
-                onPress={() => setShowNew(!showNew)}
-                style={styles.eyeIcon}
-              >
-                <Icon
-                  name={showNew ? "eye-off" : "eye"}
-                  size={22}
-                  color={Colors.textColor}
-                />
-              </TouchableOpacity>
+              {newPassword.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setShowNew(!showNew)}
+                  style={styles.eyeIcon}
+                >
+                  <Icon
+                    name={showNew ? "eye-off" : "eye"}
+                    size={moderateScale(22)}
+                    color={Colors.textColor}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -198,28 +191,26 @@ const EditUserProfile = () => {
                 secureTextEntry={!showConfirm}
                 autoCapitalize="none"
               />
-              <TouchableOpacity
-                onPress={() => setShowConfirm(!showConfirm)}
-                style={styles.eyeIcon}
-              >
-                <Icon
-                  name={showConfirm ? "eye-off" : "eye"}
-                  size={22}
-                  color={Colors.textColor}
-                />
-              </TouchableOpacity>
+              {confirmNewPassword.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setShowConfirm(!showConfirm)}
+                  style={styles.eyeIcon}
+                >
+                  <Icon
+                    name={showConfirm ? "eye-off" : "eye"}
+                    size={22}
+                    color={Colors.textColor}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
-
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={onSubmit}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.submitText}>
-              {en.EDIT_PROFILE.SUBMIT_BUTTON}
-            </Text>
-          </TouchableOpacity>
+          <CustomButton
+            text={en.EDIT_PROFILE.SUBMIT_BUTTON}
+            handleAction={onSubmit}
+            buttonStyle={styles.submitButton}
+            disabled={!oldPassword || !newPassword || !confirmNewPassword}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </WrapperContainer>
@@ -236,10 +227,10 @@ const styles = StyleSheet.create({
     marginBottom: moderateScaleVertical(18),
   },
   label: {
-    fontSize: textScale(14),
+    fontSize: textScale(12),
     color: Colors.textColor,
     marginBottom: moderateScaleVertical(6),
-    fontFamily: FontFamily.RubikMedium,
+    fontFamily: FontFamily.PoppinsRegular,
   },
   passwordWrapper: {
     flexDirection: "row",
@@ -251,10 +242,11 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingHorizontal: moderateScale(16),
-    paddingVertical: moderateScaleVertical(12),
-    fontSize: textScale(15),
+    paddingHorizontal: moderateScale(10),
+    paddingVertical: moderateScaleVertical(10),
+    fontSize: textScale(13),
     fontFamily: FontFamily.PoppinsRegular,
+    color: Colors.black,
   },
   eyeIcon: {
     paddingHorizontal: moderateScale(10),

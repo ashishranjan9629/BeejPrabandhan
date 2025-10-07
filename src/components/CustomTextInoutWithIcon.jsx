@@ -1,10 +1,17 @@
-import { Image, StyleSheet, Text, TextInput, View, TouchableOpacity } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  TouchableOpacity,
+} from "react-native";
 import React from "react";
-import ImagePath from "../utils/ImagePath";
 import Colors from "../utils/Colors";
 import { moderateScale, scale, textScale } from "../utils/responsiveSize";
 import FontFamily from "../utils/FontFamily";
-import AntDesign from 'react-native-vector-icons/AntDesign';
+import AntDesign from "react-native-vector-icons/AntDesign";
+import PropTypes from "prop-types";
 
 const CustomTextInoutWithIcon = ({
   label,
@@ -17,7 +24,7 @@ const CustomTextInoutWithIcon = ({
   resetvalue,
   props,
   secureTextEntry = false,
-  isPasswordField = false 
+  isPasswordField = false,
 }) => {
   return (
     <View style={styles.formHolder}>
@@ -26,14 +33,10 @@ const CustomTextInoutWithIcon = ({
         <Image
           source={leftIcon}
           resizeMode="contain"
-          tintColor={Colors.labelcolor}
+          tintColor={Colors.black}
           style={styles.icon}
         />
-        <Text
-          style={[styles.labelText, { marginHorizontal: moderateScale(5) }]}
-        >
-          |
-        </Text>
+
         <TextInput
           placeholder={placeholder}
           value={value}
@@ -49,7 +52,7 @@ const CustomTextInoutWithIcon = ({
             <AntDesign
               name={rightIcon}
               size={moderateScale(25)}
-              color={isPasswordField ? Colors.greenColor : Colors.black} 
+              color={isPasswordField ? Colors.greenColor : Colors.black}
             />
           </TouchableOpacity>
         )}
@@ -59,6 +62,21 @@ const CustomTextInoutWithIcon = ({
 };
 
 export default CustomTextInoutWithIcon;
+
+CustomTextInoutWithIcon.propTypes = {
+  label: PropTypes.string.isRequired, 
+  leftIcon: PropTypes.any,
+  placeholder: PropTypes.string,
+  value: PropTypes.string,
+  onChangeText: PropTypes.func,
+  keyboardType: PropTypes.string,
+  rightIcon: PropTypes.string,
+  resetvalue: PropTypes.func,
+  props: PropTypes.object,
+  secureTextEntry: PropTypes.bool,
+  isPasswordField: PropTypes.bool,
+};
+
 
 const styles = StyleSheet.create({
   formHolder: {
@@ -82,15 +100,14 @@ const styles = StyleSheet.create({
     padding: moderateScale(10),
     width: "75%",
     color: Colors.black,
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.RubikRegular,
     fontSize: textScale(12),
     letterSpacing: scale(0.3),
-    textTransform: "lowercase",
   },
   labelText: {
-    fontFamily: FontFamily.RubikMedium,
+    fontFamily: FontFamily.RubikRegular,
     color: Colors.labelcolor,
-    fontSize: textScale(15),
+    fontSize: textScale(12),
     textAlign: "left",
     textTransform: "capitalize",
     letterSpacing: scale(0.3),

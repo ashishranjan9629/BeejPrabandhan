@@ -33,10 +33,10 @@ import {
 } from "../../../../utils/HelperFunction";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
 
 const DPREdit = ({ route }) => {
   const { data } = route.params;
-  // console.log(data, "line 38");
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [squareList, setSquareList] = useState([]);
@@ -47,7 +47,6 @@ const DPREdit = ({ route }) => {
   const [varietyList, setVarietyList] = useState([]);
   const [userData, setUserData] = useState([]);
   const [equipmentListData, setEquipmentListData] = useState([]);
-
   // Dropdown states
   const [showSquareDropdown, setShowSquareDropdown] = useState(false);
   const [showOperationDropdown, setShowOperationDropdown] = useState(false);
@@ -63,8 +62,6 @@ const DPREdit = ({ route }) => {
   const SEED_CLASSES = ["NS", "BS", "FS", "CS", "TL"];
   const WorkType = ["Contract", "Self"];
 
-  // console.log(userData, "line 64");
-
   useEffect(() => {
     fetchDropDownData();
   }, []);
@@ -74,112 +71,117 @@ const DPREdit = ({ route }) => {
     try {
       const userData = await getUserData();
       setUserData(userData);
-      const payload = {
-        chakId: userData?.chakId,
-      };
-      const encryptedPayload = encryptWholeObject(payload);
-      const squareListResp = await apiRequest(
-        API_ROUTES.SQUARE_MASTER_DD,
-        "POST",
-        encryptedPayload
-      );
-      const decryptedSquareListData = decryptAES(squareListResp);
-      const parsedDecryptedSquareListData = JSON.parse(decryptedSquareListData);
-      if (
-        parsedDecryptedSquareListData?.status === "SUCCESS" &&
-        parsedDecryptedSquareListData?.statusCode === "200"
-      ) {
-        setSquareList(parsedDecryptedSquareListData?.data || []);
 
-        const operationPayloadData = {};
-        const encryptedOperationPayload =
-          encryptWholeObject(operationPayloadData);
-        const operationListResponse = await apiRequest(
-          API_ROUTES.OPERATION_MASTER_DD,
-          "POST",
-          encryptedOperationPayload
-        );
-        const decryptedOperationListData = decryptAES(operationListResponse);
-        const parsedDecryptedOperationListData = JSON.parse(
-          decryptedOperationListData
-        );
-        if (
-          parsedDecryptedOperationListData?.status === "SUCCESS" &&
-          parsedDecryptedOperationListData?.statusCode === "200"
-        ) {
-          setOperationList(parsedDecryptedOperationListData?.data || []);
-
-          const fetchFinancialListData = await apiRequest(
-            API_ROUTES.FINANCIAL_MASTER_DD,
-            "POST"
-          );
-          const decrypted = decryptAES(fetchFinancialListData);
-          const parsedDecrypted = JSON.parse(decrypted);
-          if (
-            parsedDecrypted?.status === "SUCCESS" &&
-            parsedDecrypted?.statusCode === "200"
-          ) {
-            setFinancialYearList(parsedDecrypted?.data || []);
-
-            const seasonListData = await apiRequest(
-              API_ROUTES.SEASON_MASTER_DD,
-              "POST"
-            );
-            const decryptedSeasonListData = decryptAES(seasonListData);
-            const parsedDecryptedSeasonList = JSON.parse(
-              decryptedSeasonListData
-            );
-            if (
-              parsedDecryptedSeasonList?.status === "SUCCESS" &&
-              parsedDecryptedSeasonList?.statusCode === "200"
-            ) {
-              setSeasonList(parsedDecryptedSeasonList?.data || []);
-              if (data.seasonId) {
-                await fetchCropsBySeason(data.seasonId);
-              }
-              if (data.cropId) {
-                await fetchSeedVarietiesByCrop(data.cropId);
-              }
-              const payloadForMachineList = {};
-              const encryptedPayloadForEquipmentList = encryptWholeObject(
-                payloadForMachineList
-              );
-              const equipmentListData = await apiRequest(
-                API_ROUTES.MACHINE_MASTER_DD,
-                "POST",
-                encryptedPayloadForEquipmentList
-              );
-              const decryptedEquipmentListData = decryptAES(equipmentListData);
-              const parsedDecryptedEquipmentListData = JSON.parse(
-                decryptedEquipmentListData
-              );
-              if (
-                parsedDecryptedEquipmentListData?.status === "SUCCESS" &&
-                parsedDecryptedEquipmentListData?.statusCode === "200"
-              ) {
-                setEquipmentListData(parsedDecryptedEquipmentListData?.data);
-              } else {
-                showErrorMessage("Unable to get the Equipment Data List");
-                setEquipmentListData([]);
-              }
-            } else {
-              showErrorMessage("Unable to fetch the Season List Data");
-            }
-          } else {
-            showErrorMessage("Unable to find the Financial Year List Data");
-          }
-        } else {
-          showErrorMessage("Unable to get the Operation List Data");
-        }
-      } else {
-        showErrorMessage("Unable to get the Square List Data");
-      }
+      await fetchAllDropdownData(userData, data);
     } catch (error) {
       console.log(error, "line error");
       showErrorMessage("Error fetching dropdown data");
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAllDropdownData = async (userData, formData) => {
+    await fetchSquareList(userData);
+    await fetchOperationList();
+    await fetchFinancialYearList();
+    await fetchSeasonList(formData);
+    await fetchEquipmentList();
+  };
+
+  const fetchSquareList = async (userData) => {
+    const payload = { chakId: userData?.chakId };
+    const encryptedPayload = encryptWholeObject(payload);
+    const response = await apiRequest(
+      API_ROUTES.SQUARE_MASTER_DD,
+      "POST",
+      encryptedPayload
+    );
+    const decryptedData = decryptAES(response);
+    const parsedData = JSON.parse(decryptedData);
+
+    if (isSuccessResponse(parsedData)) {
+      setSquareList(parsedData?.data || []);
+    } else {
+      showErrorMessage("Unable to get the Square List Data");
+      throw new Error("Square list fetch failed");
+    }
+  };
+
+  const fetchOperationList = async () => {
+    const payload = {};
+    const encryptedPayload = encryptWholeObject(payload);
+    const response = await apiRequest(
+      API_ROUTES.OPERATION_MASTER_DD,
+      "POST",
+      encryptedPayload
+    );
+    const decryptedData = decryptAES(response);
+    const parsedData = JSON.parse(decryptedData);
+
+    if (isSuccessResponse(parsedData)) {
+      setOperationList(parsedData?.data || []);
+    } else {
+      showErrorMessage("Unable to get the Operation List Data");
+      throw new Error("Operation list fetch failed");
+    }
+  };
+
+  const fetchFinancialYearList = async () => {
+    const response = await apiRequest(API_ROUTES.FINANCIAL_MASTER_DD, "POST");
+    const decryptedData = decryptAES(response);
+    const parsedData = JSON.parse(decryptedData);
+
+    if (isSuccessResponse(parsedData)) {
+      setFinancialYearList(parsedData?.data || []);
+    } else {
+      showErrorMessage("Unable to find the Financial Year List Data");
+      throw new Error("Financial year list fetch failed");
+    }
+  };
+
+  const fetchSeasonList = async (formData) => {
+    const response = await apiRequest(API_ROUTES.SEASON_MASTER_DD, "POST");
+    const decryptedData = decryptAES(response);
+    const parsedData = JSON.parse(decryptedData);
+
+    if (isSuccessResponse(parsedData)) {
+      setSeasonList(parsedData?.data || []);
+
+      // Fetch dependent data
+      if (formData.seasonId) {
+        await fetchCropsBySeason(formData.seasonId);
+      }
+      if (formData.cropId) {
+        await fetchSeedVarietiesByCrop(formData.cropId);
+      }
+    } else {
+      showErrorMessage("Unable to fetch the Season List Data");
+      throw new Error("Season list fetch failed");
+    }
+  };
+
+  const fetchEquipmentList = async () => {
+    const payload = {};
+    const encryptedPayload = encryptWholeObject(payload);
+    const response = await apiRequest(
+      API_ROUTES.MACHINE_MASTER_DD,
+      "POST",
+      encryptedPayload
+    );
+    const decryptedData = decryptAES(response);
+    const parsedData = JSON.parse(decryptedData);
+
+    if (isSuccessResponse(parsedData)) {
+      setEquipmentListData(parsedData?.data || []);
+    } else {
+      showErrorMessage("Unable to get the Equipment Data List");
+      setEquipmentListData([]);
+    }
+  };
+
+  const isSuccessResponse = (response) => {
+    return response?.status === "SUCCESS" && response?.statusCode === "200";
   };
 
   const fetchCropsBySeason = async (selectedSeasonId) => {
@@ -204,8 +206,8 @@ const DPREdit = ({ route }) => {
       } else {
         showErrorMessage("Unable to get the crop List Data");
       }
-    } catch (e) {
-      showErrorMessage("Error fetching crops");
+    } catch (error) {
+      showErrorMessage(`Error fetching crops ${error?.message}`);
       setCropList([]);
     } finally {
       setLoading(false);
@@ -230,8 +232,8 @@ const DPREdit = ({ route }) => {
         showErrorMessage("Unable to get the Seed Variety list");
         setVarietyList([]);
       }
-    } catch (e) {
-      showErrorMessage("Error fetching Seed Variety");
+    } catch (error) {
+      showErrorMessage(`Error fetching Seed Variety ${error?.message}`);
       setVarietyList([]);
     } finally {
       setLoading(false);
@@ -379,7 +381,7 @@ const DPREdit = ({ route }) => {
         dprLabour: data?.dprLabour,
         dprStatus: data?.dprStatus,
         equipment: data?.equipment,
-        dprMechanicals:formData?.equipmentList,
+        dprMechanicals: formData?.equipmentList,
         finYear: formData?.financialYear,
         finYearId: formData?.financialYearId,
         fromSeedClass: formData?.seedClass,
@@ -408,7 +410,6 @@ const DPREdit = ({ route }) => {
         workflows: data?.workflows,
         workingHours: data?.workingHours,
       };
-      // console.log(payloadData, "line 365");
       const encrypted = encryptWholeObject(payloadData);
       const resp = await apiRequest(
         API_ROUTES.DP_REPORT_UPDATE,
@@ -417,7 +418,6 @@ const DPREdit = ({ route }) => {
       );
       const decrypted = decryptAES(resp);
       const parsed = JSON.parse(decrypted);
-      // console.log(parsed, "line 372");
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
         showSuccessMessage(parsed?.message);
         navigation.goBack();
@@ -434,27 +434,30 @@ const DPREdit = ({ route }) => {
     navigation.goBack();
   };
 
+  const getDisplayTextByType = (item, type) => {
+    if (!item || !type) return item || "";
+
+    const propertyMap = {
+      square: "squareName",
+      operation: "operationName",
+      financialYear: "finYearShortName",
+      season: "seasonType",
+      crop: "seedCropName",
+      variety: "seedVarietyName",
+      equipment: "macName",
+    };
+
+    const property = propertyMap[type];
+    return property ? item[property] : item;
+  };
+
   const renderDropdownItem = ({ item, type }) => (
     <TouchableOpacity
       style={styles.dropdownItem}
       onPress={() => handleDropdownSelect(type, item)}
     >
       <Text style={styles.dropdownItemText}>
-        {type === "square"
-          ? item.squareName
-          : type === "operation"
-          ? item.operationName
-          : type === "financialYear"
-          ? item.finYearShortName
-          : type === "season"
-          ? item.seasonType
-          : type === "crop"
-          ? item.seedCropName
-          : type === "variety"
-          ? item.seedVarietyName
-          : type === "equipment"
-          ? item.macName
-          : item}
+        {getDisplayTextByType(item, type)}
       </Text>
     </TouchableOpacity>
   );
@@ -761,6 +764,14 @@ const DPREdit = ({ route }) => {
       </KeyboardAvoidingView>
     </WrapperContainer>
   );
+};
+
+DPREdit.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      data: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 export default DPREdit;

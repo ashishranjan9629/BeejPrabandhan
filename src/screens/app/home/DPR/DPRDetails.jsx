@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
@@ -21,12 +22,26 @@ import {
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
 
+const DetailsRow = ({ lable, value }) => {
+  return (
+    <View style={styles.detailsView}>
+      <Text style={styles.label}>{lable}</Text>
+      <Text style={styles.value}>{value || "-"}</Text>
+    </View>
+  );
+};
+
+DetailsRow.propTypes = {
+  lable: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};
+
 const DPRDetails = ({ route }) => {
   const { data } = route.params;
   console.log(data, "line 26");
   const [loading, setLoading] = useState(false);
   const [dprFullDetails, setDprFullDetails] = useState();
-
+  console.log(dprFullDetails, "dprFullDetails");
   useEffect(() => {
     fetchDPRFullDetails();
   }, []);
@@ -45,7 +60,6 @@ const DPRDetails = ({ route }) => {
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
-      // console.log(parsedDecrypted, "line 43");
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -61,19 +75,10 @@ const DPRDetails = ({ route }) => {
     }
   };
 
-  const DetailsRow = ({ lable, value }) => {
-    return (
-      <View style={styles.detailsView}>
-        <Text style={styles.label}>{lable}</Text>
-        <Text style={styles.value}>{value ? value : "-"}</Text>
-      </View>
-    );
-  };
-
-    const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB"); 
+    return date.toLocaleDateString("en-GB");
   };
 
   return (
@@ -111,8 +116,14 @@ const DPRDetails = ({ route }) => {
               <Text style={styles.headerText}>Agriculture</Text>
               {data?.dprAgricultures.map((item, index) => (
                 <View
-                  key={index}
-                  style={[styles.detailsHolder, styles.agicultureView]}
+                  key={item?.id}
+                  style={[
+                    styles.detailsHolder,
+                    styles.agicultureView,
+                    index === data?.dprAgricultures.length - 1 && {
+                      borderBottomWidth: 0,
+                    },
+                  ]}
                 >
                   <DetailsRow lable={"Serial No"} value={index + 1} />
                   <DetailsRow
@@ -121,6 +132,7 @@ const DPRDetails = ({ route }) => {
                   />
                   <DetailsRow lable={"Material"} value={item?.itemName} />
                   <DetailsRow lable={"Weightage"} value={item?.qty} />
+                  <DetailsRow lable={"uom"} value={item?.uom} />
                 </View>
               ))}
             </View>
@@ -131,8 +143,14 @@ const DPRDetails = ({ route }) => {
               <Text style={styles.headerText}>Mechanical</Text>
               {data?.dprMechanicals.map((item, index) => (
                 <View
-                  key={index}
-                  style={[styles.detailsHolder, styles.agicultureView]}
+                  key={item?.cpNumber}
+                  style={[
+                    styles.detailsHolder,
+                    styles.agicultureView,
+                    index === data?.dprMechanicals.length - 1 && {
+                      borderBottomWidth: 0,
+                    },
+                  ]}
                 >
                   <DetailsRow lable={"Serial No"} value={index + 1} />
                   <DetailsRow
@@ -172,19 +190,19 @@ const DPRDetails = ({ route }) => {
               <Text style={styles.headerText}>Labour Details</Text>
               {data?.dprLabour.map((item, index) => (
                 <View
-                  key={index}
-                  style={[styles.detailsHolder, styles.agicultureView]}
+                  key={item?.id}
+                  style={[
+                    styles.detailsHolder,
+                    styles.agicultureView,
+                    index === data?.dprLabour.length - 1 && {
+                      borderBottomWidth: 0,
+                    },
+                  ]}
                 >
                   <DetailsRow lable={"Serial No"} value={index + 1} />
                   <DetailsRow lable={"Operation"} value={data?.operationName} />
-                  <DetailsRow
-                    lable={"Labour Name"}
-                    value={item?.name}
-                  />
-                  <DetailsRow
-                    lable={"Actula Time"}
-                    value={item?.actualTime}
-                  />
+                  <DetailsRow lable={"Labour Name"} value={item?.name} />
+                  <DetailsRow lable={"Actula Time"} value={item?.actualTime} />
                   <DetailsRow lable={"OT Time"} value={item?.otTime} />
                 </View>
               ))}
@@ -194,6 +212,14 @@ const DPRDetails = ({ route }) => {
       </KeyboardAvoidingView>
     </WrapperContainer>
   );
+};
+
+DPRDetails.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      data: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 export default DPRDetails;
@@ -223,13 +249,13 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: FontFamily.PoppinsRegular,
     fontSize: textScale(12),
-    color: Colors.textColor,
+    color: Colors.gray,
     letterSpacing: scale(0.2),
     textTransform: "capitalize",
   },
   value: {
     fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.black,
+    color: Colors.textColor,
     fontSize: textScale(14),
     letterSpacing: scale(0.2),
     textTransform: "capitalize",
@@ -238,18 +264,17 @@ const styles = StyleSheet.create({
     padding: moderateScale(10),
     flexDirection: "row",
     alignItems: "center",
-    gap: moderateScale(10),
+    gap: moderateScale(5),
     justifyContent: "space-between",
     flexWrap: "wrap",
   },
   detailsView: {
     width: "48%",
-    gap: moderateScale(5),
+    gap: moderateScale(3),
     padding: moderateScale(5),
   },
   agicultureView: {
     borderBottomWidth: moderateScale(1),
-    marginVertical: moderateScaleVertical(5),
-    borderColor: Colors.gray,
+    borderColor: Colors.diabledColor,
   },
 });

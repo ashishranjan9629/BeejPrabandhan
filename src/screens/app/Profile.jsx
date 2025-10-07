@@ -37,7 +37,7 @@ const Profile = () => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const tabScaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation();
-
+  console.log(profileData, "profileData");
   useEffect(() => {
     // Start animations when component mounts
     Animated.parallel([
@@ -105,22 +105,30 @@ const Profile = () => {
   const profileDetails = [
     {
       label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode ? profileData?.empCode : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCode
+        ? profileData?.empCode
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.EMAIL,
-      value: profileData?.emailId ? profileData?.emailId : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.emailId
+        ? profileData?.emailId
+        : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const personalDetails = [
     {
       label: en.PROFILE.DETAILS.FULL_NAME,
-      value: profileData?.firstName ? profileData?.firstName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.firstName
+        ? profileData?.firstName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GENDER,
-      value: profileData?.gender ? profileData?.gender : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gender
+        ? profileData?.gender
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DATE_OF_BIRTH,
@@ -128,35 +136,51 @@ const Profile = () => {
     },
     {
       label: en.PROFILE.DETAILS.CONTACT,
-      value: profileData?.mobileNo ? profileData?.mobileNo : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.mobileNo
+        ? profileData?.mobileNo
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.BLOOD_GROUP,
-      value: profileData?.bloodGroup ? profileData?.bloodGroup : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.bloodGroup
+        ? profileData?.bloodGroup
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RELIGION,
-      value: profileData?.religion ? profileData?.religion : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.religion
+        ? profileData?.religion
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.STATE,
-      value: profileData?.stateName ? profileData?.stateName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.stateName
+        ? profileData?.stateName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.NATIONALITY,
-      value: profileData?.nationName ? profileData?.nationName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.nationName
+        ? profileData?.nationName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.CATEGORY,
-      value: profileData?.empCategory ? profileData?.empCategory : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCategory
+        ? profileData?.empCategory
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.FATHERS_NAME,
-      value: profileData?.fatherName ? profileData?.fatherName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.fatherName
+        ? profileData?.fatherName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.SPOUSE_NAME,
-      value: profileData?.spouseName ? profileData?.spouseName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.spouseName
+        ? profileData?.spouseName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1,
@@ -175,31 +199,45 @@ const Profile = () => {
   const professionalDetails = [
     {
       label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode ? profileData?.empCode : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCode
+        ? profileData?.empCode
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE,
-      value: profileData?.employmentType ? profileData?.employmentType : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.employmentType
+        ? profileData?.employmentType
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_ID,
-      value: profileData?.gradeId ? profileData?.gradeId : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeId
+        ? profileData?.gradeId
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_NAME,
-      value: profileData?.gradeName ? profileData?.gradeName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeName
+        ? profileData?.gradeName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_SHORT_NAME,
-      value: profileData?.gradeShortName ? profileData?.gradeShortName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeShortName
+        ? profileData?.gradeShortName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DESIGNATION,
-      value: profileData?.designation?.name ? profileData?.designation?.name : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.designation?.name
+        ? profileData?.designation?.name
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DEPARTMENT,
-      value: profileData?.department?.name ? profileData?.department?.name : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.department?.name
+        ? profileData?.department?.name
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT,
@@ -209,11 +247,15 @@ const Profile = () => {
     },
     {
       label: en.PROFILE.DETAILS.UNIT_TYPE,
-      value: profileData?.unitType ? profileData?.unitType : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.unitType
+        ? profileData?.unitType
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone ? profileData?.officePhone : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.officePhone
+        ? profileData?.officePhone
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION,
@@ -223,42 +265,60 @@ const Profile = () => {
     },
     {
       label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT,
-      value: profileData?.departmentDate ? profileData?.departmentDate : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.departmentDate
+        ? profileData?.departmentDate
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.UNIT_DATE,
-      value: profileData?.unitDate ? profileData?.unitDate : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.unitDate
+        ? profileData?.unitDate
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RO_NAME,
-      value: profileData?.roName ? profileData?.roName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.roName
+        ? profileData?.roName
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.AO_NAME,
-      value: profileData?.aoName ? profileData?.aoName : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.aoName
+        ? profileData?.aoName
+        : en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const contactDetails = [
     {
       label: en.PROFILE.DETAILS.PHONE,
-      value: profileData?.mobileNo ? profileData?.mobileNo : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.mobileNo
+        ? profileData?.mobileNo
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone ? profileData?.officePhone : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.officePhone
+        ? profileData?.officePhone
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RESIDENCE_PHONE,
-      value: profileData?.residancePhone ? profileData?.residancePhone : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.residancePhone
+        ? profileData?.residancePhone
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.PERMANENT_ADDRESS,
-      value: profileData?.permanentAdd ? profileData?.permanentAdd : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.permanentAdd
+        ? profileData?.permanentAdd
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.PERMANENT_ADDRESS_PINCODE,
-      value: profileData?.pinCode ? profileData?.pinCode : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.pinCode
+        ? profileData?.pinCode
+        : en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RESIDENTIAL_ADDRESS,
@@ -268,7 +328,6 @@ const Profile = () => {
     },
   ];
 
-  // Helper component to render detail rows with animation
   const DetailRow = ({ label, value, index }) => {
     const rowFadeAnim = useRef(new Animated.Value(0)).current;
     const rowSlideAnim = useRef(new Animated.Value(20)).current;
@@ -399,7 +458,6 @@ const Profile = () => {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* User Profile Section with Animation */}
         <Animated.View
           style={[
             styles.profileCard,
@@ -427,7 +485,12 @@ const Profile = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>
-              {profileData?.firstName ? profileData?.firstName : en.PROFILE.NOT_AVAILABLE}
+              {profileData?.firstName
+                ? profileData?.firstName
+                : en.PROFILE.NOT_AVAILABLE}{" "}
+              {profileData?.lastName
+                ? profileData?.lastName
+                : en.PROFILE.NOT_AVAILABLE}
             </Text>
             {profileDetails.map((item, index) => (
               <Animated.Text
@@ -451,7 +514,10 @@ const Profile = () => {
               </Animated.Text>
             ))}
           </View>
-          <TouchableOpacity style={styles.editButton} onPress={()=>navigation.navigate("EditUserProfile")}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate("EditUserProfile")}
+          >
             <Ionicons
               name="pencil"
               size={moderateScale(15)}
@@ -459,11 +525,7 @@ const Profile = () => {
             />
           </TouchableOpacity>
         </Animated.View>
-
-        {/* Navigation Tabs */}
         <NavigationTab />
-
-        {/* Content based on active section with animation */}
         <Animated.View
           style={{
             opacity: fadeAnim,
@@ -472,10 +534,12 @@ const Profile = () => {
         >
           {activeSection === "personal" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.PERSONAL_DETAILS}</Text>
+              <Text style={styles.cardTitle}>
+                {en.PROFILE.SECTIONS.PERSONAL_DETAILS}
+              </Text>
               {personalDetails.map((item, index) => (
                 <DetailRow
-                  key={index}
+                  key={item.id || item.label}
                   label={item.label}
                   value={item.value}
                   index={index}
@@ -486,10 +550,12 @@ const Profile = () => {
 
           {activeSection === "professional" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}</Text>
+              <Text style={styles.cardTitle}>
+                {en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}
+              </Text>
               {professionalDetails.map((item, index) => (
                 <DetailRow
-                  key={index}
+                  key={item.id || item.label}
                   label={item.label}
                   value={item.value}
                   index={index}
@@ -500,10 +566,12 @@ const Profile = () => {
 
           {activeSection === "contact" && (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>{en.PROFILE.SECTIONS.CONTACT_DETAILS}</Text>
+              <Text style={styles.cardTitle}>
+                {en.PROFILE.SECTIONS.CONTACT_DETAILS}
+              </Text>
               {contactDetails.map((item, index) => (
                 <DetailRow
-                  key={index}
+                  key={item.id || item.label}
                   label={item.label}
                   value={item.value}
                   index={index}
@@ -518,6 +586,9 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -548,9 +619,10 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
     marginBottom: moderateScaleVertical(4),
+    textTransform: "capitalize",
   },
   userDetail: {
     fontSize: textScale(12),
@@ -589,7 +661,7 @@ const styles = StyleSheet.create({
   },
   navText: {
     fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textGray,
   },
   activeNavText: {
@@ -607,8 +679,8 @@ const styles = StyleSheet.create({
     elevation: moderateScale(3),
   },
   cardTitle: {
-    fontSize: textScale(15),
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
     marginBottom: moderateScaleVertical(10),
     textTransform: "capitalize",
@@ -621,7 +693,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: textScale(12),
-    color: Colors.textGray,
+    color: Colors.gray,
     fontFamily: FontFamily.PoppinsRegular,
     letterSpacing: scale(0.1),
     textTransform: "capitalize",
@@ -629,8 +701,8 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: textScale(12),
-    color: Colors.textColor,
-    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.black,
+    fontFamily: FontFamily.PoppinsRegular,
     flex: 1,
     textAlign: "right",
     letterSpacing: scale(0.1),

@@ -1,7 +1,6 @@
 import {
   ScrollView,
   StyleSheet,
-  Text,
   View,
   Animated,
   Easing,
@@ -18,14 +17,9 @@ import {
 import SwiperImage from "../../components/SwiperImage";
 import BrowseProduct from "./home/BrowseProduct";
 import Colors from "../../utils/Colors";
-import LowerBanner from "../../components/LowerBanner";
-import { apiRequest } from "../../services/APIRequest";
-import { API_ROUTES } from "../../services/APIRoutes";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
-
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;

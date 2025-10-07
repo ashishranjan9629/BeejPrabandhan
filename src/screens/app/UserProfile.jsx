@@ -73,14 +73,12 @@ const UserProfile = () => {
 
   const fethchUserprofileData = async () => {
     const userData = await getUserData();
-    // console.log(userData?.employeeId, "Line 72 userData");
     try {
       const payloadData = {
         id: userData?.employeeId,
       };
       setLoading(true);
       const encryptedPayload = encryptWholeObject(payloadData);
-      // console.log(encryptedPayload, "line 77");
       const response = await apiRequest(
         API_ROUTES.PROFILE_DETAILS,
         "post",
@@ -95,24 +93,24 @@ const UserProfile = () => {
         parsedDecrypted?.statusCode === "200"
       ) {
         setProfileData(parsedDecrypted?.data);
-        // console.log(parsedDecrypted?.data, "line 92");
       } else {
         showErrorMessage("Error");
       }
     } catch (error) {
       console.log(error, "line Error in Catch Bloack");
     } finally {
-      // console.log("Finally Block Run");
       setLoading(false);
     }
   };
 
   const profileDetails = [
     {
+      id: 1,
       label: en.PROFILE.EMPLOYEE_ID,
       value: profileData?.empCode ? profileData?.empCode : "N/A",
     },
     {
+      id: 2,
       label: en.PROFILE.EMAIL,
       value: profileData?.emailId ? profileData?.emailId : "N/A",
     },
@@ -120,6 +118,7 @@ const UserProfile = () => {
 
   const settingsOptions = [
     {
+      id: 1,
       label: en.PROFILE.PRIVACY_POLICY,
       icon: "shield-checkmark-outline",
       onPress: () => {
@@ -130,7 +129,8 @@ const UserProfile = () => {
       },
     },
     {
-      label:en.PROFILE.TERMS_CONDITIONS,
+      id: 2,
+      label: en.PROFILE.TERMS_CONDITIONS,
       icon: "document-text-outline",
       onPress: () => {
         navigation.navigate("WebViewPreview", {
@@ -140,6 +140,7 @@ const UserProfile = () => {
       },
     },
     {
+      id: 3,
       label: en.PROFILE.ABOUT_US,
       icon: "information-circle-outline",
       onPress: () => {
@@ -150,6 +151,7 @@ const UserProfile = () => {
       },
     },
     {
+      id: 4,
       label: "Logout",
       icon: "log-out-outline",
       onPress: () => {
@@ -184,7 +186,6 @@ const UserProfile = () => {
           </TouchableOpacity>
         }
       />
-      {/* User Profile Section with Animation */}
       <Animated.View
         style={[
           styles.profileCard,
@@ -212,11 +213,16 @@ const UserProfile = () => {
         />
         <View style={styles.profileInfo}>
           <Text style={styles.userName}>
-            {profileData?.firstName ? profileData?.firstName : "N/A"}
+            {profileData?.firstName
+              ? profileData?.firstName
+              : en.PROFILE.NOT_AVAILABLE}{" "}
+            {profileData?.lastName
+              ? profileData?.lastName
+              : en.PROFILE.NOT_AVAILABLE}
           </Text>
           {profileDetails.map((item, index) => (
             <Animated.Text
-              key={index}
+              key={item.id || item.label}
               style={[
                 styles.userDetail,
                 {
@@ -252,8 +258,11 @@ const UserProfile = () => {
         <Text style={styles.headerText}>{en.PROFILE.APP_SETTING}</Text>
         {settingsOptions.map((item, index) => (
           <TouchableOpacity
-            key={index}
-            style={styles.settingsItem}
+            key={item.id || item.label}
+            style={[
+              styles.settingsItem,
+              index === settingsOptions.length - 1 && { borderBottomWidth: 0 },
+            ]}
             activeOpacity={0.6}
             onPress={item.onPress}
           >
@@ -405,12 +414,11 @@ const styles = StyleSheet.create({
     width: "45%",
     backgroundColor: Colors.lightGreen,
     borderColor: Colors.lightGreen,
-    height: moderateScale(50),
   },
   buttonText: {
     fontFamily: FontFamily.PoppinsMedium,
     color: Colors.white,
-    fontSize: textScale(14),
+    fontSize: textScale(13),
     letterSpacing: scale(0.2),
     textTransform: "capitalize",
   },
@@ -419,6 +427,5 @@ const styles = StyleSheet.create({
     width: "45%",
     backgroundColor: Colors.red,
     borderColor: Colors.red,
-    height: moderateScale(50),
   },
 });

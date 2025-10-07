@@ -13,12 +13,10 @@ import React, { useEffect, useState } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import {
-  height,
   moderateScale,
   moderateScaleVertical,
   scale,
   textScale,
-  width,
 } from "../../../../utils/responsiveSize";
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
@@ -29,9 +27,10 @@ import { showErrorMessage } from "../../../../utils/HelperFunction";
 import { Dropdown } from "react-native-element-dropdown";
 import CustomButton from "../../../../components/CustomButton";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
-
+import Ionicons from "react-native-vector-icons/Ionicons";
 const Crop = () => {
   const [loading, setLoading] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
   const isFocused = useIsFocused();
   const [seedCropName, setSeedCropName] = useState("");
   const [status, setStatus] = useState("");
@@ -120,7 +119,6 @@ const Crop = () => {
   };
 
   const renderCropList = ({ item, index }) => {
-    // console.log(item, "line 91");
     return (
       <View key={index} style={styles.programmeCard}>
         <Text style={styles.programmeId}>{item?.seedCropName}</Text>
@@ -213,9 +211,33 @@ const Crop = () => {
     );
   };
 
+  const renderEmpty = () => {
+    return (
+      <View style={{ padding: 20, alignItems: "center" }}>
+        <Text style={{ fontSize: textScale(14), color: Colors.textColor }}>
+          No results found.
+        </Text>
+      </View>
+    );
+  };
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"Crop"} />
+      <InnerHeader
+        title={"Crop"}
+        rightIcon={
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={styles.notificationHolder}
+            onPress={() => setShowFilter(!showFilter)}
+          >
+            <Ionicons
+              name="filter"
+              size={moderateScale(25)}
+              color={Colors.white}
+            />
+          </TouchableOpacity>
+        }
+      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -227,52 +249,54 @@ const Crop = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* FILTERS */}
-          <View style={styles.filterCard}>
-            <TextInput
-              style={styles.input}
-              value={seedCropName}
-              onChangeText={(text) => setSeedCropName(text)}
-              placeholder="Seed Crop Name"
-              placeholderTextColor={Colors.textColor}
-            />
-            <View style={{ marginVertical: moderateScale(8) }}>
-              <Dropdown
-                style={styles.dropdown}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                data={statusData}
-                labelField="name"
-                valueField="value"
-                placeholder="Select Status"
-                value={status}
-                onChange={(item) => {
-                  setStatus(item.value);
-                }}
+          {showFilter && (
+            <View style={styles.filterCard}>
+              <TextInput
+                style={styles.input}
+                value={seedCropName}
+                onChangeText={(text) => setSeedCropName(text)}
+                placeholder="Seed Crop Name"
+                placeholderTextColor={Colors.textColor}
               />
-            </View>
+              <View style={{ marginVertical: moderateScale(8) }}>
+                <Dropdown
+                  style={styles.dropdown}
+                  placeholderStyle={styles.placeholderStyle}
+                  selectedTextStyle={styles.selectedTextStyle}
+                  inputSearchStyle={styles.inputSearchStyle}
+                  data={statusData}
+                  labelField="name"
+                  valueField="value"
+                  placeholder="Select Status"
+                  value={status}
+                  onChange={(item) => {
+                    setStatus(item.value);
+                  }}
+                />
+              </View>
 
-            <View style={styles.filterBtns}>
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                onPress={() => {
-                  fetchCropList({ seedCropName, status });
-                }}
-              >
-                <Text style={styles.primaryBtnText}>Search</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                onPress={() => {
-                  setSeedCropName("");
-                  setStatus("");
-                  fetchCropList();
-                }}
-              >
-                <Text style={styles.secondaryBtnText}>Reset</Text>
-              </TouchableOpacity>
+              <View style={styles.filterBtns}>
+                <TouchableOpacity
+                  style={styles.primaryBtn}
+                  onPress={() => {
+                    fetchCropList({ seedCropName, status });
+                  }}
+                >
+                  <Text style={styles.primaryBtnText}>Search</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.secondaryBtn}
+                  onPress={() => {
+                    setSeedCropName("");
+                    setStatus("");
+                    fetchCropList();
+                  }}
+                >
+                  <Text style={styles.secondaryBtnText}>Reset</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.exportRow}>
             <Text style={styles.headerText}>Crop List</Text>
@@ -305,15 +329,7 @@ const Crop = () => {
             keyExtractor={(item) => item.id}
             renderItem={renderCropList}
             scrollEnabled={false}
-            ListEmptyComponent={() => (
-              <View style={{ padding: 20, alignItems: "center" }}>
-                <Text
-                  style={{ fontSize: textScale(14), color: Colors.textColor }}
-                >
-                  No results found.
-                </Text>
-              </View>
-            )}
+            ListEmptyComponent={renderEmpty}
           />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -355,27 +371,31 @@ const styles = StyleSheet.create({
   },
   primaryBtn: {
     backgroundColor: Colors.greenColor,
-    paddingHorizontal: moderateScale(18),
-    paddingVertical: moderateScale(8),
+    alignItems: "center",
+    justifyContent: "center",
+    height: moderateScale(40),
+    width: moderateScale(75),
     borderRadius: moderateScale(6),
   },
   primaryBtnText: {
     color: Colors.white,
-    fontFamily: FontFamily.PoppinsMedium,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
+    fontSize: textScale(13),
   },
   secondaryBtn: {
     backgroundColor: Colors.white,
-    paddingHorizontal: moderateScale(18),
-    paddingVertical: moderateScale(8),
+    alignItems: "center",
+    justifyContent: "center",
+    height: moderateScale(40),
+    width: moderateScale(75),
     borderRadius: moderateScale(6),
     borderWidth: moderateScale(1.3),
     borderColor: Colors.greenColor,
   },
   secondaryBtnText: {
     color: Colors.greenColor,
-    fontFamily: FontFamily.PoppinsMedium,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
+    fontSize: textScale(13),
   },
   exportRow: {
     flexDirection: "row",
@@ -385,8 +405,8 @@ const styles = StyleSheet.create({
     margin: moderateScaleVertical(10),
   },
   headerText: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsSemiBold,
+    fontSize: textScale(13),
+    fontFamily: FontFamily.PoppinsMedium,
     color: Colors.greenColor,
     marginBottom: moderateScaleVertical(4),
     borderLeftWidth: moderateScale(2),
@@ -396,14 +416,16 @@ const styles = StyleSheet.create({
   },
   exportBtn: {
     backgroundColor: Colors.greenColor,
-    paddingHorizontal: moderateScale(15),
-    padding: moderateScaleVertical(7),
+    alignItems: "center",
+    justifyContent: "center",
+    height: moderateScale(40),
+    width: moderateScale(100),
     borderRadius: moderateScale(5),
   },
   exportBtnText: {
     color: Colors.white,
     fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(14),
+    fontSize: textScale(13),
     textAlign: "center",
   },
   programmeCard: {
@@ -419,7 +441,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   programmeId: {
-    fontFamily: FontFamily.RubikMedium,
+    fontFamily: FontFamily.RubikRegular,
     fontSize: textScale(14),
     marginBottom: moderateScaleVertical(5),
     color: Colors.greenThemeColor,
@@ -436,15 +458,15 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(5),
   },
   label: {
-    fontFamily: FontFamily.PoppinsMedium,
+    fontFamily: FontFamily.PoppinsRegular,
     color: Colors.textColor,
-    fontSize: textScale(14),
+    fontSize: textScale(12),
     textAlign: "left",
   },
   valueText: {
     fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(14),
-    color: Colors.black,
+    fontSize: textScale(13),
+    color: Colors.textColor,
     textAlign: "right",
   },
   dropdown: {
@@ -469,5 +491,15 @@ const styles = StyleSheet.create({
     height: moderateScale(40),
     fontSize: textScale(13),
     color: Colors.black,
+  },
+  notificationHolder: {
+    borderWidth: 2,
+    width: moderateScale(40),
+    height: moderateScale(40),
+    borderRadius: moderateScale(25),
+    backgroundColor: Colors.greenColor,
+    borderColor: Colors.greenColor,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

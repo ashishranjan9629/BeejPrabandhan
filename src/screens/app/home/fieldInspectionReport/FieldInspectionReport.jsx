@@ -32,8 +32,12 @@ import { getUserData } from "../../../../utils/Storage";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
-import { showSuccessMessage } from "../../../../utils/HelperFunction";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "../../../../utils/HelperFunction";
 import FileViewer from "react-native-file-viewer";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 // Mock data from screenshot
 const PROGRAMMES = [
@@ -96,6 +100,7 @@ const PROGRAMMES = [
 ];
 
 const FieldInspectionReport = () => {
+  const [showFilter, setShowFilter] = useState(false);
   const [growerName, setGrowerName] = useState("");
   const [planId, setPlanId] = useState("");
   const [mobileNo, setMobileNo] = useState("");
@@ -112,7 +117,6 @@ const FieldInspectionReport = () => {
   ).current;
 
   const [fileUri, setFileUri] = useState(null);
-  const [fileName, setFileName] = useState("");
   useEffect(() => {
     // Animate each card in sequence
     Animated.stagger(
@@ -142,7 +146,6 @@ const FieldInspectionReport = () => {
       setLoading(true);
       const userData = await getUserData();
       setUserDataVariable(userData);
-      // console.log(userData, "line 132");
       const payloadData = {
         aoId: userData?.aoId,
         growerMobileNo: mobileNo,
@@ -153,7 +156,6 @@ const FieldInspectionReport = () => {
         planId: planId,
         roId: userData?.roId,
       };
-      // console.log(payloadData, "payloadData");
       const encryptedPayload = encryptWholeObject(payloadData);
       const response = await apiRequest(
         API_ROUTES.PROGRAMME_LIST,
@@ -179,6 +181,7 @@ const FieldInspectionReport = () => {
       }
     } catch (error) {
       console.error(error?.messages, "Error in Error Bloack");
+      showErrorMessage(error?.messages || "Error");
     } finally {
       setLoading(false);
     }
@@ -191,10 +194,7 @@ const FieldInspectionReport = () => {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => {
-          // Put your navigation or action here
           navigation.navigate("FiledInspectionReportDetails", { item: item });
-          // setShowBottomSheet(true);
-          // setSelctedData(item);
         }}
       >
         <Animated.View
@@ -231,29 +231,12 @@ const FieldInspectionReport = () => {
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.label}>Status</Text>
-            <Text style={[styles.status, getStatusStyle(item.status)]}>
-              {item.productionStatus}
-            </Text>
+            <Text style={styles.status}>{item.productionStatus}</Text>
           </View>
         </Animated.View>
       </TouchableOpacity>
     );
   };
-
-  function getStatusStyle(status) {
-    switch (status) {
-      case "INSPECTED":
-        return { color: "#157733" };
-      case "ISSUED":
-        return { color: "#197732" };
-      case "PLANNED":
-        return { color: "#FFA000" };
-      case "RECEIVED":
-        return { color: "#157732" };
-      default:
-        return {};
-    }
-  }
 
   const downloadExcelFile = async () => {
     try {
@@ -304,7 +287,6 @@ const FieldInspectionReport = () => {
       showSuccessMessage(`Download Complete,Saved to: ${filePath}`);
       setShowOpenShowPreviewModal(true);
       setFileUri(filePath);
-      setFileName(`Programme_List_${Date.now()}.xlsx`);
     } catch (error) {
       console.log(error, "downloadExcelFile error");
       Alert.alert("Failed", "Unable to download file. Please try again.");
@@ -322,11 +304,7 @@ const FieldInspectionReport = () => {
       setLoading(true);
       setShowOpenShowPreviewModal(false);
       setTimeout(async () => {
-        if (Platform.OS === "android") {
-          await FileViewer.open(fileUri);
-        } else {
-          await FileViewer.open(fileUri);
-        }
+        await FileViewer.open(fileUri);
       }, 1000);
     } catch (err) {
       Alert.alert("Error", "Failed to open file: " + err.message);
@@ -337,7 +315,22 @@ const FieldInspectionReport = () => {
 
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"Field Inspection Report"} />
+      <InnerHeader
+        title={"Field Inspection Report"}
+        rightIcon={
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={styles.notificationHolder}
+            onPress={() => setShowFilter(!showFilter)}
+          >
+            <Ionicons
+              name="filter"
+              size={moderateScale(25)}
+              color={Colors.white}
+            />
+          </TouchableOpacity>
+        }
+      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -349,48 +342,50 @@ const FieldInspectionReport = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* FILTERS */}
-          <View style={styles.filterCard}>
-            <TextInput
-              style={styles.input}
-              value={growerName}
-              onChangeText={setGrowerName}
-              placeholder="Grower Name"
-              placeholderTextColor={Colors.textColor}
-            />
-            <TextInput
-              style={styles.input}
-              value={planId}
-              onChangeText={setPlanId}
-              placeholder="Plan Id"
-              placeholderTextColor={Colors.textColor}
-            />
-            <TextInput
-              style={styles.input}
-              value={mobileNo}
-              onChangeText={setMobileNo}
-              placeholder="Mobile No"
-              placeholderTextColor={Colors.textColor}
-              keyboardType="phone-pad"
-            />
-            <View style={styles.filterBtns}>
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                onPress={() => fetchProgrammeList()}
-              >
-                <Text style={styles.primaryBtnText}>Search</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.secondaryBtn}
-                onPress={() => {
-                  setGrowerName("");
-                  setPlanId("");
-                  setMobileNo("");
-                }}
-              >
-                <Text style={styles.secondaryBtnText}>Reset</Text>
-              </TouchableOpacity>
+          {showFilter && (
+            <View style={styles.filterCard}>
+              <TextInput
+                style={styles.input}
+                value={growerName}
+                onChangeText={setGrowerName}
+                placeholder="Grower Name"
+                placeholderTextColor={Colors.textColor}
+              />
+              <TextInput
+                style={styles.input}
+                value={planId}
+                onChangeText={setPlanId}
+                placeholder="Plan Id"
+                placeholderTextColor={Colors.textColor}
+              />
+              <TextInput
+                style={styles.input}
+                value={mobileNo}
+                onChangeText={setMobileNo}
+                placeholder="Mobile No"
+                placeholderTextColor={Colors.textColor}
+                keyboardType="phone-pad"
+              />
+              <View style={styles.filterBtns}>
+                <TouchableOpacity
+                  style={styles.primaryBtn}
+                  onPress={() => fetchProgrammeList()}
+                >
+                  <Text style={styles.primaryBtnText}>Search</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.secondaryBtn}
+                  onPress={() => {
+                    setGrowerName("");
+                    setPlanId("");
+                    setMobileNo("");
+                  }}
+                >
+                  <Text style={styles.secondaryBtnText}>Reset</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.exportRow}>
             <Text style={styles.headerText}>Programme List</Text>
@@ -511,27 +506,31 @@ const styles = StyleSheet.create({
   },
   primaryBtn: {
     backgroundColor: Colors.greenColor,
-    paddingHorizontal: moderateScale(18),
-    paddingVertical: moderateScale(8),
+    height: moderateScale(40),
+    width: moderateScale(75),
     borderRadius: moderateScale(6),
+    alignItems: "center",
+    justifyContent: "center",
   },
   primaryBtnText: {
     color: Colors.white,
     fontFamily: FontFamily.PoppinsMedium,
-    fontSize: textScale(14),
+    fontSize: textScale(12),
   },
   secondaryBtn: {
     backgroundColor: Colors.white,
-    paddingHorizontal: moderateScale(18),
-    paddingVertical: moderateScale(8),
+    height: moderateScale(40),
+    width: moderateScale(75),
     borderRadius: moderateScale(6),
     borderWidth: moderateScale(1.3),
     borderColor: Colors.greenColor,
+    alignItems: "center",
+    justifyContent: "center",
   },
   secondaryBtnText: {
     color: Colors.greenColor,
     fontFamily: FontFamily.PoppinsMedium,
-    fontSize: textScale(14),
+    fontSize: textScale(12),
   },
   exportRow: {
     flexDirection: "row",
@@ -559,7 +558,7 @@ const styles = StyleSheet.create({
   exportBtnText: {
     color: Colors.white,
     fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(14),
+    fontSize: textScale(12),
     textAlign: "center",
   },
   programmeCard: {
@@ -575,10 +574,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   programmeId: {
-    fontFamily: FontFamily.RubikMedium,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.RubikRegular,
+    fontSize: textScale(13),
     marginBottom: moderateScaleVertical(5),
-    color: Colors.greenThemeColor,
+    color: Colors.greenColor,
   },
   separator: {
     borderBottomColor: Colors.diabledColor,
@@ -591,20 +590,21 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(5),
   },
   label: {
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.textColor,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
+    color: Colors.gray,
+    fontSize: textScale(12),
     textAlign: "left",
   },
   valueText: {
     fontFamily: FontFamily.PoppinsRegular,
-    fontSize: textScale(14),
+    fontSize: textScale(13),
     color: Colors.black,
     textAlign: "right",
   },
   status: {
-    fontFamily: FontFamily.PoppinsMedium,
-    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsRegular,
+    fontSize: textScale(13),
+    color: Colors.black,
     paddingLeft: moderateScale(5),
   },
   actionButton: {
@@ -660,6 +660,16 @@ const styles = StyleSheet.create({
   closeButton: {
     width: "48%",
     backgroundColor: Colors.redThemeColor,
+  },
+  notificationHolder: {
+    borderWidth: 2,
+    width: moderateScale(50),
+    height: moderateScale(50),
+    borderRadius: moderateScale(25),
+    backgroundColor: Colors.greenColor,
+    borderColor: Colors.greenColor,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
