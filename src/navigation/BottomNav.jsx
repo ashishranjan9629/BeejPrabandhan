@@ -2,13 +2,10 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "../screens/app/Home";
-import Explore from "../screens/app/Explore";
-import Cart from "../screens/app/Cart";
 import Profile from "../screens/app/Profile";
 import Colors from "../utils/Colors";
 import { moderateScale, textScale } from "../utils/responsiveSize";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import FontFamily from "../utils/FontFamily";
 import Feather from "react-native-vector-icons/Feather";
 
@@ -44,42 +41,7 @@ const BottomNav = () => {
           ),
         }}
       />
-      {/* <Tab.Screen
-        name="Explore"
-        component={Explore}
-        options={{
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={[styles.labelText, { color }]}>Explore</Text>
-          ),
-          tabBarIcon: ({ focused, color }) => (
-            <View style={styles.iconContainer}>
-              <Ionicons
-                name="compass-outline"
-                size={moderateScale(28)}
-                color={color}
-              />
-            </View>
-          ),
-        }}
-      /> 
-       <Tab.Screen
-        name="Cart"
-        component={Cart}
-        options={{
-          tabBarLabel: ({ focused, color }) => (
-            <Text style={[styles.labelText, { color }]}>Cart</Text>
-          ),
-          tabBarIcon: ({ focused, color }) => (
-            <View style={styles.iconContainer}>
-              <Feather
-                name="shopping-cart"
-                size={moderateScale(25)}
-                color={color}
-              />
-            </View>
-          ),
-        }}
-      /> */}
+
       <Tab.Screen
         name="Profile"
         component={Profile}

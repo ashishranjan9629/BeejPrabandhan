@@ -5,6 +5,7 @@ import Colors from "../utils/Colors";
 import Feather from "react-native-vector-icons/Feather";
 import FontFamily from "../utils/FontFamily";
 import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
 
 const CustomHeader = ({ data }) => {
   const navigation = useNavigation();

@@ -6,6 +6,7 @@ import WebView from "react-native-webview";
 import { moderateScale, scale, textScale } from "../utils/responsiveSize";
 import Colors from "../utils/Colors";
 import FontFamily from "../utils/FontFamily";
+import PropTypes from "prop-types";
 
 const WebViewPreview = ({ route }) => {
   const { title, url } = route.params;
@@ -48,6 +49,15 @@ const WebViewPreview = ({ route }) => {
       )}
     </WrapperContainer>
   );
+};
+
+WebViewPreview.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      url: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 export default WebViewPreview;
