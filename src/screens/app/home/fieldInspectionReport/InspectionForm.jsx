@@ -1637,11 +1637,11 @@ const InspectionForm = ({ route }) => {
           formData.stageOfCropGrowthAtInspection || "",
         stageOfGrowthOfContaminant: formData.stageofgrowthofcontaminant || "",
         isolationDistanceNorth:
-          parseFloat(formData.isolationDistanceNorth) || 0,
+          Number.parseFloat(formData.isolationDistanceNorth) || 0,
         isolationDistanceSouth:
-          parseFloat(formData.isolationDistanceSouth) || 0,
-        isolationDistanceEast: parseFloat(formData.isolationDistanceEast) || 0,
-        isolationDistanceWest: parseFloat(formData.isolationDistanceWest) || 0,
+           Number.parseFloat(formData.isolationDistanceSouth) || 0,
+        isolationDistanceEast:  Number.parseFloat(formData.isolationDistanceEast) || 0,
+        isolationDistanceWest:  Number.parseFloat(formData.isolationDistanceWest) || 0,
         seedSource: formData.seedsource || "",
         femaleParent: formData.femaleParent || "",
         maleParent: formData.maleParent || "",
@@ -1651,10 +1651,10 @@ const InspectionForm = ({ route }) => {
         // Step 2 fields
         productionInspectionFieldCountAs: mapCountsData(formData.counts, 1),
         // Step 3 fields
-        noOfBorderRows: parseInt(formData.noOfBorderRow) || 0,
+        noOfBorderRows:  Number.parseInt(formData.noOfBorderRow) || 0,
         cropCondition: formData.cropCondition || "",
         noOfTimesPollenShedders:
-          parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
+           Number.parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
         frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
         wasItDoneAtInspectionTime: booleanToYesNo(
           formData.wasItDoneAtInspectionTime
@@ -1663,13 +1663,13 @@ const InspectionForm = ({ route }) => {
         doesThisCropConfirmToStandard: booleanToYesNo(
           formData.doesCropConformToStandards
         ),
-        estimatedSeedYield: parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
+        estimatedSeedYield:  Number.parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
         wasTheGrowerPresent: booleanToYesNo(
           formData.wasGrowerPresentAtInspectionTime
         ),
         isFinal: booleanToYesNo(formData.isFinalReport),
-        areaRejected: parseFloat(formData.areaRejectedHa) || 0,
-        areaCertified: parseFloat(formData.areaCertifiedHa) || 0,
+        areaRejected:  Number.parseFloat(formData.areaRejectedHa) || 0,
+        areaCertified:  Number.parseFloat(formData.areaCertifiedHa) || 0,
         name: formData.name || "",
         designation: formData.designation || "",
         address: formData.address || "",
@@ -1691,11 +1691,11 @@ const InspectionForm = ({ route }) => {
         locationOfFarm: formData.labeoffarm || "",
         sourceOfSeed: formData.seedsource || "",
         totalAcreageUnderProduction:
-          parseFloat(formData.totalacreageunderproductioninha) || 0,
+           Number.parseFloat(formData.totalacreageunderproductioninha) || 0,
         acreageOfFieldInspected:
-          parseFloat(formData.acreageoffieldnoinspectedinha) || 0,
+           Number.parseFloat(formData.acreageoffieldnoinspectedinha) || 0,
         previousCrop: formData.previouscrop || "",
-        isolationDistance: parseFloat(formData.isolationdistance) || 0,
+        isolationDistance:  Number.parseFloat(formData.isolationdistance) || 0,
         stageOfContaminant: formData.stageofgrowthofcontaminant || "",
         stageOfSeedCropAtTimeInspection:
           formData.stageofseedcropatthisinspection || "",
@@ -1707,13 +1707,13 @@ const InspectionForm = ({ route }) => {
         // Step 2 fields
         fieldCounts: mapCountsData(formData.counts, 2),
         // Step 3 fields
-        percentageOffTypes: parseFloat(formData.offTypePercentage) || 0,
+        percentageOffTypes:  Number.parseFloat(formData.offTypePercentage) || 0,
         percentageInseparableCrops:
-          parseFloat(formData.inseparableOtherCropsPercentage) || 0,
+           Number.parseFloat(formData.inseparableOtherCropsPercentage) || 0,
         percentageObjectionableWeeds:
-          parseFloat(formData.objectionableWeedsPercentage) || 0,
+           Number.parseFloat(formData.objectionableWeedsPercentage) || 0,
         percentageSeedBorneDiseases:
-          parseFloat(formData.seedBorneDiseasesPercentage) || 0,
+           Number.parseFloat(formData.seedBorneDiseasesPercentage) || 0,
         inseparableCropPlants: formData.inseparableOtherCropsName || "",
         objectionableWeedPlants: formData.objectionableWeedsName || "",
         seedBorneDiseases: formData.seedBorneDiseasesName || "",
@@ -1722,7 +1722,7 @@ const InspectionForm = ({ route }) => {
         confirmStandard: booleanToYesNo(formData.confirmsToStandards),
         productionQuality: formData.productionQuality || "",
         isFinal: booleanToYesNo(formData.isFinalReport),
-        estimatedRawSeedYield: parseFloat(formData.estimatedRawSeedYield) || 0,
+        estimatedRawSeedYield:  Number.parseFloat(formData.estimatedRawSeedYield) || 0,
         growerPresent: booleanToYesNo(formData.growerPresent),
         submittedFor: formData.growerName || "",
         submittedBy: formData.submittedBy || "",
@@ -1749,7 +1749,7 @@ const InspectionForm = ({ route }) => {
         ),
         methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
         isolationDistanceMeters:
-          parseFloat(formData.isolationDistanceMeters) || 0,
+           Number.parseFloat(formData.isolationDistanceMeters) || 0,
         stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
         stageOfSeedCropAtInspection:
           formData.stageofseedcropatthisinspection || "",
@@ -1760,7 +1760,7 @@ const InspectionForm = ({ route }) => {
         sideOfFieldFromWhichInspectionStarted:
           formData.sideOfFieldFromWhichInspectionWasStarted || "",
         cropCondition: formData.cropCondition || "",
-        numberOfTimesDetasselled: parseInt(formData.noOfTimesDetasselled) || 0,
+        numberOfTimesDetasselled:  Number.parseInt(formData.noOfTimesDetasselled) || 0,
         frequencyOfDetasselling: formData.frequencyOfDetasselling || "",
         detassellingDoneAtInspectionTime: booleanToYesNo(
           formData.detassellingDoneAtInspectionTime
@@ -1772,10 +1772,10 @@ const InspectionForm = ({ route }) => {
         estimatedSeedYieldQtlsOrAcres:
           formData.estimatedSeedYieldKgsPerAcres || "0",
         wasGrowerPresentAtInspection: booleanToYesNo(formData.growerPresent),
-        numberOfBorderRow: parseInt(formData.noOfBorderRow) || 0,
+        numberOfBorderRow:  Number.parseInt(formData.noOfBorderRow) || 0,
         isFinalReport: booleanToYesNo(formData.isFinalReport),
-        areaRejectedHect: parseFloat(formData.areaRejectedHa) || 0,
-        areaCertifiedHect: parseFloat(formData.areaCertifiedHa) || 0,
+        areaRejectedHect:  Number.parseFloat(formData.areaRejectedHa) || 0,
+        areaCertifiedHect:  Number.parseFloat(formData.areaCertifiedHa) || 0,
         remarks: formData.remarks || "",
         programmeRejected: "No", // Default value
         // Additional fields for Type 3
