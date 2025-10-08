@@ -27,6 +27,7 @@ import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { showSuccessMessage } from "../../../../utils/HelperFunction";
+import PropTypes from "prop-types";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
@@ -598,19 +599,18 @@ const InspectionForm = ({ route }) => {
 
   // Helper function to convert DD/MM/YYYY to YYYY-MM-DD format for API
   const convertDateFormat = (dateString) => {
-    if (!dateString || typeof dateString !== 'string') return "";
-    if (dateString.includes('/')) {
-      const [day, month, year] = dateString.split('/');
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    if (!dateString || typeof dateString !== "string") return "";
+    if (dateString.includes("/")) {
+      const [day, month, year] = dateString.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
     return dateString; // Return as is if already in correct format
   };
 
-  const isEmptyValue = (val) => {
-    if (typeof val === "string") return val.trim() === "";
-    if (val === null || val === undefined) return true;
-    return false;
-  };
+  const isEmptyValue = (val) =>
+    (typeof val === "string" && val.trim() === "") ||
+    val === null ||
+    val === undefined;
 
   const isNumericString = (val) => {
     if (typeof val !== "string") return false;
@@ -1633,10 +1633,13 @@ const InspectionForm = ({ route }) => {
         previousCrop: formData.previouscrop || "",
         areBothEndMarked: booleanToYesNo(formData.areBothEndMarked),
         methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
-        stageOfGrowthOfAtTheInspection: formData.stageOfCropGrowthAtInspection || "",
+        stageOfGrowthOfAtTheInspection:
+          formData.stageOfCropGrowthAtInspection || "",
         stageOfGrowthOfContaminant: formData.stageofgrowthofcontaminant || "",
-        isolationDistanceNorth: parseFloat(formData.isolationDistanceNorth) || 0,
-        isolationDistanceSouth: parseFloat(formData.isolationDistanceSouth) || 0,
+        isolationDistanceNorth:
+          parseFloat(formData.isolationDistanceNorth) || 0,
+        isolationDistanceSouth:
+          parseFloat(formData.isolationDistanceSouth) || 0,
         isolationDistanceEast: parseFloat(formData.isolationDistanceEast) || 0,
         isolationDistanceWest: parseFloat(formData.isolationDistanceWest) || 0,
         seedSource: formData.seedsource || "",
@@ -1650,13 +1653,20 @@ const InspectionForm = ({ route }) => {
         // Step 3 fields
         noOfBorderRows: parseInt(formData.noOfBorderRow) || 0,
         cropCondition: formData.cropCondition || "",
-        noOfTimesPollenShedders: parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
+        noOfTimesPollenShedders:
+          parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
         frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
-        wasItDoneAtInspectionTime: booleanToYesNo(formData.wasItDoneAtInspectionTime),
+        wasItDoneAtInspectionTime: booleanToYesNo(
+          formData.wasItDoneAtInspectionTime
+        ),
         qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
-        doesThisCropConfirmToStandard: booleanToYesNo(formData.doesCropConformToStandards),
+        doesThisCropConfirmToStandard: booleanToYesNo(
+          formData.doesCropConformToStandards
+        ),
         estimatedSeedYield: parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
-        wasTheGrowerPresent: booleanToYesNo(formData.wasGrowerPresentAtInspectionTime),
+        wasTheGrowerPresent: booleanToYesNo(
+          formData.wasGrowerPresentAtInspectionTime
+        ),
         isFinal: booleanToYesNo(formData.isFinalReport),
         areaRejected: parseFloat(formData.areaRejectedHa) || 0,
         areaCertified: parseFloat(formData.areaCertifiedHa) || 0,
@@ -1690,7 +1700,9 @@ const InspectionForm = ({ route }) => {
         stageOfSeedCropAtTimeInspection:
           formData.stageofseedcropatthisinspection || "",
         dateOfSowing: convertDateFormat(formData.dateOfSowing),
-        expectedDateOfHarvestFrom: convertDateFormat(formData.expectedHarvestFrom),
+        expectedDateOfHarvestFrom: convertDateFormat(
+          formData.expectedHarvestFrom
+        ),
         expectedDateOfHarvestTo: convertDateFormat(formData.expectedHarvestTo),
         // Step 2 fields
         fieldCounts: mapCountsData(formData.counts, 2),
@@ -1716,7 +1728,7 @@ const InspectionForm = ({ route }) => {
         submittedBy: formData.submittedBy || "",
         designation: formData.designation || "",
         remarks: formData.remarks || "",
-        programmeRejected: "No", 
+        programmeRejected: "No",
         growerVillage: data?.grower?.entityRegNo?.villageId?.villageName || "",
         growerTaluk: data?.grower?.entityRegNo?.taluqs?.talukaName,
         growerBlock: data?.grower?.entityRegNo?.block?.blockName,
@@ -1736,7 +1748,8 @@ const InspectionForm = ({ route }) => {
           formData.areBothEndOfMaleRowsMarked
         ),
         methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
-        isolationDistanceMeters: parseFloat(formData.isolationDistanceMeters) || 0,
+        isolationDistanceMeters:
+          parseFloat(formData.isolationDistanceMeters) || 0,
         stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
         stageOfSeedCropAtInspection:
           formData.stageofseedcropatthisinspection || "",
@@ -1753,7 +1766,9 @@ const InspectionForm = ({ route }) => {
           formData.detassellingDoneAtInspectionTime
         ),
         qualityOfSeedProductionWork: formData.qualityOfSeedProductionWork || "",
-        doesCropConformToStandards: booleanToYesNo(formData.doesCropConformToStandards),
+        doesCropConformToStandards: booleanToYesNo(
+          formData.doesCropConformToStandards
+        ),
         estimatedSeedYieldQtlsOrAcres:
           formData.estimatedSeedYieldKgsPerAcres || "0",
         wasGrowerPresentAtInspection: booleanToYesNo(formData.growerPresent),
@@ -1804,22 +1819,16 @@ const InspectionForm = ({ route }) => {
         default:
           throw new Error("Invalid crop FIR type");
       }
-
-      // console.log("Submitting data:", payload);
-      // console.log("API Endpoint:", apiEndpoint);
       const encryptedPayload = encryptWholeObject(payload);
       const response = await apiRequest(apiEndpoint, "POST", encryptedPayload);
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
       console.log("API Response:", parsedDecrypted);
-
-      // Handle success response
       if (
         parsedDecrypted &&
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
       ) {
-        // console.log("Sucess");
         showSuccessMessage(parsedDecrypted?.message);
         navigation.push("FieldInspectionReport");
       } else {
@@ -1931,6 +1940,12 @@ const InspectionForm = ({ route }) => {
   );
 };
 
+InspectionForm.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
+};
+
 export default InspectionForm;
 
 const styles = StyleSheet.create({
@@ -1960,7 +1975,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: textScale(13),
     fontFamily: FontFamily.PoppinsRegular,
-    marginVertical:moderateScaleVertical(10),
+    marginVertical: moderateScaleVertical(10),
   },
   inputGroup: {
     marginBottom: moderateScaleVertical(20),
