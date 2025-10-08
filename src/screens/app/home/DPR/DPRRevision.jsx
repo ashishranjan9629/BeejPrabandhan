@@ -89,9 +89,9 @@ const TimelineItem = ({ item, index, isLast }) => {
   } = item || {};
 
   const leftTime =
-    formatYMD(updatedDate) !== "-"
-      ? formatYMD(updatedDate)
-      : formatDate(updatedOn || createdOn);
+    formatYMD(updatedDate) === "-"
+      ? formatDate(updatedOn || createdOn)
+      : formatYMD(updatedDate);
   const actor = lastUpdatedByUnitType || updatedBy || createdBy || "-";
 
   return (
@@ -217,11 +217,7 @@ const DPRRevision = ({ route }) => {
             />
             <Row
               label="Required Output Area"
-              value={
-                data?.requiredOutputArea != null
-                  ? `${data.requiredOutputArea}`
-                  : "-"
-              }
+              value={`${data?.requiredOutputArea ?? "-"}`}
             />
             <Row label="Status" value={data?.dprStatus ?? "-"} />
             <Row

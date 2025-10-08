@@ -18,7 +18,9 @@ const CustomBottomSheet = ({ visible, onRequestClose, children, height }) => {
           activeOpacity={1}
           onPress={onRequestClose}
         />
-        <View style={[styles.modalContainer, height && { height }]}>
+        <View
+          style={[styles.modalContainer, { height: height ? height : null }]}
+        >
           {/* <View style={styles.dragHandle} /> */}
           {children}
         </View>
