@@ -55,14 +55,14 @@ Row.propTypes = {
 const formatDate = (iso) => {
   if (!iso) return "-";
   const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
+  if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleString();
 };
 
 const formatYMD = (ymd) => {
   if (!ymd) return "-";
   const d = new Date(ymd);
-  if (isNaN(d.getTime())) return ymd;
+  if (Number.isNaN(d.getTime())) return ymd;
   return d.toLocaleDateString();
 };
 

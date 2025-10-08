@@ -1,4 +1,3 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import WrapperContainer from "../../utils/WrapperContainer";
 import ImagePath from "../../utils/ImagePath";
@@ -11,11 +10,9 @@ const Explore = () => {
   };
   return (
     <WrapperContainer>
-     <CustomHeader data={userData}/>
+      <CustomHeader data={userData} />
     </WrapperContainer>
   );
 };
 
 export default Explore;
-
-const styles = StyleSheet.create({});
