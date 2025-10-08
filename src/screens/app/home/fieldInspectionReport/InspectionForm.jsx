@@ -443,7 +443,7 @@ const InspectionForm = ({ route }) => {
     totalacreageunderproductioninha: "",
 
     // Step 2 fields - dynamic based on cropFirTypeId
-    counts: Array(10)
+    counts: new Array(10)
       .fill()
       .map(() => {
         if (cropFirTypeId === 1) {
