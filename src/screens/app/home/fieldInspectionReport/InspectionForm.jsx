@@ -621,7 +621,7 @@ const InspectionForm = ({ route }) => {
   const isValidDateDDMMYYYY = (val) => {
     if (typeof val !== "string") return false;
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(val)) return false;
-    const [dd, mm, yyyy] = val.split("/").map((s) => parseInt(s, 10));
+    const [dd, mm, yyyy] = val.split("/").map((s) => Number.parseInt(s, 10));
     if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return false;
     return true;
   };
@@ -629,7 +629,7 @@ const InspectionForm = ({ route }) => {
   const isValidTimeHHMM = (val) => {
     if (typeof val !== "string") return false;
     if (!/^\d{2}:\d{2}$/.test(val)) return false;
-    const [hh, mm] = val.split(":").map((s) => parseInt(s, 10));
+    const [hh, mm] = val.split(":").map((s) => Number.parseInt(s, 10));
     if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return false;
     return true;
   };
@@ -1548,23 +1548,23 @@ const InspectionForm = ({ route }) => {
     if (cropType === 1) {
       // For type 1: Pollen Shedding & Disease Count Details
       return counts.map((count) => ({
-        pollenSheddingHeadsCount: parseInt(count.pollenSheddingHeads) || 0,
-        offTypeSheddingHeadsCount1: parseInt(count.offTypesSheddingPollen) || 0,
-        normalHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
-        normalKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
-        normalGreenEarCount: parseInt(count.greenEar) || 0,
-        offTypeSheddingHeadsCount2: parseInt(count.offTypesSheddingPollen) || 0,
-        offTypeHeadSmutErgotCount: parseInt(count.headSmutErgot) || 0,
-        offTypeKernelSmutCount: parseInt(count.kernelSmutGrainSmut) || 0,
-        offTypeGreenEarCount: parseInt(count.greenEar) || 0,
+        pollenSheddingHeadsCount: Number.parseInt(count.pollenSheddingHeads) || 0,
+        offTypeSheddingHeadsCount1: Number.parseInt(count.offTypesSheddingPollen) || 0,
+        normalHeadSmutErgotCount: Number.parseInt(count.headSmutErgot) || 0,
+        normalKernelSmutCount: Number.parseInt(count.kernelSmutGrainSmut) || 0,
+        normalGreenEarCount: Number.parseInt(count.greenEar) || 0,
+        offTypeSheddingHeadsCount2: Number.parseInt(count.offTypesSheddingPollen) || 0,
+        offTypeHeadSmutErgotCount: Number.parseInt(count.headSmutErgot) || 0,
+        offTypeKernelSmutCount: Number.parseInt(count.kernelSmutGrainSmut) || 0,
+        offTypeGreenEarCount: Number.parseInt(count.greenEar) || 0,
       }));
     } else if (cropType === 2) {
       // For type 2: Count Details
       return counts.map((count) => ({
-        plantsOrHeadsOfOffType: parseInt(count.offType) || 0,
-        inseparableOtherCrops: parseInt(count.otherCrops) || 0,
-        objectionableWeeds: parseInt(count.weeds) || 0,
-        affectedBySeedBorneDisease: parseInt(count.disease) || 0,
+        plantsOrHeadsOfOffType: Number.parseInt(count.offType) || 0,
+        inseparableOtherCrops: Number.parseInt(count.otherCrops) || 0,
+        objectionableWeeds: Number.parseInt(count.weeds) || 0,
+        affectedBySeedBorneDisease: Number.parseInt(count.disease) || 0,
       }));
     } else if (cropType === 3) {
       // For type 3: Maize Crop Inspection Details
