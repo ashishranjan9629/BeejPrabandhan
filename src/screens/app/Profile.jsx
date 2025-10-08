@@ -27,6 +27,151 @@ import { showErrorMessage } from "../../utils/HelperFunction";
 import { getUserData } from "../../utils/Storage";
 import { useNavigation } from "@react-navigation/native";
 import en from "../../constants/en";
+import PropTypes from "prop-types";
+
+const DetailRow = ({ label, value, index }) => {
+  const rowFadeAnim = useRef(new Animated.Value(0)).current;
+  const rowSlideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(rowFadeAnim, {
+        toValue: 1,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rowSlideAnim, {
+        toValue: 0,
+        duration: 400,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [index, rowFadeAnim, rowSlideAnim]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.row,
+        {
+          opacity: rowFadeAnim,
+          transform: [{ translateY: rowSlideAnim }],
+        },
+      ]}
+    >
+      <Text style={styles.label}>{label}:</Text>
+      <Text style={styles.value}>{value}</Text>
+    </Animated.View>
+  );
+};
+
+DetailRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  index: PropTypes.number.isRequired,
+};
+
+const NavigationTab = ({
+  fadeAnim,
+  slideAnim,
+  activeSection,
+  handleTabChange,
+  en,
+  styles,
+}) => (
+  <Animated.View
+    style={[
+      styles.navContainer,
+      {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      },
+    ]}
+  >
+    <TouchableOpacity
+      style={[
+        styles.navItem,
+        activeSection === "personal" && styles.activeNavItem,
+      ]}
+      onPress={() => handleTabChange("personal")}
+      activeOpacity={0.7}
+    >
+      <Animated.Text
+        style={[
+          styles.navText,
+          activeSection === "personal" && styles.activeNavText,
+        ]}
+      >
+        {en.PROFILE.NAVIGATION.PERSONAL}
+      </Animated.Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={[
+        styles.navItem,
+        activeSection === "professional" && styles.activeNavItem,
+      ]}
+      onPress={() => handleTabChange("professional")}
+      activeOpacity={0.7}
+    >
+      <Animated.Text
+        style={[
+          styles.navText,
+          activeSection === "professional" && styles.activeNavText,
+        ]}
+      >
+        {en.PROFILE.NAVIGATION.PROFESSIONAL}
+      </Animated.Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={[
+        styles.navItem,
+        activeSection === "contact" && styles.activeNavItem,
+      ]}
+      onPress={() => handleTabChange("contact")}
+      activeOpacity={0.7}
+    >
+      <Animated.Text
+        style={[
+          styles.navText,
+          activeSection === "contact" && styles.activeNavText,
+        ]}
+      >
+        {en.PROFILE.NAVIGATION.CONTACT}
+      </Animated.Text>
+    </TouchableOpacity>
+  </Animated.View>
+);
+
+NavigationTab.propTypes = {
+  fadeAnim: PropTypes.object.isRequired,
+  slideAnim: PropTypes.object.isRequired,
+  activeSection: PropTypes.string.isRequired,
+  handleTabChange: PropTypes.func.isRequired,
+  en: PropTypes.object.isRequired,
+  styles: PropTypes.object.isRequired,
+};
+
+const SectionCard = ({ title, details }) => (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>{title}</Text>
+    {details.map((item, index) => (
+      <DetailRow
+        key={item.id || item.label}
+        label={item.label}
+        value={item.value}
+        index={index}
+      />
+    ))}
+  </View>
+);
+
+SectionCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  details: PropTypes.array.isRequired,
+};
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState("personal");
@@ -37,9 +182,8 @@ const Profile = () => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const tabScaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation();
-  console.log(profileData, "profileData");
+
   useEffect(() => {
-    // Start animations when component mounts
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -105,264 +249,185 @@ const Profile = () => {
   const profileDetails = [
     {
       label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode
-        ? profileData?.empCode
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCode || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.EMAIL,
-      value: profileData?.emailId
-        ? profileData?.emailId
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.emailId || en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const personalDetails = [
     {
       label: en.PROFILE.DETAILS.FULL_NAME,
-      value: profileData?.firstName
-        ? profileData?.firstName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.firstName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GENDER,
-      value: profileData?.gender
-        ? profileData?.gender
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gender || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DATE_OF_BIRTH,
-      value: profileData?.dob ? profileData?.dob : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.dob || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.CONTACT,
-      value: profileData?.mobileNo
-        ? profileData?.mobileNo
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.mobileNo || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.BLOOD_GROUP,
-      value: profileData?.bloodGroup
-        ? profileData?.bloodGroup
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.bloodGroup || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RELIGION,
-      value: profileData?.religion
-        ? profileData?.religion
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.religion || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.STATE,
-      value: profileData?.stateName
-        ? profileData?.stateName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.stateName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.NATIONALITY,
-      value: profileData?.nationName
-        ? profileData?.nationName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.nationName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.CATEGORY,
-      value: profileData?.empCategory
-        ? profileData?.empCategory
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCategory || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.FATHERS_NAME,
-      value: profileData?.fatherName
-        ? profileData?.fatherName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.fatherName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.SPOUSE_NAME,
-      value: profileData?.spouseName
-        ? profileData?.spouseName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.spouseName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1,
-      value: profileData?.identificationMarkOne
-        ? profileData?.identificationMarkOne
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.identificationMarkOne || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2,
-      value: profileData?.identificationMarkTwo
-        ? profileData?.identificationMarkTwo
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.identificationMarkTwo || en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const professionalDetails = [
     {
       label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode
-        ? profileData?.empCode
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.empCode || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE,
-      value: profileData?.employmentType
-        ? profileData?.employmentType
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.employmentType || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_ID,
-      value: profileData?.gradeId
-        ? profileData?.gradeId
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeId || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_NAME,
-      value: profileData?.gradeName
-        ? profileData?.gradeName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.GRADE_SHORT_NAME,
-      value: profileData?.gradeShortName
-        ? profileData?.gradeShortName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.gradeShortName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DESIGNATION,
-      value: profileData?.designation?.name
-        ? profileData?.designation?.name
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.designation?.name || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DEPARTMENT,
-      value: profileData?.department?.name
-        ? profileData?.department?.name
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.department?.name || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT,
-      value: profileData?.dateOfAppointment
-        ? profileData?.dateOfAppointment
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.dateOfAppointment || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.UNIT_TYPE,
-      value: profileData?.unitType
-        ? profileData?.unitType
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.unitType || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone
-        ? profileData?.officePhone
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.officePhone || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION,
-      value: profileData?.designationDate
-        ? profileData?.designationDate
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.designationDate || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT,
-      value: profileData?.departmentDate
-        ? profileData?.departmentDate
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.departmentDate || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.UNIT_DATE,
-      value: profileData?.unitDate
-        ? profileData?.unitDate
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.unitDate || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RO_NAME,
-      value: profileData?.roName
-        ? profileData?.roName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.roName || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.AO_NAME,
-      value: profileData?.aoName
-        ? profileData?.aoName
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.aoName || en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
   const contactDetails = [
     {
       label: en.PROFILE.DETAILS.PHONE,
-      value: profileData?.mobileNo
-        ? profileData?.mobileNo
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.mobileNo || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone
-        ? profileData?.officePhone
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.officePhone || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RESIDENCE_PHONE,
-      value: profileData?.residancePhone
-        ? profileData?.residancePhone
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.residancePhone || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.PERMANENT_ADDRESS,
-      value: profileData?.permanentAdd
-        ? profileData?.permanentAdd
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.permanentAdd || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.PERMANENT_ADDRESS_PINCODE,
-      value: profileData?.pinCode
-        ? profileData?.pinCode
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.pinCode || en.PROFILE.NOT_AVAILABLE,
     },
     {
       label: en.PROFILE.DETAILS.RESIDENTIAL_ADDRESS,
-      value: profileData?.temporaryAddress
-        ? profileData?.temporaryAddress
-        : en.PROFILE.NOT_AVAILABLE,
+      value: profileData?.temporaryAddress || en.PROFILE.NOT_AVAILABLE,
     },
   ];
 
-  const DetailRow = ({ label, value, index }) => {
-    const rowFadeAnim = useRef(new Animated.Value(0)).current;
-    const rowSlideAnim = useRef(new Animated.Value(20)).current;
-
-    useEffect(() => {
-      Animated.parallel([
-        Animated.timing(rowFadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: index * 50,
-          useNativeDriver: true,
-        }),
-        Animated.timing(rowSlideAnim, {
-          toValue: 0,
-          duration: 400,
-          delay: index * 50,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, []);
-
-    return (
-      <Animated.View
-        style={[
-          styles.row,
-          {
-            opacity: rowFadeAnim,
-            transform: [{ translateY: rowSlideAnim }],
-          },
-        ]}
-      >
-        <Text style={styles.label}>{label}:</Text>
-        <Text style={styles.value}>{value}</Text>
-      </Animated.View>
-    );
+  const renderSection = () => {
+    switch (activeSection) {
+      case "personal":
+        return (
+          <SectionCard
+            title={en.PROFILE.SECTIONS.PERSONAL_DETAILS}
+            details={personalDetails}
+          />
+        );
+      case "professional":
+        return (
+          <SectionCard
+            title={en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}
+            details={professionalDetails}
+          />
+        );
+      case "contact":
+        return (
+          <SectionCard
+            title={en.PROFILE.SECTIONS.CONTACT_DETAILS}
+            details={contactDetails}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   // Handle tab change with animation
@@ -383,73 +448,6 @@ const Profile = () => {
       setActiveSection(section);
     });
   };
-
-  // Navigation tabs with animation
-  const NavigationTab = () => (
-    <Animated.View
-      style={[
-        styles.navContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        },
-      ]}
-    >
-      <TouchableOpacity
-        style={[
-          styles.navItem,
-          activeSection === "personal" && styles.activeNavItem,
-        ]}
-        onPress={() => handleTabChange("personal")}
-        activeOpacity={0.7}
-      >
-        <Animated.Text
-          style={[
-            styles.navText,
-            activeSection === "personal" && styles.activeNavText,
-          ]}
-        >
-          {en.PROFILE.NAVIGATION.PERSONAL}
-        </Animated.Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[
-          styles.navItem,
-          activeSection === "professional" && styles.activeNavItem,
-        ]}
-        onPress={() => handleTabChange("professional")}
-        activeOpacity={0.7}
-      >
-        <Animated.Text
-          style={[
-            styles.navText,
-            activeSection === "professional" && styles.activeNavText,
-          ]}
-        >
-          {en.PROFILE.NAVIGATION.PROFESSIONAL}
-        </Animated.Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[
-          styles.navItem,
-          activeSection === "contact" && styles.activeNavItem,
-        ]}
-        onPress={() => handleTabChange("contact")}
-        activeOpacity={0.7}
-      >
-        <Animated.Text
-          style={[
-            styles.navText,
-            activeSection === "contact" && styles.activeNavText,
-          ]}
-        >
-          {en.PROFILE.NAVIGATION.CONTACT}
-        </Animated.Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
 
   return (
     <WrapperContainer isLoading={loading}>
@@ -492,9 +490,9 @@ const Profile = () => {
                 ? profileData?.lastName
                 : en.PROFILE.NOT_AVAILABLE}
             </Text>
-            {profileDetails.map((item, index) => (
+            {profileDetails.map((item) => (
               <Animated.Text
-                key={index}
+                key={item.id || item.label}
                 style={[
                   styles.userDetail,
                   {
@@ -525,60 +523,21 @@ const Profile = () => {
             />
           </TouchableOpacity>
         </Animated.View>
-        <NavigationTab />
+        <NavigationTab
+          fadeAnim={fadeAnim}
+          slideAnim={slideAnim}
+          activeSection={activeSection}
+          handleTabChange={handleTabChange}
+          en={en}
+          styles={styles}
+        />
         <Animated.View
           style={{
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
           }}
         >
-          {activeSection === "personal" && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {en.PROFILE.SECTIONS.PERSONAL_DETAILS}
-              </Text>
-              {personalDetails.map((item, index) => (
-                <DetailRow
-                  key={item.id || item.label}
-                  label={item.label}
-                  value={item.value}
-                  index={index}
-                />
-              ))}
-            </View>
-          )}
-
-          {activeSection === "professional" && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}
-              </Text>
-              {professionalDetails.map((item, index) => (
-                <DetailRow
-                  key={item.id || item.label}
-                  label={item.label}
-                  value={item.value}
-                  index={index}
-                />
-              ))}
-            </View>
-          )}
-
-          {activeSection === "contact" && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {en.PROFILE.SECTIONS.CONTACT_DETAILS}
-              </Text>
-              {contactDetails.map((item, index) => (
-                <DetailRow
-                  key={item.id || item.label}
-                  label={item.label}
-                  value={item.value}
-                  index={index}
-                />
-              ))}
-            </View>
-          )}
+          {renderSection()}
         </Animated.View>
       </ScrollView>
     </WrapperContainer>
@@ -586,9 +545,6 @@ const Profile = () => {
 };
 
 export default Profile;
-
-
-
 
 const styles = StyleSheet.create({
   container: {
