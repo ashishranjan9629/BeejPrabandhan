@@ -11,16 +11,17 @@ import {
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
 import CustomButton from "../../../../components/CustomButton";
+import PropTypes from "prop-types";
+
 
 const CropDetails = ({ route }) => {
   const { item } = route.params;
-  console.log(item,"line 17")
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const d = new Date(dateString.replace(" ", "T"));
-    if (isNaN(d)) return dateString;
+    if (Number.isNaN(d)) return dateString;
     return d.toLocaleString("en-IN", {
       day: "2-digit",
       month: "2-digit",
@@ -64,8 +65,8 @@ const CropDetails = ({ route }) => {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {details.map((detail, index) => (
-          <View key={index} style={styles.row}>
+        {details?.map((detail) => (
+          <View key={detail?.id} style={styles.row}>
             <Text style={styles.label}>{detail.label}</Text>
             <Text style={styles.value}>{detail.value ?? "-"}</Text>
           </View>
@@ -83,8 +84,8 @@ const CropDetails = ({ route }) => {
                 flexWrap: "wrap",
               }}
             >
-              {item.seasons.map((season, idx) => (
-                <View key={idx} style={styles.seasonCard}>
+              {item.seasons.map((season) => (
+                <View key={season?.id} style={styles.seasonCard}>
                   <Text style={styles.seasonTitle}>
                     {season.seasonType} ({season.seasonShortName})
                   </Text>
@@ -107,6 +108,12 @@ const CropDetails = ({ route }) => {
       </ScrollView>
     </WrapperContainer>
   );
+};
+
+CropDetails.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
 };
 
 export default CropDetails;
