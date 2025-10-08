@@ -1,5 +1,6 @@
-import { Alert, Modal, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, TouchableOpacity, View } from "react-native";
 import React from "react";
+import PropTypes from "prop-types";
 import { moderateScale, moderateScaleVertical } from "../utils/responsiveSize";
 
 const CustomBottomSheet = ({ visible, onRequestClose, children, height }) => {
@@ -17,15 +18,25 @@ const CustomBottomSheet = ({ visible, onRequestClose, children, height }) => {
           activeOpacity={1}
           onPress={onRequestClose}
         />
-        <View
-          style={[styles.modalContainer, { height: height ? height : null }]}
-        >
+        <View style={[styles.modalContainer, height && { height }]}>
           {/* <View style={styles.dragHandle} /> */}
           {children}
         </View>
       </View>
     </Modal>
   );
+};
+
+CustomBottomSheet.propTypes = {
+  visible: PropTypes.bool.isRequired,
+  onRequestClose: PropTypes.func.isRequired,
+  children: PropTypes.node,
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+};
+
+CustomBottomSheet.defaultProps = {
+  children: null,
+  height: null,
 };
 
 export default CustomBottomSheet;
