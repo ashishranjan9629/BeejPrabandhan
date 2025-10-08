@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 import React from "react";
 import { useSelector } from "react-redux";
 import AuthNavigation from "./AuthNavigation";
@@ -14,5 +14,3 @@ const Route = () => {
 };
 
 export default Route;
-
-const styles = StyleSheet.create({});
