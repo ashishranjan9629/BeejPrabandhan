@@ -1,4 +1,3 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import WrapperContainer from "../../utils/WrapperContainer";
 import ImagePath from "../../utils/ImagePath";
@@ -18,4 +17,3 @@ const Cart = () => {
 
 export default Cart;
 
-const styles = StyleSheet.create({});

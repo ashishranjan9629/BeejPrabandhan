@@ -406,7 +406,7 @@ const CreateNew = () => {
                     id: Date.now(),
                     equipmentName: currentEquipment.equipment,
                     equipmentId: currentEquipment.equipmentId,
-                    estimatedHours: parseInt(currentEquipment.estimatedHours),
+                    estimatedHours: Number.parseInt(currentEquipment.estimatedHours),
                     operator: currentEquipment.operatorRequired,
                     operatorName: "",
                   },

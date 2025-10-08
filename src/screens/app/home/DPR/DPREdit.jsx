@@ -342,7 +342,7 @@ const DPREdit = ({ route }) => {
             id: Date.now(),
             equipmentName: newEquipment.equipment,
             equipmentId: newEquipment.equipmentId,
-            estimatedHours: parseInt(newEquipment.estimatedHours),
+            estimatedHours: Number.parseInt(newEquipment.estimatedHours),
             operator: newEquipment.operatorRequired,
             operatorName: "",
           },
