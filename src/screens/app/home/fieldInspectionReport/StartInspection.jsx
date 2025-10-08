@@ -36,7 +36,7 @@ const StartInspection = ({ route }) => {
 
   // Calculate total inspected area
   const totalInspectedArea = selectedLands.reduce((total, land) => {
-    return total + (parseFloat(land.landArea) || 0);
+    return total + (Number.parseFloat(land.landArea) || 0);
   }, 0);
 
   const toggleLandSelection = (land) => {

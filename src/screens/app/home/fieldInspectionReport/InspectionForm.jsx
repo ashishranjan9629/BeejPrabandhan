@@ -1176,7 +1176,7 @@ const InspectionForm = ({ route }) => {
               </Text>
               {currentStep2Config.fields.map((field, index) => {
                 const total = formData.counts.reduce((sum, count) => {
-                  return sum + (parseFloat(count[field]) || 0);
+                  return sum + (Number.parseFloat(count[field]) || 0);
                 }, 0);
                 return (
                   <Text
