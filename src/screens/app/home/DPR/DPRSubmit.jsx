@@ -730,8 +730,8 @@ const DPRSubmit = ({ route }) => {
           actualTime: labour.actualTime,
           otTime: labour.otTime || "",
           hours:
-            (parseFloat(labour.actualTime) || 0) +
-            (parseFloat(labour.otTime) || 0),
+            (Number.parseFloat(labour.actualTime) || 0) +
+            (Number.parseFloat(labour.otTime) || 0),
         })),
       };
 
