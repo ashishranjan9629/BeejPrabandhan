@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-} from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
@@ -21,12 +16,12 @@ import {
 } from "../../../../utils/responsiveSize";
 import FontFamily from "../../../../utils/FontFamily";
 import Octicons from "react-native-vector-icons/Octicons";
+import PropTypes from "prop-types";
 
 const SeedsIntakeHistory = ({ route }) => {
   const { item } = route.params;
   const [loading, setLoading] = useState(false);
   const [seedsData, setSeedsData] = useState();
-  // console.log(seedsData, "line 30");
   useEffect(() => {
     fetchSeedsIntakeHistory();
   }, []);
@@ -81,7 +76,7 @@ const SeedsIntakeHistory = ({ route }) => {
         showErrorMessage("Error in fetching Schedule Id");
       }
     } catch (error) {
-      showErrorMessage("Unexpected Error");
+      showErrorMessage(`Unexpected Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -175,6 +170,11 @@ const SeedsIntakeHistory = ({ route }) => {
     </View>
   );
 
+  InfoBox.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  };
+
   const SummaryCard = ({ totalRawSeed, totalBagSize }) => (
     <View
       style={[
@@ -199,6 +199,13 @@ const SeedsIntakeHistory = ({ route }) => {
       </View>
     </View>
   );
+
+  SummaryCard.propTypes = {
+    totalRawSeed: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      .isRequired,
+    totalBagSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+      .isRequired,
+  };
 
   const totalRawSeed =
     seedsData?.reduce((acc, curr) => acc + (Number(curr.rawSeed) || 0), 0) || 0;
@@ -238,6 +245,12 @@ const SeedsIntakeHistory = ({ route }) => {
       />
     </WrapperContainer>
   );
+};
+
+SeedsIntakeHistory.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
 };
 
 const styles = StyleSheet.create({
