@@ -29,6 +29,7 @@ import { useNavigation } from "@react-navigation/native";
 import en from "../../constants/en";
 import PropTypes from "prop-types";
 
+// Reusable DetailRow component
 const DetailRow = ({ label, value, index }) => {
   const rowFadeAnim = useRef(new Animated.Value(0)).current;
   const rowSlideAnim = useRef(new Animated.Value(20)).current;
@@ -72,6 +73,7 @@ DetailRow.propTypes = {
   index: PropTypes.number.isRequired,
 };
 
+// Reusable NavigationTab component
 const NavigationTab = ({
   fadeAnim,
   slideAnim,
@@ -89,59 +91,26 @@ const NavigationTab = ({
       },
     ]}
   >
-    <TouchableOpacity
-      style={[
-        styles.navItem,
-        activeSection === "personal" && styles.activeNavItem,
-      ]}
-      onPress={() => handleTabChange("personal")}
-      activeOpacity={0.7}
-    >
-      <Animated.Text
+    {["personal", "professional", "contact"].map((section) => (
+      <TouchableOpacity
+        key={section}
         style={[
-          styles.navText,
-          activeSection === "personal" && styles.activeNavText,
+          styles.navItem,
+          activeSection === section && styles.activeNavItem,
         ]}
+        onPress={() => handleTabChange(section)}
+        activeOpacity={0.7}
       >
-        {en.PROFILE.NAVIGATION.PERSONAL}
-      </Animated.Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity
-      style={[
-        styles.navItem,
-        activeSection === "professional" && styles.activeNavItem,
-      ]}
-      onPress={() => handleTabChange("professional")}
-      activeOpacity={0.7}
-    >
-      <Animated.Text
-        style={[
-          styles.navText,
-          activeSection === "professional" && styles.activeNavText,
-        ]}
-      >
-        {en.PROFILE.NAVIGATION.PROFESSIONAL}
-      </Animated.Text>
-    </TouchableOpacity>
-
-    <TouchableOpacity
-      style={[
-        styles.navItem,
-        activeSection === "contact" && styles.activeNavItem,
-      ]}
-      onPress={() => handleTabChange("contact")}
-      activeOpacity={0.7}
-    >
-      <Animated.Text
-        style={[
-          styles.navText,
-          activeSection === "contact" && styles.activeNavText,
-        ]}
-      >
-        {en.PROFILE.NAVIGATION.CONTACT}
-      </Animated.Text>
-    </TouchableOpacity>
+        <Animated.Text
+          style={[
+            styles.navText,
+            activeSection === section && styles.activeNavText,
+          ]}
+        >
+          {en.PROFILE.NAVIGATION[section.toUpperCase()]}
+        </Animated.Text>
+      </TouchableOpacity>
+    ))}
   </Animated.View>
 );
 
@@ -154,6 +123,7 @@ NavigationTab.propTypes = {
   styles: PropTypes.object.isRequired,
 };
 
+// Reusable SectionCard component
 const SectionCard = ({ title, details }) => (
   <View style={styles.card}>
     <Text style={styles.cardTitle}>{title}</Text>
@@ -171,6 +141,25 @@ const SectionCard = ({ title, details }) => (
 SectionCard.propTypes = {
   title: PropTypes.string.isRequired,
   details: PropTypes.array.isRequired,
+};
+
+// Helper function to create detail items
+const createDetailItem = (label, value, profileData, fallback = en.PROFILE.NOT_AVAILABLE) => ({
+  label,
+  value: profileData?.[value] || fallback,
+});
+
+// Helper function to create nested detail items
+const createNestedDetailItem = (label, nestedKeys, profileData, fallback = en.PROFILE.NOT_AVAILABLE) => {
+  let value = profileData;
+  for (const key of nestedKeys) {
+    value = value?.[key];
+    if (!value) break;
+  }
+  return {
+    label,
+    value: value || fallback,
+  };
 };
 
 const Profile = () => {
@@ -245,194 +234,101 @@ const Profile = () => {
     }
   };
 
-  // Profile data organized in arrays for mapping
-  const profileDetails = [
-    {
-      label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.EMAIL,
-      value: profileData?.emailId || en.PROFILE.NOT_AVAILABLE,
-    },
+  // Profile data configuration
+  const profileDetailsConfig = [
+    { label: en.PROFILE.EMPLOYEE_ID, key: "empCode" },
+    { label: en.PROFILE.EMAIL, key: "emailId" },
   ];
 
-  const personalDetails = [
-    {
-      label: en.PROFILE.DETAILS.FULL_NAME,
-      value: profileData?.firstName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.GENDER,
-      value: profileData?.gender || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DATE_OF_BIRTH,
-      value: profileData?.dob || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.CONTACT,
-      value: profileData?.mobileNo || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.BLOOD_GROUP,
-      value: profileData?.bloodGroup || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.RELIGION,
-      value: profileData?.religion || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.STATE,
-      value: profileData?.stateName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.NATIONALITY,
-      value: profileData?.nationName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.CATEGORY,
-      value: profileData?.empCategory || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.FATHERS_NAME,
-      value: profileData?.fatherName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.SPOUSE_NAME,
-      value: profileData?.spouseName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1,
-      value: profileData?.identificationMarkOne || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2,
-      value: profileData?.identificationMarkTwo || en.PROFILE.NOT_AVAILABLE,
-    },
+  const personalDetailsConfig = [
+    { label: en.PROFILE.DETAILS.FULL_NAME, key: "firstName" },
+    { label: en.PROFILE.DETAILS.GENDER, key: "gender" },
+    { label: en.PROFILE.DETAILS.DATE_OF_BIRTH, key: "dob" },
+    { label: en.PROFILE.DETAILS.CONTACT, key: "mobileNo" },
+    { label: en.PROFILE.DETAILS.BLOOD_GROUP, key: "bloodGroup" },
+    { label: en.PROFILE.DETAILS.RELIGION, key: "religion" },
+    { label: en.PROFILE.DETAILS.STATE, key: "stateName" },
+    { label: en.PROFILE.DETAILS.NATIONALITY, key: "nationName" },
+    { label: en.PROFILE.DETAILS.CATEGORY, key: "empCategory" },
+    { label: en.PROFILE.DETAILS.FATHERS_NAME, key: "fatherName" },
+    { label: en.PROFILE.DETAILS.SPOUSE_NAME, key: "spouseName" },
+    { label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1, key: "identificationMarkOne" },
+    { label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2, key: "identificationMarkTwo" },
   ];
 
-  const professionalDetails = [
-    {
-      label: en.PROFILE.EMPLOYEE_ID,
-      value: profileData?.empCode || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE,
-      value: profileData?.employmentType || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.GRADE_ID,
-      value: profileData?.gradeId || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.GRADE_NAME,
-      value: profileData?.gradeName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.GRADE_SHORT_NAME,
-      value: profileData?.gradeShortName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DESIGNATION,
-      value: profileData?.designation?.name || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DEPARTMENT,
-      value: profileData?.department?.name || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT,
-      value: profileData?.dateOfAppointment || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.UNIT_TYPE,
-      value: profileData?.unitType || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION,
-      value: profileData?.designationDate || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT,
-      value: profileData?.departmentDate || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.UNIT_DATE,
-      value: profileData?.unitDate || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.RO_NAME,
-      value: profileData?.roName || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.AO_NAME,
-      value: profileData?.aoName || en.PROFILE.NOT_AVAILABLE,
-    },
+  const professionalDetailsConfig = [
+    { label: en.PROFILE.EMPLOYEE_ID, key: "empCode" },
+    { label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE, key: "employmentType" },
+    { label: en.PROFILE.DETAILS.GRADE_ID, key: "gradeId" },
+    { label: en.PROFILE.DETAILS.GRADE_NAME, key: "gradeName" },
+    { label: en.PROFILE.DETAILS.GRADE_SHORT_NAME, key: "gradeShortName" },
+    { label: en.PROFILE.DETAILS.DESIGNATION, nestedKeys: ["designation", "name"] },
+    { label: en.PROFILE.DETAILS.DEPARTMENT, nestedKeys: ["department", "name"] },
+    { label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT, key: "dateOfAppointment" },
+    { label: en.PROFILE.DETAILS.UNIT_TYPE, key: "unitType" },
+    { label: en.PROFILE.DETAILS.OFFICE_PHONE, key: "officePhone" },
+    { label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION, key: "designationDate" },
+    { label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT, key: "departmentDate" },
+    { label: en.PROFILE.DETAILS.UNIT_DATE, key: "unitDate" },
+    { label: en.PROFILE.DETAILS.RO_NAME, key: "roName" },
+    { label: en.PROFILE.DETAILS.AO_NAME, key: "aoName" },
   ];
 
-  const contactDetails = [
-    {
-      label: en.PROFILE.DETAILS.PHONE,
-      value: profileData?.mobileNo || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.OFFICE_PHONE,
-      value: profileData?.officePhone || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.RESIDENCE_PHONE,
-      value: profileData?.residancePhone || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.PERMANENT_ADDRESS,
-      value: profileData?.permanentAdd || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.PERMANENT_ADDRESS_PINCODE,
-      value: profileData?.pinCode || en.PROFILE.NOT_AVAILABLE,
-    },
-    {
-      label: en.PROFILE.DETAILS.RESIDENTIAL_ADDRESS,
-      value: profileData?.temporaryAddress || en.PROFILE.NOT_AVAILABLE,
-    },
+  const contactDetailsConfig = [
+    { label: en.PROFILE.DETAILS.PHONE, key: "mobileNo" },
+    { label: en.PROFILE.DETAILS.OFFICE_PHONE, key: "officePhone" },
+    { label: en.PROFILE.DETAILS.RESIDENCE_PHONE, key: "residancePhone" },
+    { label: en.PROFILE.DETAILS.PERMANENT_ADDRESS, key: "permanentAdd" },
+    { label: en.PROFILE.DETAILS.PERMANENT_ADDRESS_PINCODE, key: "pinCode" },
+    { label: en.PROFILE.DETAILS.RESIDENTIAL_ADDRESS, key: "temporaryAddress" },
   ];
+
+  // Helper function to generate details array from config
+  const generateDetails = (config) => {
+    return config.map(item => {
+      if (item.nestedKeys) {
+        return createNestedDetailItem(item.label, item.nestedKeys, profileData);
+      }
+      return createDetailItem(item.label, item.key, profileData);
+    });
+  };
+
+  // Generate detail arrays
+  const profileDetails = generateDetails(profileDetailsConfig);
+  const personalDetails = generateDetails(personalDetailsConfig);
+  const professionalDetails = generateDetails(professionalDetailsConfig);
+  const contactDetails = generateDetails(contactDetailsConfig);
+
+  // Section configuration
+  const sectionConfig = {
+    personal: {
+      title: en.PROFILE.SECTIONS.PERSONAL_DETAILS,
+      details: personalDetails,
+    },
+    professional: {
+      title: en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS,
+      details: professionalDetails,
+    },
+    contact: {
+      title: en.PROFILE.SECTIONS.CONTACT_DETAILS,
+      details: contactDetails,
+    },
+  };
 
   const renderSection = () => {
-    switch (activeSection) {
-      case "personal":
-        return (
-          <SectionCard
-            title={en.PROFILE.SECTIONS.PERSONAL_DETAILS}
-            details={personalDetails}
-          />
-        );
-      case "professional":
-        return (
-          <SectionCard
-            title={en.PROFILE.SECTIONS.PROFESSIONAL_DETAILS}
-            details={professionalDetails}
-          />
-        );
-      case "contact":
-        return (
-          <SectionCard
-            title={en.PROFILE.SECTIONS.CONTACT_DETAILS}
-            details={contactDetails}
-          />
-        );
-      default:
-        return null;
-    }
+    const section = sectionConfig[activeSection];
+    if (!section) return null;
+    
+    return (
+      <SectionCard
+        title={section.title}
+        details={section.details}
+      />
+    );
   };
 
   // Handle tab change with animation
   const handleTabChange = (section) => {
-    // Animate tab press
     Animated.sequence([
       Animated.timing(tabScaleAnim, {
         toValue: 0.95,
@@ -483,16 +379,12 @@ const Profile = () => {
           />
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>
-              {profileData?.firstName
-                ? profileData?.firstName
-                : en.PROFILE.NOT_AVAILABLE}{" "}
-              {profileData?.lastName
-                ? profileData?.lastName
-                : en.PROFILE.NOT_AVAILABLE}
+              {profileData?.firstName || en.PROFILE.NOT_AVAILABLE}{" "}
+              {profileData?.lastName || ""}
             </Text>
-            {profileDetails.map((item) => (
+            {profileDetails.map((item, index) => (
               <Animated.Text
-                key={item.id || item.label}
+                key={item.label}
                 style={[
                   styles.userDetail,
                   {
