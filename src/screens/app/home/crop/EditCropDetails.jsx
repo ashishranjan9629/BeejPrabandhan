@@ -129,22 +129,22 @@ const EditCropDetails = ({ route }) => {
         break;
       case "testingCharge":
         if (!value || value.trim() === "") error = "Testing Charge is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Testing Charge must be a valid number";
         break;
       case "minSampleQty":
         if (!value || value.trim() === "") error = "Min Sample Qty is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Min Sample Qty must be a valid number";
         break;
       case "gotCharge":
         if (!value || value.trim() === "") error = "GoT Charge is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "GoT Charge must be a valid number";
         break;
       case "mulRatio":
         if (!value || value.trim() === "") error = "MUL Ratio is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "MUL Ratio must be a valid number";
         break;
       case "hsnShortName":
@@ -152,7 +152,7 @@ const EditCropDetails = ({ route }) => {
         break;
       case "wheatBasis":
         if (!value || value.trim() === "") error = "Wheat Basis is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Wheat Basis must be a valid number";
         break;
       case "advancePayableFlag":
@@ -161,7 +161,7 @@ const EditCropDetails = ({ route }) => {
       case "gunnyBagRebateRate":
         if (!value || value.trim() === "")
           error = "Gunny Bag Rebate Rate is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Gunny Bag Rebate Rate must be a valid number";
         break;
       case "transRebateFlag":
@@ -179,7 +179,7 @@ const EditCropDetails = ({ route }) => {
         break;
       case "lotSize":
         if (!value || value.trim() === "") error = "Lot Size is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Lot Size must be a valid number";
         break;
       case "guaranteeRequired":
@@ -198,7 +198,7 @@ const EditCropDetails = ({ route }) => {
         if (inspectionChecklist === "Y" && (!value || value.trim() === "")) {
           error =
             "Checking Recurrence Duration is required when Inspection Checklist is Yes";
-        } else if (value && (isNaN(value) || parseFloat(value) < 0)) {
+        } else if (value && (Number.isNaN(value) || Number.parseFloat(value) < 0)) {
           error = "Checking Recurrence Duration must be a valid number";
         }
         break;
