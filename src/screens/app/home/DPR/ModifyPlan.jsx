@@ -16,6 +16,8 @@ import {
 } from "../../../../utils/responsiveSize";
 import Colors from "../../../../utils/Colors";
 import FontFamily from "../../../../utils/FontFamily";
+import PropTypes from "prop-types";
+
 
 const ModifyPlan = ({ route }) => {
   const { item } = route.params;
@@ -148,6 +150,12 @@ const ModifyPlan = ({ route }) => {
       </ScrollView>
     </WrapperContainer>
   );
+};
+
+ModifyPlan.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
 };
 
 export default ModifyPlan;
