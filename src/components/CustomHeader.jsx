@@ -8,7 +8,6 @@ import { useNavigation } from "@react-navigation/native";
 
 const CustomHeader = ({ data }) => {
   const navigation = useNavigation();
-  // Function to get time-based greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
@@ -16,7 +15,6 @@ const CustomHeader = ({ data }) => {
     return "Good Evening";
   };
 
-  // Function to format date as "Day, DD Month, YYYY"
   const getFormattedDate = () => {
     const date = new Date();
     const options = {
@@ -31,7 +29,7 @@ const CustomHeader = ({ data }) => {
   return (
     <View style={styles.main}>
       <View style={styles.container}>
-        <View >
+        <View>
           <Text style={styles.textStyle}>
             Hello
             <Text style={{ fontFamily: FontFamily.PoppinsMedium }}>
@@ -39,10 +37,7 @@ const CustomHeader = ({ data }) => {
             </Text>
           </Text>
           <Text
-            style={[
-              styles.textStyle,
-              { fontFamily: FontFamily.PoppinsLight },
-            ]}
+            style={[styles.textStyle, { fontFamily: FontFamily.PoppinsLight }]}
           >
             {getFormattedDate()}
           </Text>
@@ -53,7 +48,6 @@ const CustomHeader = ({ data }) => {
             style={styles.notificationHolder}
             onPress={() => navigation.navigate("Notification")}
           >
-            {/* Notification Icon */}
             <Feather
               name="bell"
               size={moderateScale(25)}
@@ -76,9 +70,17 @@ const CustomHeader = ({ data }) => {
   );
 };
 
-export default CustomHeader;
+CustomHeader.propTypes = {
+  data: PropTypes.shape({
+    userProfileImage: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.object,
+      PropTypes.string,
+    ]),
+  }),
+};
 
-// ... keep your existing styles ...
+export default CustomHeader;
 
 const styles = StyleSheet.create({
   main: {
