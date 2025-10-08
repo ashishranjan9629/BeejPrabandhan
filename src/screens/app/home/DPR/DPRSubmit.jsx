@@ -30,11 +30,13 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { getUserData } from "../../../../utils/Storage";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
 
-const DPRSubmit = ({ route, navigation }) => {
+const DPRSubmit = ({ route }) => {
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const { data } = route.params;
-  console.log(data.operationName, "data.operationName");
   const [userData, setUserData] = useState();
   const [mechanicalData, setMechanicalData] = useState([]);
   const [agricultureData, setAgricultureData] = useState([]);
@@ -43,19 +45,15 @@ const DPRSubmit = ({ route, navigation }) => {
   const [showMaterialTypeDropdown, setShowMaterialTypeDropdown] =
     useState(false);
   const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
-  const [materialTypeList, setMaterialTypeList] = useState([
+  const materialTypeList = [
     "VALUE_ADDED",
     "PACKAGING_MATERIAL",
     "AGRO_CHEMICAL",
     "SEED",
     "SAPLING",
-  ]);
+  ];
   const [materialList, setMaterialList] = useState([]);
   const [currentAgricultureIndex, setCurrentAgricultureIndex] = useState(0);
-
-  console.log(userData, "userData");
-  console.log(data, "data");
-  // Add this function to fetch material list
   const fetchMaterialList = async (materialType, index) => {
     try {
       setLoading(true);
@@ -210,13 +208,6 @@ const DPRSubmit = ({ route, navigation }) => {
     setAgricultureData((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Function to calculate total hours
-  const calculateTotalHours = (actualTime, otTime) => {
-    const actual = parseFloat(actualTime) || 0;
-    const ot = parseFloat(otTime) || 0;
-    return (actual + ot).toString();
-  };
-
   const addLabourEntry = () => {
     const newId = Math.max(...labourData.map((item) => item.id), 0) + 1;
     setLabourData((prev) => [
@@ -237,103 +228,6 @@ const DPRSubmit = ({ route, navigation }) => {
       return;
     }
     setLabourData((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async () => {
-    // Validate all CP Numbers for mechanical entries
-    if (
-      userData?.unitType === "BLOCK" &&
-      userData?.subUnitType === "WORKSHOP"
-    ) {
-      for (let i = 0; i < mechanicalData.length; i++) {
-        if (!mechanicalData[i].cpNumber.trim()) {
-          showErrorMessage(`Please Enter the CP Number for Equipment ${i + 1}`);
-          return;
-        }
-      }
-    }
-    // Validate agriculture entries
-    if (userData?.unitType === "CHAK") {
-      for (let i = 0; i < agricultureData.length; i++) {
-        const agri = agricultureData[i];
-        if (!agri.itemId.trim() || !agri.material.trim() || !agri.qty.trim()) {
-          showErrorMessage(
-            `Please fill all fields for Agriculture entry ${i + 1}`
-          );
-          return;
-        }
-      }
-    }
-
-    // Validate labour entries
-    if (userData?.unitType === "CHAK") {
-      for (let i = 0; i < labourData.length; i++) {
-        const labour = labourData[i];
-        if (!labour.name.trim() || !labour.actualTime.trim()) {
-          showErrorMessage(
-            `Please fill all required fields for Labour entry ${i + 1}`
-          );
-          return;
-        }
-      }
-    }
-
-    try {
-      setLoading(true);
-      const submitData = {
-        ...data,
-        unitId:
-          userData?.unitType === "BLOCK" ? userData?.blockId : userData?.chakId,
-        unitType: userData?.unitType,
-        dprStatus:
-          userData?.unitType === "BLOCK" && userData?.subUnitType === "WORKSHOP"
-            ? "PENDING_WITH_CHAK_INCHARGE"
-            : "SUBMITTED",
-        dprMechanicals: data.dprMechanicals.map((mech, index) => ({
-          ...mech,
-          operatorName: mechanicalData[index]?.operatorName || "",
-          cpNumber: mechanicalData[index]?.cpNumber || "",
-        })),
-        dprAgricultures: agricultureData.map((agri) => ({
-          material: agri.material,
-          itemId: agri.itemId,
-          qty: agri.qty,
-          uom: agri.uom || "",
-        })),
-        dprLabour: labourData.map((labour) => ({
-          name: labour.name,
-          actualTime: labour.actualTime,
-          otTime: labour.otTime || "",
-          hours: (parseFloat(labour.actualTime) || 0) + (parseFloat(labour.otTime) || 0),
-        })),
-      };
-
-      console.log(submitData, "submitData");
-      const encryptedPayload = encryptWholeObject(submitData);
-      const response = await apiRequest(
-        API_ROUTES.DP_REPORT_UPDATE,
-        "post",
-        encryptedPayload
-      );
-      const decrypted = decryptAES(response);
-      const parsedDecrypted = JSON.parse(decrypted);
-      console.log(parsedDecrypted, "line 543");
-      if (
-        parsedDecrypted?.status === "SUCCESS" &&
-        parsedDecrypted?.statusCode === "200"
-      ) {
-        showSuccessMessage(
-          parsedDecrypted?.message || "Success, DPR Updated successfully "
-        );
-        navigation.goBack();
-      } else {
-        showErrorMessage(parsedDecrypted?.message || "Error");
-      }
-    } catch (error) {
-      console.log(error, "line error");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const renderProcessDetails = () => (
@@ -418,66 +312,64 @@ const DPRSubmit = ({ route, navigation }) => {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Mechanical</Text>
 
-      {data.dprMechanicals &&
-        data.dprMechanicals.map((mech, index) => {
-          const currentMechData = mechanicalData[index] || {};
-
-          return (
-            <View key={mech.id || index} style={styles.mechContainer}>
-              <View style={styles.serialContainer}>
-                <Text style={styles.serialLabel}>Serial No</Text>
-                <Text style={styles.serialNumber}>{index + 1}</Text>
-              </View>
-
-              <View style={styles.mechDetails}>
-                <View style={styles.mechRow}>
-                  <Text style={styles.mechLabel}>Equipment Name</Text>
-                  <Text style={styles.mechValue}>
-                    {mech.equipmentName || "N/A"}
-                  </Text>
-                </View>
-
-                <View style={styles.mechRow}>
-                  <Text style={styles.mechLabel}>Est. Hours</Text>
-                  <Text style={styles.mechValue}>
-                    {mech.estimatedHours || "N/A"}
-                  </Text>
-                </View>
-
-                {mech.operator && (
-                  <>
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Operator Name</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={currentMechData.operatorName || ""}
-                        onChangeText={(text) =>
-                          updateMechanicalField(index, "operatorName", text)
-                        }
-                        placeholder="Enter operator name"
-                        placeholderTextColor={Colors.grey}
-                      />
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>CP Number *</Text>
-                      <TextInput
-                        style={styles.textInput}
-                        value={currentMechData.cpNumber || ""}
-                        onChangeText={(text) =>
-                          updateMechanicalField(index, "cpNumber", text)
-                        }
-                        placeholder="Enter CP number"
-                        placeholderTextColor={Colors.grey}
-                        keyboardType="numeric"
-                      />
-                    </View>
-                  </>
-                )}
-              </View>
+      {data?.dprMechanicals.map((mech, index) => {
+        const currentMechData = mechanicalData[index] || {};
+        return (
+          <View key={mech.id || index} style={styles.mechContainer}>
+            <View style={styles.serialContainer}>
+              <Text style={styles.serialLabel}>Serial No</Text>
+              <Text style={styles.serialNumber}>{index + 1}</Text>
             </View>
-          );
-        })}
+
+            <View style={styles.mechDetails}>
+              <View style={styles.mechRow}>
+                <Text style={styles.mechLabel}>Equipment Name</Text>
+                <Text style={styles.mechValue}>
+                  {mech.equipmentName || "N/A"}
+                </Text>
+              </View>
+
+              <View style={styles.mechRow}>
+                <Text style={styles.mechLabel}>Est. Hours</Text>
+                <Text style={styles.mechValue}>
+                  {mech.estimatedHours || "N/A"}
+                </Text>
+              </View>
+
+              {mech.operator && (
+                <>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>Operator Name</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={currentMechData.operatorName || ""}
+                      onChangeText={(text) =>
+                        updateMechanicalField(index, "operatorName", text)
+                      }
+                      placeholder="Enter operator name"
+                      placeholderTextColor={Colors.grey}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>CP Number *</Text>
+                    <TextInput
+                      style={styles.textInput}
+                      value={currentMechData.cpNumber || ""}
+                      onChangeText={(text) =>
+                        updateMechanicalField(index, "cpNumber", text)
+                      }
+                      placeholder="Enter CP number"
+                      placeholderTextColor={Colors.grey}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        );
+      })}
     </View>
   );
 
@@ -486,7 +378,7 @@ const DPRSubmit = ({ route, navigation }) => {
       <Text style={styles.sectionTitle}>Agriculture</Text>
 
       {agricultureData.map((agri, index) => (
-        <View key={index} style={styles.agriContainer}>
+        <View key={agri?.id} style={styles.agriContainer}>
           <View style={styles.serialContainer}>
             <Text style={styles.serialLabel}>Serial No</Text>
             <Text style={styles.serialNumber}>{index + 1}</Text>
@@ -680,7 +572,7 @@ const DPRSubmit = ({ route, navigation }) => {
       <Text style={styles.sectionTitle}>Labour Details</Text>
 
       {labourData.map((labour, index) => (
-        <View key={index} style={styles.labourContainer}>
+        <View key={labour?.id} style={styles.labourContainer}>
           <View style={styles.serialContainer}>
             <Text style={styles.serialLabel}>Serial No</Text>
             <Text style={styles.serialNumber}>{index + 1}</Text>
@@ -760,6 +652,116 @@ const DPRSubmit = ({ route, navigation }) => {
     </View>
   );
 
+  const validateMechanicalEntries = () => {
+    if (
+      userData?.unitType === "BLOCK" &&
+      userData?.subUnitType === "WORKSHOP"
+    ) {
+      for (let i = 0; i < mechanicalData.length; i++) {
+        if (!mechanicalData[i].cpNumber.trim()) {
+          showErrorMessage(`Please Enter the CP Number for Equipment ${i + 1}`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const validateAgricultureEntries = () => {
+    if (userData?.unitType === "CHAK") {
+      for (let i = 0; i < agricultureData.length; i++) {
+        const agri = agricultureData[i];
+        if (!agri.itemId.trim() || !agri.material.trim() || !agri.qty.trim()) {
+          showErrorMessage(
+            `Please fill all fields for Agriculture entry ${i + 1}`
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const validateLabourEntries = () => {
+    if (userData?.unitType === "CHAK") {
+      for (let i = 0; i < labourData.length; i++) {
+        const labour = labourData[i];
+        if (!labour.name.trim() || !labour.actualTime.trim()) {
+          showErrorMessage(
+            `Please fill all required fields for Labour entry ${i + 1}`
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    // Validation
+    if (!validateMechanicalEntries()) return;
+    if (!validateAgricultureEntries()) return;
+    if (!validateLabourEntries()) return;
+
+    try {
+      setLoading(true);
+      const submitData = {
+        ...data,
+        unitId:
+          userData?.unitType === "BLOCK" ? userData?.blockId : userData?.chakId,
+        unitType: userData?.unitType,
+        dprStatus:
+          userData?.unitType === "BLOCK" && userData?.subUnitType === "WORKSHOP"
+            ? "PENDING_WITH_CHAK_INCHARGE"
+            : "SUBMITTED",
+        dprMechanicals: data.dprMechanicals.map((mech, index) => ({
+          ...mech,
+          operatorName: mechanicalData[index]?.operatorName || "",
+          cpNumber: mechanicalData[index]?.cpNumber || "",
+        })),
+        dprAgricultures: agricultureData.map((agri) => ({
+          material: agri.material,
+          itemId: agri.itemId,
+          qty: agri.qty,
+          uom: agri.uom || "",
+        })),
+        dprLabour: labourData.map((labour) => ({
+          name: labour.name,
+          actualTime: labour.actualTime,
+          otTime: labour.otTime || "",
+          hours:
+            (parseFloat(labour.actualTime) || 0) +
+            (parseFloat(labour.otTime) || 0),
+        })),
+      };
+
+      console.log(submitData, "submitData");
+      const encryptedPayload = encryptWholeObject(submitData);
+      const response = await apiRequest(
+        API_ROUTES.DP_REPORT_UPDATE,
+        "post",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 543");
+      if (
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        showSuccessMessage(
+          parsedDecrypted?.message || "Success, DPR Updated successfully "
+        );
+        navigation.goBack();
+      } else {
+        showErrorMessage(parsedDecrypted?.message || "Error");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={"DPR Submit"} />
@@ -802,6 +804,12 @@ const DPRSubmit = ({ route, navigation }) => {
       </KeyboardAvoidingView>
     </WrapperContainer>
   );
+};
+
+DPRSubmit.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
 };
 
 export default DPRSubmit;
