@@ -30,6 +30,7 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import { useNavigation } from "@react-navigation/native";
+import PropTypes from "prop-types";
 
 const EditCropDetails = ({ route }) => {
   const { item } = route.params;
@@ -208,7 +209,7 @@ const EditCropDetails = ({ route }) => {
         break;
       case "notionValue":
         if (!value || value.trim() === "") error = "Notion Value is required";
-        else if (isNaN(value) || parseFloat(value) < 0)
+        else if (Number.isNaN(value) || Number.parseFloat(value) < 0)
           error = "Notion Value must be a valid number";
         break;
       default:
@@ -321,7 +322,7 @@ const EditCropDetails = ({ route }) => {
         testingCharge: testingCharge || 0,
         gotCharge: gotCharge || 0,
         fieldProcess,
-        cropFirType: cropFirType ? cropFirType : null,
+        cropFirType: cropFirType || null,
         uomShortName,
         mulRatio: mulRatio || 0,
         wheatBasis: wheatBasis || 0,
@@ -841,6 +842,11 @@ const EditCropDetails = ({ route }) => {
   );
 };
 
+EditCropDetails.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.object.isRequired,
+  }).isRequired,
+};
 export default EditCropDetails;
 
 const styles = StyleSheet.create({
