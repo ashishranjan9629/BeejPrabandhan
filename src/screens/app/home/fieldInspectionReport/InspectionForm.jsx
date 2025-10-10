@@ -120,7 +120,7 @@ const InspectionForm = ({ route }) => {
         field: "stageOfCropGrowthAtInspection",
       },
       {
-        label: "label.stageOfGrowthOfContaminant",
+        label: "Stage of growth of contaminationt",
         field: "stageofgrowthofcontaminant",
       },
       {
@@ -144,8 +144,8 @@ const InspectionForm = ({ route }) => {
         keyboardType: "decimal-pad",
       },
       { label: "Report Number", field: "reportnumber" },
-      { label: "Time From", field: "timeFrom" },
-      { label: "Time To", field: "timeTo" },
+      // { label: "Time From", field: "timeFrom" },
+      // { label: "Time To", field: "timeTo" },
     ],
     2: STEP1_ALL_FIELDS.map((f) => ({ ...f })),
     3: [
@@ -443,34 +443,32 @@ const InspectionForm = ({ route }) => {
     totalacreageunderproductioninha: "",
 
     // Step 2 fields - dynamic based on cropFirTypeId
-    counts: new Array(10)
-      .fill()
-      .map(() => {
-        if (cropFirTypeId === 1) {
-          return {
-            pollenSheddingHeads: "",
-            offTypesSheddingPollen: "",
-            headSmutErgot: "",
-            kernelSmutGrainSmut: "",
-            greenEar: "",
-          };
-        } else if (cropFirTypeId === 3) {
-          return {
-            receptiveSkills: "",
-            femaleParentSheddingTassels: "",
-            compositeOffTypeSheddingTassels: "",
-            maleParentOffTypeSheddingTassels: "",
-          };
-        } else {
-          // Default for type 2
-          return {
-            offType: "",
-            otherCrops: "",
-            weeds: "",
-            disease: "",
-          };
-        }
-      }),
+    counts: new Array(10).fill().map(() => {
+      if (cropFirTypeId === 1) {
+        return {
+          pollenSheddingHeads: "",
+          offTypesSheddingPollen: "",
+          headSmutErgot: "",
+          kernelSmutGrainSmut: "",
+          greenEar: "",
+        };
+      } else if (cropFirTypeId === 3) {
+        return {
+          receptiveSkills: "",
+          femaleParentSheddingTassels: "",
+          compositeOffTypeSheddingTassels: "",
+          maleParentOffTypeSheddingTassels: "",
+        };
+      } else {
+        // Default for type 2
+        return {
+          offType: "",
+          otherCrops: "",
+          weeds: "",
+          disease: "",
+        };
+      }
+    }),
 
     // Step 3 fields (union of all types)
     offTypePercentage: "",
@@ -690,20 +688,25 @@ const InspectionForm = ({ route }) => {
     }
 
     if (currentStep === 2) {
-      // All table cells required for current config
       formData.counts.forEach((row, idx) => {
-        currentStep2Config.fields.forEach((f) => {
-          const headerIdx = currentStep2Config.fields.indexOf(f);
-          const headerLabel = currentStep2Config.headers[headerIdx + 1] || f; // +1 because first header is Count No.
-          const key = `counts.${idx}.${f}`;
-          const value = row[f];
-          if (isEmptyValue(value))
-            stepErrors[key] = `${headerLabel} (Row ${idx + 1}) is required`;
-          else if (!isNumericString(String(value)))
-            stepErrors[key] = `${headerLabel} (Row ${
-              idx + 1
-            }) must be a number`;
-        });
+        const fields = currentStep2Config.fields;
+        const isFirstRow = idx === 0;
+        const anyFilled = fields.some((f) => !isEmptyValue(row[f]));
+        if (isFirstRow || anyFilled) {
+          fields.forEach((f) => {
+            const headerIdx = fields.indexOf(f);
+            const headerLabel = currentStep2Config.headers[headerIdx + 1] || f;
+            const key = `counts.${idx}.${f}`;
+            const value = row[f];
+            if (isEmptyValue(value)) {
+              stepErrors[key] = `${headerLabel} (Row ${idx + 1}) is required`;
+            } else if (!isNumericString(String(value))) {
+              stepErrors[key] = `${headerLabel} (Row ${
+                idx + 1
+              }) must be a number`;
+            }
+          });
+        }
       });
     }
 
@@ -831,7 +834,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -860,7 +863,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -889,7 +892,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -907,7 +910,12 @@ const InspectionForm = ({ route }) => {
                 ]}
                 placeholder="HH:MM"
                 value={formData.timeFrom}
-                onChangeText={(text) => handleInputChange("timeFrom", text)}
+                onChangeText={(text) => {
+                  // Allow only digits and colon, max length 5
+                  const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
+                  handleInputChange("timeFrom", formatted);
+                }}
+                keyboardType="numbers-and-punctuation"
               />
               {errors.timeFrom && (
                 <Text style={styles.errorText}>{errors.timeFrom}</Text>
@@ -920,7 +928,12 @@ const InspectionForm = ({ route }) => {
                 style={[styles.input, errors.timeTo ? styles.errorInput : null]}
                 placeholder="HH:MM"
                 value={formData.timeTo}
-                onChangeText={(text) => handleInputChange("timeTo", text)}
+                onChangeText={(text) => {
+                  const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
+                  handleInputChange("timeTo", formatted);
+                }}
+                keyboardType="numbers-and-punctuation"
+                maxLength={5}
               />
               {errors.timeTo && (
                 <Text style={styles.errorText}>{errors.timeTo}</Text>
@@ -951,7 +964,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -980,7 +993,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -1011,7 +1024,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -1040,7 +1053,7 @@ const InspectionForm = ({ route }) => {
                   <FontAwesome
                     name="calendar"
                     size={moderateScale(25)}
-                    color={Colors.black}
+                    color={Colors.white}
                   />
                 </TouchableOpacity>
               </View>
@@ -1054,6 +1067,44 @@ const InspectionForm = ({ route }) => {
         {/* Type 3 has no date fields in Step 1 per spec */}
 
         <Text style={styles.sectionTitle}>Checklist Items</Text>
+        {/* {visibleStep1Fields.map((item, index) => (
+          <View key={index} style={styles.inputGroup}>
+            <Text style={styles.label}>{item.label}</Text>
+            {item.type === "switch" ? (
+              <View
+                style={[styles.switchRow, { justifyContent: "flex-start" }]}
+              >
+                <View style={styles.switchContainer}>
+                  <Switch
+                    value={!!formData[item.field]}
+                    onValueChange={(value) =>
+                      handleInputChange(item.field, value)
+                    }
+                    trackColor={{ false: "#767577", true: Colors.lightGreen }}
+                    thumbColor={
+                      formData[item.field] ? Colors.greenColor : "#f4f3f4"
+                    }
+                  />
+                </View>
+              </View>
+            ) : (
+              <TextInput
+                style={[
+                  styles.input,
+                  errors[item.field] ? styles.errorInput : null,
+                ]}
+                placeholder={item.placeholder || "Enter value"}
+                value={String(formData[item.field] ?? "")}
+                onChangeText={(text) => handleInputChange(item.field, text)}
+                keyboardType={item.keyboardType || "default"}
+              />
+            )}
+            {item.type !== "switch" && errors[item.field] && (
+              <Text style={styles.errorText}>{errors[item.field]}</Text>
+            )}
+          </View>
+        ))} */}
+
         {visibleStep1Fields.map((item, index) => (
           <View key={index} style={styles.inputGroup}>
             <Text style={styles.label}>{item.label}</Text>
@@ -1074,6 +1125,26 @@ const InspectionForm = ({ route }) => {
                   />
                 </View>
               </View>
+            ) : item.field === "plantingRatio" ? (
+              <TextInput
+                style={[
+                  styles.input,
+                  errors[item.field] ? styles.errorInput : null,
+                ]}
+                placeholder="e.g. 2:1"
+                value={String(formData[item.field] ?? "")}
+                onChangeText={(text) => {
+                  // Allow only digits and one colon, max length 5
+                  let formatted = text.replace(/[^0-9:]/g, "");
+                  const parts = formatted.split(":");
+                  if (parts.length > 2) {
+                    formatted = parts[0] + ":" + parts[1];
+                  }
+                  handleInputChange(item.field, formatted);
+                }}
+                keyboardType="numbers-and-punctuation"
+                maxLength={5}
+              />
             ) : (
               <TextInput
                 style={[
@@ -1548,12 +1619,15 @@ const InspectionForm = ({ route }) => {
     if (cropType === 1) {
       // For type 1: Pollen Shedding & Disease Count Details
       return counts.map((count) => ({
-        pollenSheddingHeadsCount: Number.parseInt(count.pollenSheddingHeads) || 0,
-        offTypeSheddingHeadsCount1: Number.parseInt(count.offTypesSheddingPollen) || 0,
+        pollenSheddingHeadsCount:
+          Number.parseInt(count.pollenSheddingHeads) || 0,
+        offTypeSheddingHeadsCount1:
+          Number.parseInt(count.offTypesSheddingPollen) || 0,
         normalHeadSmutErgotCount: Number.parseInt(count.headSmutErgot) || 0,
         normalKernelSmutCount: Number.parseInt(count.kernelSmutGrainSmut) || 0,
         normalGreenEarCount: Number.parseInt(count.greenEar) || 0,
-        offTypeSheddingHeadsCount2: Number.parseInt(count.offTypesSheddingPollen) || 0,
+        offTypeSheddingHeadsCount2:
+          Number.parseInt(count.offTypesSheddingPollen) || 0,
         offTypeHeadSmutErgotCount: Number.parseInt(count.headSmutErgot) || 0,
         offTypeKernelSmutCount: Number.parseInt(count.kernelSmutGrainSmut) || 0,
         offTypeGreenEarCount: Number.parseInt(count.greenEar) || 0,
@@ -1639,9 +1713,11 @@ const InspectionForm = ({ route }) => {
         isolationDistanceNorth:
           Number.parseFloat(formData.isolationDistanceNorth) || 0,
         isolationDistanceSouth:
-           Number.parseFloat(formData.isolationDistanceSouth) || 0,
-        isolationDistanceEast:  Number.parseFloat(formData.isolationDistanceEast) || 0,
-        isolationDistanceWest:  Number.parseFloat(formData.isolationDistanceWest) || 0,
+          Number.parseFloat(formData.isolationDistanceSouth) || 0,
+        isolationDistanceEast:
+          Number.parseFloat(formData.isolationDistanceEast) || 0,
+        isolationDistanceWest:
+          Number.parseFloat(formData.isolationDistanceWest) || 0,
         seedSource: formData.seedsource || "",
         femaleParent: formData.femaleParent || "",
         maleParent: formData.maleParent || "",
@@ -1651,10 +1727,10 @@ const InspectionForm = ({ route }) => {
         // Step 2 fields
         productionInspectionFieldCountAs: mapCountsData(formData.counts, 1),
         // Step 3 fields
-        noOfBorderRows:  Number.parseInt(formData.noOfBorderRow) || 0,
+        noOfBorderRows: Number.parseInt(formData.noOfBorderRow) || 0,
         cropCondition: formData.cropCondition || "",
         noOfTimesPollenShedders:
-           Number.parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
+          Number.parseInt(formData.noOfTimesPollenSheddersRemoved) || 0,
         frequencyOfPollenShedders: formData.frequencyOfPollenShedders || "",
         wasItDoneAtInspectionTime: booleanToYesNo(
           formData.wasItDoneAtInspectionTime
@@ -1663,13 +1739,14 @@ const InspectionForm = ({ route }) => {
         doesThisCropConfirmToStandard: booleanToYesNo(
           formData.doesCropConformToStandards
         ),
-        estimatedSeedYield:  Number.parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
+        estimatedSeedYield:
+          Number.parseFloat(formData.estimatedSeedYieldKgPerHa) || 0,
         wasTheGrowerPresent: booleanToYesNo(
           formData.wasGrowerPresentAtInspectionTime
         ),
         isFinal: booleanToYesNo(formData.isFinalReport),
-        areaRejected:  Number.parseFloat(formData.areaRejectedHa) || 0,
-        areaCertified:  Number.parseFloat(formData.areaCertifiedHa) || 0,
+        areaRejected: Number.parseFloat(formData.areaRejectedHa) || 0,
+        areaCertified: Number.parseFloat(formData.areaCertifiedHa) || 0,
         name: formData.name || "",
         designation: formData.designation || "",
         address: formData.address || "",
@@ -1691,11 +1768,11 @@ const InspectionForm = ({ route }) => {
         locationOfFarm: formData.labeoffarm || "",
         sourceOfSeed: formData.seedsource || "",
         totalAcreageUnderProduction:
-           Number.parseFloat(formData.totalacreageunderproductioninha) || 0,
+          Number.parseFloat(formData.totalacreageunderproductioninha) || 0,
         acreageOfFieldInspected:
-           Number.parseFloat(formData.acreageoffieldnoinspectedinha) || 0,
+          Number.parseFloat(formData.acreageoffieldnoinspectedinha) || 0,
         previousCrop: formData.previouscrop || "",
-        isolationDistance:  Number.parseFloat(formData.isolationdistance) || 0,
+        isolationDistance: Number.parseFloat(formData.isolationdistance) || 0,
         stageOfContaminant: formData.stageofgrowthofcontaminant || "",
         stageOfSeedCropAtTimeInspection:
           formData.stageofseedcropatthisinspection || "",
@@ -1707,13 +1784,13 @@ const InspectionForm = ({ route }) => {
         // Step 2 fields
         fieldCounts: mapCountsData(formData.counts, 2),
         // Step 3 fields
-        percentageOffTypes:  Number.parseFloat(formData.offTypePercentage) || 0,
+        percentageOffTypes: Number.parseFloat(formData.offTypePercentage) || 0,
         percentageInseparableCrops:
-           Number.parseFloat(formData.inseparableOtherCropsPercentage) || 0,
+          Number.parseFloat(formData.inseparableOtherCropsPercentage) || 0,
         percentageObjectionableWeeds:
-           Number.parseFloat(formData.objectionableWeedsPercentage) || 0,
+          Number.parseFloat(formData.objectionableWeedsPercentage) || 0,
         percentageSeedBorneDiseases:
-           Number.parseFloat(formData.seedBorneDiseasesPercentage) || 0,
+          Number.parseFloat(formData.seedBorneDiseasesPercentage) || 0,
         inseparableCropPlants: formData.inseparableOtherCropsName || "",
         objectionableWeedPlants: formData.objectionableWeedsName || "",
         seedBorneDiseases: formData.seedBorneDiseasesName || "",
@@ -1722,7 +1799,8 @@ const InspectionForm = ({ route }) => {
         confirmStandard: booleanToYesNo(formData.confirmsToStandards),
         productionQuality: formData.productionQuality || "",
         isFinal: booleanToYesNo(formData.isFinalReport),
-        estimatedRawSeedYield:  Number.parseFloat(formData.estimatedRawSeedYield) || 0,
+        estimatedRawSeedYield:
+          Number.parseFloat(formData.estimatedRawSeedYield) || 0,
         growerPresent: booleanToYesNo(formData.growerPresent),
         submittedFor: formData.growerName || "",
         submittedBy: formData.submittedBy || "",
@@ -1749,7 +1827,7 @@ const InspectionForm = ({ route }) => {
         ),
         methodOfMarkingMaleRows: formData.methodOfMarkingMaleRows || "",
         isolationDistanceMeters:
-           Number.parseFloat(formData.isolationDistanceMeters) || 0,
+          Number.parseFloat(formData.isolationDistanceMeters) || 0,
         stageOfGrowthCoteminant: formData.stageofgrowthofcontaminant || "",
         stageOfSeedCropAtInspection:
           formData.stageofseedcropatthisinspection || "",
@@ -1760,7 +1838,8 @@ const InspectionForm = ({ route }) => {
         sideOfFieldFromWhichInspectionStarted:
           formData.sideOfFieldFromWhichInspectionWasStarted || "",
         cropCondition: formData.cropCondition || "",
-        numberOfTimesDetasselled:  Number.parseInt(formData.noOfTimesDetasselled) || 0,
+        numberOfTimesDetasselled:
+          Number.parseInt(formData.noOfTimesDetasselled) || 0,
         frequencyOfDetasselling: formData.frequencyOfDetasselling || "",
         detassellingDoneAtInspectionTime: booleanToYesNo(
           formData.detassellingDoneAtInspectionTime
@@ -1772,10 +1851,10 @@ const InspectionForm = ({ route }) => {
         estimatedSeedYieldQtlsOrAcres:
           formData.estimatedSeedYieldKgsPerAcres || "0",
         wasGrowerPresentAtInspection: booleanToYesNo(formData.growerPresent),
-        numberOfBorderRow:  Number.parseInt(formData.noOfBorderRow) || 0,
+        numberOfBorderRow: Number.parseInt(formData.noOfBorderRow) || 0,
         isFinalReport: booleanToYesNo(formData.isFinalReport),
-        areaRejectedHect:  Number.parseFloat(formData.areaRejectedHa) || 0,
-        areaCertifiedHect:  Number.parseFloat(formData.areaCertifiedHa) || 0,
+        areaRejectedHect: Number.parseFloat(formData.areaRejectedHa) || 0,
+        areaCertifiedHect: Number.parseFloat(formData.areaCertifiedHa) || 0,
         remarks: formData.remarks || "",
         programmeRejected: "No", // Default value
         // Additional fields for Type 3
@@ -2137,8 +2216,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     width: moderateScale(50),
     padding: moderateScale(10),
-    backgroundColor: Colors.veryLightGrey,
-    borderColor: Colors.veryLightGrey,
+    backgroundColor: Colors.greenColor,
+    borderColor: Colors.greenColor,
     borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
