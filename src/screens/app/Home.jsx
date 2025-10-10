@@ -1,10 +1,4 @@
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  Animated,
-  Easing,
-} from "react-native";
+import { ScrollView, StyleSheet, View, Animated, Easing } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import WrapperContainer from "../../utils/WrapperContainer";
 import CustomHeader from "../../components/CustomHeader";
@@ -86,14 +80,14 @@ const Home = () => {
       name: "Crop",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg3,
-      navigationScreenName: "Crop",
+      // navigationScreenName: "Crop",
     },
     {
       id: 4,
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg4,
-      navigationScreenName: "FieldInspectionReport",
+      // navigationScreenName: "FieldInspectionReport",
     },
   ];
 

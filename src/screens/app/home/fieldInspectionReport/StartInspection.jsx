@@ -31,6 +31,7 @@ DataShownView.propTypes = {
 
 const StartInspection = ({ route }) => {
   const { data } = route.params;
+  console.log("StartInspection", data);
   const navigation = useNavigation();
   const [selectedLands, setSelectedLands] = useState([]);
 
@@ -62,7 +63,12 @@ const StartInspection = ({ route }) => {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <Text style={styles.headerText}>Grower Details</Text>
-          <DataShownView label={"Grower"} value={data?.grower?.partyName} />
+          <DataShownView
+            label={"Grower"}
+            value={`${data?.grower?.entityRegNo?.firstName} ${
+              data?.grower?.entityRegNo?.lastName || ""
+            } `}
+          />
           <DataShownView
             label={"State"}
             value={data?.grower?.entityRegNo?.stateId?.stateName}
@@ -206,6 +212,8 @@ StartInspection.propTypes = {
             villageId: PropTypes.shape({
               villageName: PropTypes.string,
             }),
+            firstName: PropTypes.string,
+            lastName: PropTypes.string,
           }),
           landDetails: PropTypes.arrayOf(
             PropTypes.shape({

@@ -181,7 +181,7 @@ const FieldInspectionReport = () => {
       }
     } catch (error) {
       console.error(error?.messages, "Error in Error Bloack");
-      showErrorMessage(error?.messages || "Error");
+      // showErrorMessage(error?.messages || "Error");
     } finally {
       setLoading(false);
     }
@@ -277,8 +277,8 @@ const FieldInspectionReport = () => {
           await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
           );
-        } catch (permErr) {
-          console.log("Permission error", permErr);
+        } catch (error) {
+          console.log("Permission error", error);
         }
       }
 
@@ -663,8 +663,8 @@ const styles = StyleSheet.create({
   },
   notificationHolder: {
     borderWidth: 2,
-    width: moderateScale(50),
-    height: moderateScale(50),
+    width: moderateScale(40),
+    height: moderateScale(40),
     borderRadius: moderateScale(25),
     backgroundColor: Colors.greenColor,
     borderColor: Colors.greenColor,

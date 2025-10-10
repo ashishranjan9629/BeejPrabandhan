@@ -213,12 +213,8 @@ const UserProfile = () => {
         />
         <View style={styles.profileInfo}>
           <Text style={styles.userName}>
-            {profileData?.firstName
-              ? profileData?.firstName
-              : en.PROFILE.NOT_AVAILABLE}{" "}
-            {profileData?.lastName
-              ? profileData?.lastName
-              : en.PROFILE.NOT_AVAILABLE}
+            {profileData?.firstName || en.PROFILE.NOT_AVAILABLE}{" "}
+            {profileData?.lastName || ""}
           </Text>
           {profileDetails.map((item, index) => (
             <Animated.Text

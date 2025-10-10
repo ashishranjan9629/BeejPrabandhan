@@ -144,13 +144,23 @@ SectionCard.propTypes = {
 };
 
 // Helper function to create detail items
-const createDetailItem = (label, value, profileData, fallback = en.PROFILE.NOT_AVAILABLE) => ({
+const createDetailItem = (
+  label,
+  value,
+  profileData,
+  fallback = en.PROFILE.NOT_AVAILABLE
+) => ({
   label,
   value: profileData?.[value] || fallback,
 });
 
 // Helper function to create nested detail items
-const createNestedDetailItem = (label, nestedKeys, profileData, fallback = en.PROFILE.NOT_AVAILABLE) => {
+const createNestedDetailItem = (
+  label,
+  nestedKeys,
+  profileData,
+  fallback = en.PROFILE.NOT_AVAILABLE
+) => {
   let value = profileData;
   for (const key of nestedKeys) {
     value = value?.[key];
@@ -171,7 +181,7 @@ const Profile = () => {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const tabScaleAnim = useRef(new Animated.Value(1)).current;
   const navigation = useNavigation();
-
+  console.log(profileData, "profileData");
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -247,31 +257,49 @@ const Profile = () => {
     { label: en.PROFILE.DETAILS.CONTACT, key: "mobileNo" },
     { label: en.PROFILE.DETAILS.BLOOD_GROUP, key: "bloodGroup" },
     { label: en.PROFILE.DETAILS.RELIGION, key: "religion" },
-    { label: en.PROFILE.DETAILS.STATE, key: "stateName" },
-    { label: en.PROFILE.DETAILS.NATIONALITY, key: "nationName" },
+    { label: en.PROFILE.DETAILS.STATE, nestedKeys: ["state", "name"] },
+    {
+      label: en.PROFILE.DETAILS.NATIONALITY,
+      nestedKeys: ["nationality", "name"],
+    },
     { label: en.PROFILE.DETAILS.CATEGORY, key: "empCategory" },
     { label: en.PROFILE.DETAILS.FATHERS_NAME, key: "fatherName" },
     { label: en.PROFILE.DETAILS.SPOUSE_NAME, key: "spouseName" },
-    { label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1, key: "identificationMarkOne" },
-    { label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2, key: "identificationMarkTwo" },
+    {
+      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_1,
+      key: "identificationMarkOne",
+    },
+    {
+      label: en.PROFILE.DETAILS.IDENTIFICATION_MARK_2,
+      key: "identificationMarkTwo",
+    },
   ];
 
   const professionalDetailsConfig = [
     { label: en.PROFILE.EMPLOYEE_ID, key: "empCode" },
     { label: en.PROFILE.DETAILS.EMPLOYMENT_TYPE, key: "employmentType" },
-    { label: en.PROFILE.DETAILS.GRADE_ID, key: "gradeId" },
-    { label: en.PROFILE.DETAILS.GRADE_NAME, key: "gradeName" },
+    { label: en.PROFILE.DETAILS.GRADE_ID, nestedKeys: ["grade", "id"] },
+    { label: en.PROFILE.DETAILS.GRADE_NAME, nestedKeys: ["grade", "name"] },
     { label: en.PROFILE.DETAILS.GRADE_SHORT_NAME, key: "gradeShortName" },
-    { label: en.PROFILE.DETAILS.DESIGNATION, nestedKeys: ["designation", "name"] },
-    { label: en.PROFILE.DETAILS.DEPARTMENT, nestedKeys: ["department", "name"] },
+    {
+      label: en.PROFILE.DETAILS.DESIGNATION,
+      nestedKeys: ["designation", "name"],
+    },
+    {
+      label: en.PROFILE.DETAILS.DEPARTMENT,
+      nestedKeys: ["department", "name"],
+    },
     { label: en.PROFILE.DETAILS.DATE_OF_APPOINTMENT, key: "dateOfAppointment" },
     { label: en.PROFILE.DETAILS.UNIT_TYPE, key: "unitType" },
     { label: en.PROFILE.DETAILS.OFFICE_PHONE, key: "officePhone" },
     { label: en.PROFILE.DETAILS.DOJ_THE_DESIGNATION, key: "designationDate" },
     { label: en.PROFILE.DETAILS.DOJ_THE_DEPARTMENT, key: "departmentDate" },
     { label: en.PROFILE.DETAILS.UNIT_DATE, key: "unitDate" },
-    { label: en.PROFILE.DETAILS.RO_NAME, key: "roName" },
-    { label: en.PROFILE.DETAILS.AO_NAME, key: "aoName" },
+    {
+      label: en.PROFILE.DETAILS.RO_NAME,
+      nestedKeys: ["regionalOffice", "name"],
+    },
+    { label: en.PROFILE.DETAILS.AO_NAME, nestedKeys: ["areaOffice", "name"] },
   ];
 
   const contactDetailsConfig = [
@@ -285,7 +313,7 @@ const Profile = () => {
 
   // Helper function to generate details array from config
   const generateDetails = (config) => {
-    return config.map(item => {
+    return config.map((item) => {
       if (item.nestedKeys) {
         return createNestedDetailItem(item.label, item.nestedKeys, profileData);
       }
@@ -318,13 +346,8 @@ const Profile = () => {
   const renderSection = () => {
     const section = sectionConfig[activeSection];
     if (!section) return null;
-    
-    return (
-      <SectionCard
-        title={section.title}
-        details={section.details}
-      />
-    );
+
+    return <SectionCard title={section.title} details={section.details} />;
   };
 
   // Handle tab change with animation

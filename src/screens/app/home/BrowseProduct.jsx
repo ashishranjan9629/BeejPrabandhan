@@ -96,8 +96,7 @@ const styles = StyleSheet.create({
     marginTop: moderateScaleVertical(10),
     flexDirection: "row",
     flexWrap: "wrap",
-    alignItems: "center",
-    alignSelf: "center",
+    // alignItems: "center",
     justifyContent: "space-around",
   },
   itemHolder: {
