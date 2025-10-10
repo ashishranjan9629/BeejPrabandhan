@@ -18,8 +18,49 @@ import FontFamily from "../../../../utils/FontFamily";
 import Octicons from "react-native-vector-icons/Octicons";
 import PropTypes from "prop-types";
 
+const SummaryCard = ({ totalRawSeed, totalBagSize }) => (
+  <View
+    style={[
+      styles.card,
+      { flexDirection: "row", gap: moderateScale(12), alignItems: "center" },
+    ]}
+  >
+    <View style={styles.circle}>
+      <Octicons name="history" color={Colors.white} size={moderateScale(25)} />
+    </View>
+    <View style={{ gap: moderateScaleVertical(10) }}>
+      <Text style={styles.infoLabel}>Total Raw Seed (KG)</Text>
+      <Text style={styles.infoValue}>{totalRawSeed}</Text>
+    </View>
+    <View style={{ gap: moderateScaleVertical(10) }}>
+      <Text style={styles.infoLabel}>Total No of bags</Text>
+      <Text style={styles.infoValue}>{totalBagSize}</Text>
+    </View>
+  </View>
+);
+
+SummaryCard.propTypes = {
+  totalRawSeed: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
+  totalBagSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
+};
+
+const InfoBox = ({ label, value }) => (
+  <View style={styles.infoBox}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
+InfoBox.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+};
+
 const SeedsIntakeHistory = ({ route }) => {
   const { item } = route.params;
+  console.log(item, "item");
   const [loading, setLoading] = useState(false);
   const [seedsData, setSeedsData] = useState();
   useEffect(() => {
@@ -63,6 +104,7 @@ const SeedsIntakeHistory = ({ route }) => {
         );
         const decrypted = decryptAES(response);
         const parsedDecrypted = JSON.parse(decrypted);
+        console.log(parsedDecrypted, "parsedDecrypted");
         if (
           parsedDecrypted &&
           parsedDecrypted?.status === "SUCCESS" &&
@@ -70,7 +112,9 @@ const SeedsIntakeHistory = ({ route }) => {
         ) {
           setSeedsData(parsedDecrypted?.data);
         } else {
-          showErrorMessage("Error in fetching Seeds Intake History");
+          showErrorMessage(
+            parsedDecrypted?.message || "Data not available !!!"
+          );
         }
       } else {
         showErrorMessage("Error in fetching Schedule Id");
@@ -100,7 +144,7 @@ const SeedsIntakeHistory = ({ route }) => {
           <Octicons
             name="history"
             color={Colors.white}
-            size={moderateScale(25)}
+            size={moderateScale(20)}
           />
         </View>
         <View style={{ flex: 1, marginLeft: 16 }}>
@@ -163,50 +207,6 @@ const SeedsIntakeHistory = ({ route }) => {
     </View>
   );
 
-  const InfoBox = ({ label, value }) => (
-    <View style={styles.infoBox}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
-  );
-
-  InfoBox.propTypes = {
-    label: PropTypes.string.isRequired,
-    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-  };
-
-  const SummaryCard = ({ totalRawSeed, totalBagSize }) => (
-    <View
-      style={[
-        styles.card,
-        { flexDirection: "row", gap: moderateScale(12), alignItems: "center" },
-      ]}
-    >
-      <View style={styles.circle}>
-        <Octicons
-          name="history"
-          color={Colors.white}
-          size={moderateScale(25)}
-        />
-      </View>
-      <View style={{ gap: moderateScaleVertical(10) }}>
-        <Text style={styles.infoLabel}>Total Raw Seed (KG)</Text>
-        <Text style={styles.infoValue}>{totalRawSeed}</Text>
-      </View>
-      <View style={{ gap: moderateScaleVertical(10) }}>
-        <Text style={styles.infoLabel}>Total No of bags</Text>
-        <Text style={styles.infoValue}>{totalBagSize}</Text>
-      </View>
-    </View>
-  );
-
-  SummaryCard.propTypes = {
-    totalRawSeed: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-      .isRequired,
-    totalBagSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-      .isRequired,
-  };
-
   const totalRawSeed =
     seedsData?.reduce((acc, curr) => acc + (Number(curr.rawSeed) || 0), 0) || 0;
   const totalBagSize =
@@ -224,23 +224,15 @@ const SeedsIntakeHistory = ({ route }) => {
         renderItem={renderItem}
         keyExtractor={(_, idx) => idx.toString()}
         contentContainerStyle={{ padding: 14 }}
-        ListEmptyComponent={
-          <Text
-            style={{
-              textAlign: "center",
-              margin: moderateScale(64),
-              fontSize: textScale(16),
-              color: Colors.textColor,
-            }}
-          >
-            No history found.
-          </Text>
-        }
+        ListEmptyComponent={<Text style={styles.text}>No history found.</Text>}
         ListFooterComponent={
-          <SummaryCard
-            totalRawSeed={totalRawSeed}
-            totalBagSize={totalBagSize}
-          />
+          seedsData &&
+          seedsData.length > 0 && (
+            <SummaryCard
+              totalRawSeed={totalRawSeed}
+              totalBagSize={totalBagSize}
+            />
+          )
         }
       />
     </WrapperContainer>
@@ -273,8 +265,8 @@ const styles = StyleSheet.create({
   circle: {
     backgroundColor: Colors.greenColor,
     borderRadius: moderateScale(25),
-    height: moderateScale(50),
-    width: moderateScale(50),
+    height: moderateScale(40),
+    width: moderateScale(40),
     justifyContent: "center",
     alignItems: "center",
     elevation: moderateScale(2),
@@ -288,20 +280,20 @@ const styles = StyleSheet.create({
     fontSize: textScale(20),
   },
   seedTitle: {
-    fontSize: textScale(13),
-    color: Colors.textColor,
+    fontSize: textScale(12),
+    color: Colors.gray,
     marginBottom: moderateScaleVertical(3),
     fontFamily: FontFamily.PoppinsRegular,
   },
   seedValue: {
     color: Colors.black,
-    fontSize: textScale(16),
-    fontFamily: FontFamily.PoppinsMedium,
+    fontSize: textScale(13),
+    fontFamily: FontFamily.RubikRegular,
   },
   badge: {
-    borderRadius: moderateScale(30),
-    paddingHorizontal: moderateScale(16),
-    paddingVertical: moderateScaleVertical(6),
+    borderRadius: moderateScale(10),
+    paddingHorizontal: moderateScale(10),
+    paddingVertical: moderateScaleVertical(5),
     alignItems: "center",
     minWidth: moderateScale(90),
     justifyContent: "center",
@@ -309,20 +301,19 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: Colors.white,
-    fontWeight: "500",
-    fontSize: textScale(14),
+    fontFamily: FontFamily.RubikMedium,
+    fontSize: textScale(12),
   },
   dateRow: {
     color: Colors.gray,
-    fontSize: textScale(11),
-    marginBottom: moderateScaleVertical(10),
+    fontSize: textScale(10),
     textAlign: "right",
-    fontStyle: "italic",
+    fontFamily: FontFamily.PoppinsRegular,
   },
   sectionDivider: {
-    marginVertical: moderateScaleVertical(12),
+    marginVertical: moderateScaleVertical(5),
     borderBottomColor: Colors.diabledColor,
-    borderBottomWidth: 1,
+    borderBottomWidth: moderateScale(1),
   },
   infoRow: {
     flexDirection: "row",
@@ -339,14 +330,13 @@ const styles = StyleSheet.create({
     gap: moderateScaleVertical(5),
   },
   infoLabel: {
-    color: Colors.textColor,
+    color: Colors.gray,
     fontSize: textScale(12),
-    marginBottom: moderateScaleVertical(3),
     fontFamily: FontFamily.RubikRegular,
   },
   infoValue: {
-    color: Colors.greenColor,
-    fontSize: textScale(14),
+    color: Colors.textColor,
+    fontSize: textScale(12),
     fontFamily: FontFamily.PoppinsRegular,
   },
   summaryCard: {
@@ -376,6 +366,14 @@ const styles = StyleSheet.create({
     color: Colors.greenColor,
     fontSize: textScale(17),
     fontFamily: FontFamily.PoppinsSemiBold,
+  },
+  text: {
+    textAlign: "center",
+    margin: moderateScale(64),
+    fontSize: textScale(16),
+    color: Colors.textColor,
+    fontFamily: FontFamily.PoppinsRegular,
+    textTransform: "capitalize",
   },
 });
 

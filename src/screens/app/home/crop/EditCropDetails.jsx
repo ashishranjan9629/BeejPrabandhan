@@ -37,9 +37,9 @@ const EditCropDetails = ({ route }) => {
   console.log(item,"line 38")
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
-  const [cropGroupMasterDataList, setCropGroupMasterData] = useState([]);
+  const [cropGroupMasterDataList, setCropGroupMasterDataList] = useState([]);
   const [seasonMasterDataList, setSeasonMasterDataList] = useState([]);
-  const [cropFirTypeMasterDataList, setCropFirTypeMasterList] = useState([]);
+  const [cropFirTypeMasterDataList, setCropFirTypeMasterDataList] = useState([]);
   const [seedCropName, setSeedCropName] = useState("");
   const [advancePayableFlag, setAdvancePayableFlag] = useState(null);
   const [gunnyBagRebateRate, setGunnyBagRebateRate] = useState("");
@@ -414,7 +414,7 @@ const EditCropDetails = ({ route }) => {
           label: item.cropGroupName,
           value: item.id,
         }));
-        setCropGroupMasterData(formattedCropGroups || []);
+        setCropGroupMasterDataList(formattedCropGroups || []);
 
         try {
           const payloadDataForSeason = {
@@ -472,7 +472,7 @@ const EditCropDetails = ({ route }) => {
                     label: item.cropFirTypeName,
                     value: item.cropFirTypeId,
                   }));
-                setCropFirTypeMasterList(formattedCropFirTypes || []);
+                setCropFirTypeMasterDataList(formattedCropFirTypes || []);
               } else {
                 showErrorMessage("Unable to get the crop Fir type");
               }

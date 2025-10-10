@@ -194,7 +194,9 @@ const FieldInspectionReport = () => {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => {
-          navigation.navigate("FiledInspectionReportDetails", { item: item });
+          // navigation.navigate("FiledInspectionReportDetails", { item: item });
+          setSelctedData(item);
+          setShowBottomSheet(true);
         }}
       >
         <Animated.View
