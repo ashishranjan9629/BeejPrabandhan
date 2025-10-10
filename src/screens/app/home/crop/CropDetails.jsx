@@ -16,7 +16,6 @@ import PropTypes from "prop-types";
 
 const CropDetails = ({ route }) => {
   const { item } = route.params;
-  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -59,7 +58,7 @@ const CropDetails = ({ route }) => {
   ];
 
   return (
-    <WrapperContainer isLoading={loading}>
+    <WrapperContainer>
       <InnerHeader title={`${item?.seedCropName} Crop Details`} />
       <ScrollView
         contentContainerStyle={styles.container}
