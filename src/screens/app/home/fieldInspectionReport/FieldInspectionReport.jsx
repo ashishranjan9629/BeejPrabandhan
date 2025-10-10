@@ -33,7 +33,6 @@ import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
 import {
-  showErrorMessage,
   showSuccessMessage,
 } from "../../../../utils/HelperFunction";
 import FileViewer from "react-native-file-viewer";

@@ -1067,46 +1067,8 @@ const InspectionForm = ({ route }) => {
         {/* Type 3 has no date fields in Step 1 per spec */}
 
         <Text style={styles.sectionTitle}>Checklist Items</Text>
-        {/* {visibleStep1Fields.map((item, index) => (
-          <View key={index} style={styles.inputGroup}>
-            <Text style={styles.label}>{item.label}</Text>
-            {item.type === "switch" ? (
-              <View
-                style={[styles.switchRow, { justifyContent: "flex-start" }]}
-              >
-                <View style={styles.switchContainer}>
-                  <Switch
-                    value={!!formData[item.field]}
-                    onValueChange={(value) =>
-                      handleInputChange(item.field, value)
-                    }
-                    trackColor={{ false: "#767577", true: Colors.lightGreen }}
-                    thumbColor={
-                      formData[item.field] ? Colors.greenColor : "#f4f3f4"
-                    }
-                  />
-                </View>
-              </View>
-            ) : (
-              <TextInput
-                style={[
-                  styles.input,
-                  errors[item.field] ? styles.errorInput : null,
-                ]}
-                placeholder={item.placeholder || "Enter value"}
-                value={String(formData[item.field] ?? "")}
-                onChangeText={(text) => handleInputChange(item.field, text)}
-                keyboardType={item.keyboardType || "default"}
-              />
-            )}
-            {item.type !== "switch" && errors[item.field] && (
-              <Text style={styles.errorText}>{errors[item.field]}</Text>
-            )}
-          </View>
-        ))} */}
-
         {visibleStep1Fields.map((item, index) => (
-          <View key={index} style={styles.inputGroup}>
+          <View key={item?.id} style={styles.inputGroup}>
             <Text style={styles.label}>{item.label}</Text>
             {item.type === "switch" ? (
               <View
