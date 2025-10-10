@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
 import { useNavigation } from "@react-navigation/native";
