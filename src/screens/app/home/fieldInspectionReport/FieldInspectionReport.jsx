@@ -665,8 +665,8 @@ const styles = StyleSheet.create({
   },
   notificationHolder: {
     borderWidth: 2,
-    width: moderateScale(50),
-    height: moderateScale(50),
+    width: moderateScale(40),
+    height: moderateScale(40),
     borderRadius: moderateScale(25),
     backgroundColor: Colors.greenColor,
     borderColor: Colors.greenColor,
