@@ -352,16 +352,20 @@ const DailyProgressReportList = () => {
     <WrapperContainer isLoading={loading}>
       <InnerHeader title={en.DAILY_PROGRESS_REPORT.TITLE} />
       {/* Create Row */}
-      <View style={styles.exportRow}>
-        <Text style={styles.headerText}>{en.DAILY_PROGRESS_REPORT.HEADER}</Text>
-        {userData?.unitType != "BLOCK" && (
-          <CustomButton
-            text={en.DAILY_PROGRESS_REPORT.CREATE_NEW}
-            handleAction={() => navigation.navigate("CreateNewDPR")}
-            buttonStyle={styles.exportBtn}
-          />
-        )}
-      </View>
+      {/* {dpReportList.length > 0 && ( */}
+        <View style={styles.exportRow}>
+          <Text style={styles.headerText}>
+            {en.DAILY_PROGRESS_REPORT.HEADER}
+          </Text>
+          {userData?.unitType != "BLOCK" && (
+            <CustomButton
+              text={en.DAILY_PROGRESS_REPORT.CREATE_NEW}
+              handleAction={() => navigation.navigate("CreateNewDPR")}
+              buttonStyle={styles.exportBtn}
+            />
+          )}
+        </View>
+      {/* )} */}
       <FlatList
         data={dpReportList}
         renderItem={({ item, index }) => (

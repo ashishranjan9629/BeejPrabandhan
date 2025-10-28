@@ -33,6 +33,7 @@ import { saveUserData, saveUserToken } from "../../utils/Storage";
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
+import TextTicker from "react-native-text-ticker";
 
 const Login = () => {
   const [email, setEmail] = useState("90909090");
@@ -109,6 +110,31 @@ const Login = () => {
       style={styles.main}
       keyboardVerticalOffset={Platform.OS === "ios" ? moderateScale(40) : 0}
     >
+      <View
+        style={{
+          borderColor: Colors.greenColor,
+          position: "absolute",
+          width: "100%",
+          zIndex: 1,
+          marginTop:
+            Platform.OS === "ios"
+              ? moderateScaleVertical(50)
+              : moderateScaleVertical(25),
+        }}
+      >
+        <TextTicker
+          style={styles.marqueeText}
+          duration={8000}
+          loop
+          bounce={false}
+          repeatSpacer={50}
+          marqueeDelay={1000}
+          scrollSpeed={25}
+        >
+          Welcome to our App! Securely login to continue. 🚀 Stay connected with
+          us always!
+        </TextTicker>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -295,5 +321,11 @@ const styles = StyleSheet.create({
   textGreen: {
     color: Colors.greenColor,
     fontFamily: FontFamily.RubikMedium,
+  },
+  marqueeText: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(13),
+    marginTop: moderateScaleVertical(10),
   },
 });

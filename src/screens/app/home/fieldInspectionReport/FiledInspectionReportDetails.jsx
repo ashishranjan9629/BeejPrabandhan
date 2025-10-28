@@ -45,9 +45,11 @@ Details.propTypes = {
 
 const FiledInspectionReportDetails = ({ route }) => {
   const { item } = route.params;
+  // console.log(detailsData?.grower?.landDetails)
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [detailsData, setDetailsData] = useState();
+  console.log(detailsData,"detailsData")
   const [cropFirTypeId, setCropFirTypeId] = useState(null);
   useEffect(() => {
     fethcProgramListDetails();
