@@ -32,9 +32,7 @@ import { getUserData } from "../../../../utils/Storage";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
 import RNFS from "react-native-fs";
 import CustomButton from "../../../../components/CustomButton";
-import {
-  showSuccessMessage,
-} from "../../../../utils/HelperFunction";
+import { showSuccessMessage } from "../../../../utils/HelperFunction";
 import FileViewer from "react-native-file-viewer";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
@@ -109,6 +107,9 @@ const FieldInspectionReport = () => {
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [selctedData, setSelctedData] = useState();
   const [userDataVariable, setUserDataVariable] = useState();
+  const [PlanIdList, setPlanIdList] = useState([]);
+  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [showPlanIdDropdown, setShowPlanIdDropdown] = useState(false);
   const [showOpenShowPreviewModal, setShowOpenShowPreviewModal] =
     useState(false);
   const animationRefs = useRef(
@@ -132,7 +133,47 @@ const FieldInspectionReport = () => {
 
   useEffect(() => {
     fetchProgrammeList();
+    fetchPlanIdList();
   }, []);
+
+  const fetchPlanIdList = async () => {
+    try {
+      const userData = await getUserData();
+      const payloadData = {
+        aoId: userData?.aoId,
+        roId: userData?.roId,
+      };
+
+      const encryptedPayload = encryptWholeObject(payloadData);
+      const response = await apiRequest(
+        API_ROUTES.PLAN_ID_LIST,
+        "post",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log(parsedDecrypted, "line 134");
+      if (
+        parsedDecrypted &&
+        parsedDecrypted?.status === "FAILED" &&
+        parsedDecrypted?.statusCode === "300"
+      ) {
+        showErrorMessage(parsedDecrypted?.message || "Failed to fetch Plan Id");
+      }
+      if (
+        parsedDecrypted &&
+        parsedDecrypted?.status === "SUCCESS" &&
+        parsedDecrypted?.statusCode === "200"
+      ) {
+        setPlanIdList(parsedDecrypted?.data);
+      }
+    } catch (error) {
+      console.error(error?.messages, "Error in Error Bloack");
+      showErrorMessage(error?.messages || "Error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (growerName === "" && planId === "" && mobileNo === "") {
@@ -151,10 +192,11 @@ const FieldInspectionReport = () => {
         growerName: growerName,
         page: 0,
         pageSize: 25,
-        pcId: "",
+        pcId: userData?.pcId,
         planId: planId,
         roId: userData?.roId,
       };
+      console.log(payloadData, "payloadData");
       const encryptedPayload = encryptWholeObject(payloadData);
       const response = await apiRequest(
         API_ROUTES.PROGRAMME_LIST,
@@ -180,7 +222,6 @@ const FieldInspectionReport = () => {
       }
     } catch (error) {
       console.error(error?.messages, "Error in Error Bloack");
-      // showErrorMessage(error?.messages || "Error");
     } finally {
       setLoading(false);
     }
@@ -189,13 +230,14 @@ const FieldInspectionReport = () => {
   const renderProgramme = ({ item, index }) => {
     const animatedValue = animationRefs[index];
 
+
     return (
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => {
-          // navigation.navigate("FiledInspectionReportDetails", { item: item });
-          setSelctedData(item);
-          setShowBottomSheet(true);
+          navigation.navigate("FiledInspectionReportDetails", { item: item });
+          // setSelctedData(item);
+          // setShowBottomSheet(true);
         }}
       >
         <Animated.View
@@ -352,13 +394,22 @@ const FieldInspectionReport = () => {
                 placeholder="Grower Name"
                 placeholderTextColor={Colors.textColor}
               />
-              <TextInput
+              <TouchableOpacity
                 style={styles.input}
-                value={planId}
-                onChangeText={setPlanId}
-                placeholder="Plan Id"
-                placeholderTextColor={Colors.textColor}
-              />
+                onPress={() => setShowPlanIdDropdown(true)}
+              >
+                <Text
+                  style={{
+                    color: selectedPlanId ? Colors.black : Colors.textColor,
+                  }}
+                >
+                  {selectedPlanId
+                    ? PlanIdList.find((p) => p.planId === selectedPlanId)
+                        ?.planId
+                    : "Select Plan Id"}
+                </Text>
+              </TouchableOpacity>
+
               <TextInput
                 style={styles.input}
                 value={mobileNo}
@@ -380,6 +431,7 @@ const FieldInspectionReport = () => {
                     setGrowerName("");
                     setPlanId("");
                     setMobileNo("");
+                    setSelectedPlanId("");
                   }}
                 >
                   <Text style={styles.secondaryBtnText}>Reset</Text>
@@ -470,6 +522,37 @@ const FieldInspectionReport = () => {
             handleAction={() => setShowOpenShowPreviewModal(false)}
           />
         </View>
+      </CustomBottomSheet>
+      <CustomBottomSheet
+        visible={showPlanIdDropdown}
+        onRequestClose={() => setShowPlanIdDropdown(false)}
+      >
+        <Text style={styles.headerText}>Select Plan Id</Text>
+        <ScrollView
+          style={{
+            maxHeight: moderateScaleVertical(300),
+            width: "100%",
+          }}
+        >
+          {PlanIdList.map((item) => (
+            <TouchableOpacity
+              key={item.planId}
+              style={{
+                padding: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.lightBackground,
+              }}
+              onPress={() => {
+                console.log(item, "selected plan id");
+                setSelectedPlanId(item.planId);
+                setShowPlanIdDropdown(false);
+                setPlanId(item.id);
+              }}
+            >
+              <Text style={{ color: Colors.black }}>{item.planId}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </CustomBottomSheet>
     </WrapperContainer>
   );
