@@ -7,7 +7,8 @@ export default {
   },
   ROOTED_DEVICE: {
     TITLE: "Rooted/Jailbroken Device Detected",
-    SUBTITLE: "This app doesn't work on rooted or jailbroken devices due to security policies.",
+    SUBTITLE:
+      "This app doesn't work on rooted or jailbroken devices due to security policies.",
     EXIT_BUTTON: "Exit App",
   },
   LOGIN: {
@@ -27,7 +28,8 @@ export default {
     SIGN_UP: "Sign up",
     VALIDATION: {
       INVALID_EMAIL: "Invalid Email, Please enter a valid email address",
-      WEAK_PASSWORD: "Weak Password, Password must be at least 6 characters long",
+      WEAK_PASSWORD:
+        "Weak Password, Password must be at least 6 characters long",
     },
   },
   FORGOT_PASSWORD: {
@@ -53,12 +55,12 @@ export default {
     NAVIGATION: {
       PERSONAL: "Personal",
       PROFESSIONAL: "Professional",
-      CONTACT: "Contact"
+      CONTACT: "Contact",
     },
     SECTIONS: {
       PERSONAL_DETAILS: "Personal Details",
       PROFESSIONAL_DETAILS: "Professional Details",
-      CONTACT_DETAILS: "Contact Details"
+      CONTACT_DETAILS: "Contact Details",
     },
     DETAILS: {
       FULL_NAME: "Full Name",
@@ -92,46 +94,47 @@ export default {
       RESIDENCE_PHONE: "Residence Phone",
       PERMANENT_ADDRESS: "Permanent Address",
       PERMANENT_ADDRESS_PINCODE: "Permanent Address Pincode",
-      RESIDENTIAL_ADDRESS: "Residential Address"
-    }
+      RESIDENTIAL_ADDRESS: "Residential Address",
+    },
   },
   WEBVIEW: {
     PRIVACY_POLICY: "Privacy Policy",
     TERMS_CONDITIONS: "Terms & Conditions",
-    ABOUT_US: "About Us"
+    ABOUT_US: "About Us",
   },
   EDIT_PROFILE: {
     TITLE: "Change Password",
     OLD_PASSWORD: {
       LABEL: "Old Password",
-      PLACEHOLDER: "Enter old password"
+      PLACEHOLDER: "Enter old password",
     },
     NEW_PASSWORD: {
       LABEL: "New Password",
-      PLACEHOLDER: "Enter new password"
+      PLACEHOLDER: "Enter new password",
     },
     CONFIRM_PASSWORD: {
       LABEL: "Confirm New Password",
-      PLACEHOLDER: "Confirm new password"
+      PLACEHOLDER: "Confirm new password",
     },
     SUBMIT_BUTTON: "Change Password",
     VALIDATION: {
       OLD_PASSWORD_REQUIRED: "Please enter the old password.",
       PASSWORD_LENGTH: "Password must be at least 6 characters long.",
       PASSWORD_MISMATCH: "Passwords do not match.",
-      UNEXPECTED_ERROR: "An unexpected error occurred. Please try again."
+      UNEXPECTED_ERROR: "An unexpected error occurred. Please try again.",
     },
     SUCCESS: {
-      PASSWORD_CHANGED: "Your password has been changed successfully."
+      PASSWORD_CHANGED: "Your password has been changed successfully.",
     },
     ERROR: {
       SAME_PASSWORD: "Old password and new password cannot be the same.",
       INVALID_CREDENTIALS: "Invalid user ID or password!",
-      GENERIC: "Something went wrong, try again."
-    }
+      GENERIC: "Something went wrong, try again.",
+    },
   },
   DAILY_PROGRESS_REPORT: {
     TITLE: "DPR PROCESS",
+    ADD: "Add",
     HEADER: "DPR Report",
     CREATE_NEW: "Create New",
     NO_DATA: "No DPR reports found",
@@ -161,7 +164,7 @@ export default {
       PENDING: "Pending",
       APPROVED: "Approved",
       PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION: "Pending at Chak For Corr.",
-      NA: "N/A"
-    }
-  }
+      NA: "N/A",
+    },
+  },
 };

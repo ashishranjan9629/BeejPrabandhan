@@ -11,14 +11,25 @@ import Colors from "../utils/Colors";
 import FontFamily from "../utils/FontFamily";
 import PropTypes from "prop-types";
 
-const InnerHeader = ({ title, rightIcon = null }) => {
+const InnerHeader = ({
+  title,
+  rightIcon = null,
+  backHandler = false,
+  goBack,
+}) => {
   const navigation = useNavigation();
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity
         style={styles.backButton}
         activeOpacity={0.7}
-        onPress={() => navigation.goBack()}
+        onPress={() => {
+          if (backHandler) {
+            goBack();
+          } else {
+            navigation.goBack();
+          }
+        }}
       >
         <Ionicons
           name="chevron-back"
@@ -39,7 +50,7 @@ const InnerHeader = ({ title, rightIcon = null }) => {
 };
 
 InnerHeader.propTypes = {
-  title: PropTypes.string.isRequired, 
+  title: PropTypes.string.isRequired,
   rightIcon: PropTypes.element,
 };
 

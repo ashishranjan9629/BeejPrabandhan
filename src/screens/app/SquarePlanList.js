@@ -7,29 +7,30 @@ import {
   Animated,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
-import { getUserData } from "../../../../utils/Storage";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
+import { getUserData } from "../../utils/Storage";
+import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
+import { apiRequest } from "../../services/APIRequest";
+import { API_ROUTES } from "../../services/APIRoutes";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   showErrorMessage,
   showSuccessMessage,
-} from "../../../../utils/HelperFunction";
+} from "../../utils/HelperFunction";
 import {
   moderateScale,
   moderateScaleVertical,
   scale,
   textScale,
-} from "../../../../utils/responsiveSize";
-import FontFamily from "../../../../utils/FontFamily";
-import Colors from "../../../../utils/Colors";
-import CustomBottomSheet from "../../../../components/CustomBottomSheet";
-import CustomButton from "../../../../components/CustomButton";
+} from "../../utils/responsiveSize";
+import FontFamily from "../../utils/FontFamily";
+import Colors from "../../utils/Colors";
+import CustomBottomSheet from "../../components/CustomBottomSheet";
+import CustomButton from "../../components/CustomButton";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import PropTypes from "prop-types";
-import en from "../../../../constants/en";
+import en from "../../constants/en";
+import WrapperContainer from "../../utils/WrapperContainer";
+import InnerHeader from "../../components/InnerHeader";
 
 const AnimatedCard = ({
   item,
@@ -37,6 +38,7 @@ const AnimatedCard = ({
   handleCardPress,
   getStatusColor,
   formatDate,
+  onPress,
 }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(20)).current;
@@ -60,30 +62,37 @@ const AnimatedCard = ({
   }, []);
 
   return (
-    <TouchableOpacity onPress={() => handleCardPress(item)} style={styles.card}>
+    <View
+      onPress={() => {
+        //handleCardPress(item)
+      }}
+      style={styles.card}
+    >
       {/* Header Row with Date and Status */}
+
       <View style={styles.cardHeader}>
-        <Text style={styles.dateText}>{formatDate(item.reportDate)}</Text>
+        <Text style={styles.dateText}>{item.farmName}</Text>
         <View
           style={[
             styles.statusBadge,
-            { backgroundColor: getStatusColor(item.dprStatus) },
+            { backgroundColor: getStatusColor(item.currentDprStatus) },
           ]}
         >
           <Text style={styles.statusText}>
-            {(item.dprStatus === "SUBMITTED" && "Completed") ||
-              (item.dprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
+            {(item.currentDprStatus === "SUBMITTED" && "Completed") ||
+              (item.currentDprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
                 "Pending at Block In") ||
-              (item.dprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
+              (item.currentDprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
                 "Pending at Mech. In") ||
-              (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
+              (item.currentDprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
                 "In Progress") ||
-              (item.dprStatus === "REJECTED" && "Rejected") ||
-              (item.dprStatus === "PENDING" && "Pending") ||
-              (item.dprStatus === "APPROVED" && "Approved") ||
-              (item.dprStatus === "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
+              (item.currentDprStatus === "REJECTED" && "Rejected") ||
+              (item.currentDprStatus === "PENDING" && "Pending") ||
+              (item.currentDprStatus === "APPROVED" && "Approved") ||
+              (item.currentDprStatus ===
+                "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
                 "Pending at Chak For Corr.") ||
-              "N/A"}
+              "PENDING WITH BLOCK"}
           </Text>
         </View>
       </View>
@@ -91,6 +100,12 @@ const AnimatedCard = ({
       {/* Main Content */}
       <View>
         {/* Square and Operation Row */}
+        <View style={styles.row}>
+          <View style={styles.column}>
+            <Text style={styles.label}>Plan Id</Text>
+            <Text style={styles.value}>{item.planId || "N/A"}</Text>
+          </View>
+        </View>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.label}>Square Name</Text>
@@ -103,31 +118,37 @@ const AnimatedCard = ({
         </View>
 
         {/* Financial Year and Crop Row */}
-        <View style={styles.row}>
-          <View style={styles.column}>
-            <Text style={styles.label}>Financial Year</Text>
-            <Text style={styles.value}>{item.finYear || "N/A"}</Text>
+        {item?.contractors?.length > 0 ? (
+          <View style={styles.row}>
+            <View style={styles.column}>
+              <Text style={styles.label}>Contractor Type</Text>
+              <Text style={styles.value}>
+                {item?.contractors[0]?.contractorType || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={styles.label}>Contractor Name</Text>
+              <Text style={styles.value}>
+                {item?.contractors[0]?.contractorName || "N/A"}
+              </Text>
+            </View>
           </View>
-          <View style={styles.column}>
-            <Text style={styles.label}>Crop</Text>
-            <Text style={styles.value}>{item.crop || "N/A"}</Text>
-          </View>
-        </View>
+        ) : null}
 
         {/* Season and Class Row */}
         <View style={styles.row}>
           <View style={styles.column}>
-            <Text style={styles.label}>Season</Text>
-            <Text style={styles.value}>{item.season || "N/A"}</Text>
+            <Text style={styles.label}>Total Area(in ha)</Text>
+            <Text style={styles.value}>{item.squareArea || "N/A"}</Text>
           </View>
           <View style={styles.column}>
-            <Text style={styles.label}>Class</Text>
-            <Text style={styles.value}>{item.fromSeedClass || "N/A"}</Text>
+            <Text style={styles.label}>Cultivation Area(in ha)</Text>
+            <Text style={styles.value}>{item.cultivatedArea || "N/A"}</Text>
           </View>
         </View>
 
         {/* Required Output and Equipment Row */}
-        <View style={styles.row}>
+        {/* <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.label}>Required Output (ha)</Text>
             <Text style={styles.value}>{item.requiredOutputArea || "N/A"}</Text>
@@ -136,9 +157,17 @@ const AnimatedCard = ({
             <Text style={styles.label}>Equipment</Text>
             <Text style={styles.value}>{item.equipment ? "Yes" : "No"}</Text>
           </View>
-        </View>
+        </View> */}
+
+        <CustomButton
+          onPress={onPress}
+          text={en.DAILY_PROGRESS_REPORT.ADD}
+          buttonStyle={{
+            backgroundColor: Colors.greenColor,
+          }}
+        />
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -165,7 +194,7 @@ AnimatedCard.propTypes = {
   formatDate: PropTypes.func.isRequired,
 };
 
-const DailyProgressReportList = () => {
+const SquarePlanList = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const [loading, setLoading] = useState(false);
@@ -196,14 +225,24 @@ const DailyProgressReportList = () => {
         page: 0,
         pageSize: 25,
       };
+
+      //   const payloadData = {
+      //     page: 0,
+      //     pageSize: 25,
+      //     chakId: "3",
+      //     blockId: "",
+      //   };
+      console.log("parsedDecrypted", payloadData);
       const encryptedPayload = encryptWholeObject(payloadData);
       const response = await apiRequest(
-        API_ROUTES.DP_REPORT,
+        API_ROUTES.PLAN_FOR_SQURE_LIST,
         "post",
         encryptedPayload
       );
+
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
+      console.log("parsedDecrypted", parsedDecrypted);
       if (
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
@@ -213,7 +252,7 @@ const DailyProgressReportList = () => {
         showErrorMessage(parsedDecrypted?.message || "Not getting Data");
       }
     } catch (error) {
-      console.log(error, "line error");
+      console.log("parsedDecrypted", error);
     } finally {
       setLoading(false);
     }
@@ -350,21 +389,35 @@ const DailyProgressReportList = () => {
 
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={en.DAILY_PROGRESS_REPORT.TITLE} />
+      <InnerHeader
+        // title={en.DAILY_PROGRESS_REPORT.TITLE}
+        title={"Process Allocation List"}
+        rightIcon={
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={styles.notificationHolder}
+            //onPress={() => setShowFilter(!showFilter)}
+          >
+            <Ionicons
+              name="filter"
+              size={moderateScale(25)}
+              color={Colors.white}
+            />
+          </TouchableOpacity>
+        }
+      />
       {/* Create Row */}
       {/* {dpReportList.length > 0 && ( */}
-        <View style={styles.exportRow}>
-          <Text style={styles.headerText}>
-            {en.DAILY_PROGRESS_REPORT.HEADER}
-          </Text>
-          {userData?.unitType != "BLOCK" && (
-            <CustomButton
-              text={en.DAILY_PROGRESS_REPORT.CREATE_NEW}
-              handleAction={() => navigation.navigate("CreateNewDPR")}
-              buttonStyle={styles.exportBtn}
-            />
-          )}
-        </View>
+      {/* <View style={styles.exportRow}>
+        <Text style={styles.headerText}>{en.DAILY_PROGRESS_REPORT.HEADER}</Text>
+        {userData?.unitType != "BLOCK" && (
+          <CustomButton
+            text={en.DAILY_PROGRESS_REPORT.CREATE_NEW}
+            handleAction={() => navigation.navigate("CreateNewDPR")}
+            buttonStyle={styles.exportBtn}
+          />
+        )}
+      </View> */}
       {/* )} */}
       <FlatList
         data={dpReportList}
@@ -375,6 +428,11 @@ const DailyProgressReportList = () => {
             handleCardPress={handleCardPress}
             getStatusColor={getStatusColor}
             formatDate={formatDate}
+            onPress={() => {
+              navigation.navigate("DprProcessAllocation", {
+                landData: item,
+              });
+            }}
           />
         )}
         keyExtractor={(item) => item.id?.toString()}
@@ -483,7 +541,7 @@ const DailyProgressReportList = () => {
   );
 };
 
-export default DailyProgressReportList;
+export default SquarePlanList;
 
 const styles = StyleSheet.create({
   exportRow: {
@@ -635,8 +693,8 @@ const styles = StyleSheet.create({
     width: moderateScale(50),
     height: moderateScale(50),
     borderRadius: moderateScale(25),
-    backgroundColor: Colors.bg3,
-    borderColor: Colors.bg3,
+    backgroundColor: Colors.greenColor,
+    borderColor: Colors.greenColor,
     alignItems: "center",
     justifyContent: "center",
   },

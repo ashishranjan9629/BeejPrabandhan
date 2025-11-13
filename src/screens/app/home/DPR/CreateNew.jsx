@@ -406,7 +406,9 @@ const CreateNew = () => {
                     id: Date.now(),
                     equipmentName: currentEquipment.equipment,
                     equipmentId: currentEquipment.equipmentId,
-                    estimatedHours: Number.parseInt(currentEquipment.estimatedHours),
+                    estimatedHours: Number.parseInt(
+                      currentEquipment.estimatedHours
+                    ),
                     operator: currentEquipment.operatorRequired,
                     operatorName: "",
                   },
@@ -501,7 +503,7 @@ const CreateNew = () => {
     }
     setParentEntries((prev) => prev.filter((entry) => entry.id !== parentId));
   };
-  
+
   const handleSubmit = async () => {
     try {
       setLoading(true);

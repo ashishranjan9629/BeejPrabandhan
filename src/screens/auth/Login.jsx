@@ -8,7 +8,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Colors from "../../utils/Colors";
 import ImagePath from "../../utils/ImagePath";
 import {
@@ -33,15 +33,44 @@ import { saveUserData, saveUserToken } from "../../utils/Storage";
 import { apiRequest } from "../../services/APIRequest";
 import { API_ROUTES } from "../../services/APIRoutes";
 import { decryptAES, deepDecryptObject } from "../../utils/decryptData";
+import TextTicker from "react-native-text-ticker";
 
 const Login = () => {
   const [email, setEmail] = useState("90909090");
   const [password, setPassword] = useState("welcome");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [announcement, setAnnouncement] = useState(
+    "Welcome to our App! Securely login to continue. 🚀 Stay connected with us always!"
+  );
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getAnnouncement();
+  }, []);
+
+  const getAnnouncement = async () => {
+    try {
+      const response = await apiRequest(API_ROUTES.Announcement, "post");
+      if (
+        response &&
+        (response?.status === "Success" || response?.status === "SUCCESS") &&
+        response?.statusCode === "200"
+      ) {
+        if (response?.data[0]?.status == "ACTIVE") {
+          setAnnouncement(response?.data[0]?.name);
+        }
+      } else {
+        showErrorMessage(response?.errorMsg);
+      }
+    } catch (error) {
+      showErrorMessage(error?.message);
+      console.log(error, "Error In announcement API");
+    } finally {
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -69,6 +98,7 @@ const Login = () => {
             response?.authToken
           );
           const decrypted = decryptAES(response2);
+          console.log("decrypted UserData ", decrypted);
           const parsedDecrypted = JSON.parse(decrypted);
           if (
             parsedDecrypted &&
@@ -76,6 +106,7 @@ const Login = () => {
             parsedDecrypted?.statusCode === "200"
           ) {
             const decryptedData = deepDecryptObject(parsedDecrypted.data);
+            console.log("decrypted UserData ", decryptedData);
             dispatch(setUserData(decryptedData));
             saveUserData(decryptedData);
           } else {
@@ -109,6 +140,30 @@ const Login = () => {
       style={styles.main}
       keyboardVerticalOffset={Platform.OS === "ios" ? moderateScale(40) : 0}
     >
+      <View
+        style={{
+          borderColor: Colors.greenColor,
+          position: "absolute",
+          width: "100%",
+          zIndex: 1,
+          marginTop:
+            Platform.OS === "ios"
+              ? moderateScaleVertical(50)
+              : moderateScaleVertical(25),
+        }}
+      >
+        <TextTicker
+          style={styles.marqueeText}
+          duration={8000}
+          loop
+          bounce={false}
+          repeatSpacer={50}
+          marqueeDelay={1000}
+          scrollSpeed={25}
+        >
+          {announcement}
+        </TextTicker>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -295,5 +350,11 @@ const styles = StyleSheet.create({
   textGreen: {
     color: Colors.greenColor,
     fontFamily: FontFamily.RubikMedium,
+  },
+  marqueeText: {
+    fontFamily: FontFamily.PoppinsMedium,
+    color: Colors.white,
+    fontSize: textScale(13),
+    marginTop: moderateScaleVertical(10),
   },
 });

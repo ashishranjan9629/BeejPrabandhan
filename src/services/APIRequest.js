@@ -34,6 +34,7 @@ export const apiRequest = async (
   console.log(options, "line 27");
   try {
     const response = await axios(options);
+    console.error("API Request", response);
     return response.data;
   } catch (err) {
     console.error("API Request Error:", err.response || err.message);

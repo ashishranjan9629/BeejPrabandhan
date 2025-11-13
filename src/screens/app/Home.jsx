@@ -11,6 +11,14 @@ import {
 import SwiperImage from "../../components/SwiperImage";
 import BrowseProduct from "./home/BrowseProduct";
 import Colors from "../../utils/Colors";
+import { getUserData, removeUserData } from "../../utils/Storage";
+import { decryptAES, encryptWholeObject } from "../../utils/decryptData";
+import { apiRequest } from "../../services/APIRequest";
+import { API_ROUTES } from "../../services/APIRoutes";
+import { clearUserData } from "../../redux/slice/UserSlice";
+import { showSuccessMessage } from "../../utils/HelperFunction";
+import { useDispatch } from "react-redux";
+import en from "../../constants/en";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
@@ -21,6 +29,7 @@ const Home = () => {
   const searchSlideAnim = useRef(new Animated.Value(100)).current;
   const productOpacityAnim = useRef(new Animated.Value(0)).current;
   const productTranslateAnim = useRef(new Animated.Value(20)).current;
+  const dispatch = useDispatch();
 
   const userData = {
     name: "Ashish Ranjan",
@@ -73,6 +82,16 @@ const Home = () => {
       name: "Daily Progress Reports",
       icon: ImagePath.registrationIcon,
       backgroundColor: Colors.bg2,
+      //navigationScreenName: "DailyProgressReportList",
+      navigationScreenName: "SquarePlanList",
+      //navigationScreenName: "DprProcessAllocation",
+    },
+    {
+      id: 2,
+      name: "Old DPR",
+      icon: ImagePath.registrationIcon,
+      backgroundColor: Colors.bg2,
+      //navigationScreenName: "DailyProgressReportList",
       navigationScreenName: "DailyProgressReportList",
     },
     {
@@ -150,6 +169,38 @@ const Home = () => {
       ]),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    fethchUserprofileData();
+  }, []);
+
+  const fethchUserprofileData = async () => {
+    const userData = await getUserData();
+    try {
+      const payloadData = {
+        id: userData?.employeeId,
+      };
+      const encryptedPayload = encryptWholeObject(payloadData);
+      const response = await apiRequest(
+        API_ROUTES.PROFILE_DETAILS,
+        "post",
+        encryptedPayload
+      );
+      const decrypted = decryptAES(response);
+      const parsedDecrypted = JSON.parse(decrypted);
+      console.log("uData", parsedDecrypted);
+
+      if (parsedDecrypted && parsedDecrypted?.statusCode === "401") {
+        setTimeout(() => {
+          dispatch(clearUserData());
+          removeUserData();
+          showSuccessMessage(en?.PROFILE.LOGOUT_SUCCESS);
+        }, 500);
+      }
+    } catch (error) {
+    } finally {
+    }
+  };
 
   return (
     <WrapperContainer isLoading={false}>

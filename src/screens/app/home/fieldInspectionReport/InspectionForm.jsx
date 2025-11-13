@@ -28,17 +28,36 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { showSuccessMessage } from "../../../../utils/HelperFunction";
 import PropTypes from "prop-types";
+import { compareTwoDates } from "../../../../utils/compareTwoDates";
 
 const InspectionForm = ({ route }) => {
   const { data } = route.params;
   const navigation = useNavigation();
-  console.log(data?.cropFirTypeId, "line 7");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDateField, setCurrentDateField] = useState(null);
   const cropFirTypeId = data?.cropFirTypeId ?? 3;
   const [errors, setErrors] = useState({});
+
+  const [time, setTime] = useState(new Date());
+  const [show, setShow] = useState(false);
+  const [showTimeForField, setshowTimeForField] = useState("");
+
+  const onChange = (event, selectedTime) => {
+    setShow(Platform.OS === "ios");
+    if (selectedTime) {
+      //alert(selectedTime);
+      const date = new Date(event.nativeEvent.timestamp);
+
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      const formattedTime = `${hours}:${minutes}`;
+
+      console.log(formattedTime);
+      handleInputChange(showTimeForField, formattedTime);
+    }
+  };
 
   // Define all possible Step 1 fields (label + field + placeholder)
   const STEP1_ALL_FIELDS = [
@@ -586,6 +605,37 @@ const InspectionForm = ({ route }) => {
         return updated;
       });
     }
+    //// Date Validatiom
+    if (currentDateField === "dateOfSowing") {
+      if (formData.expectedHarvest) {
+        const sowing = new Date(selectedDate);
+        const harvest = new Date(formData.expectedHarvest);
+
+        if (sowing >= harvest) {
+        }
+      } else {
+      }
+    }
+
+    if (currentDateField === "expectedHarvest") {
+      if (formData.dateOfSowing) {
+        const sowing = formData.dateOfSowing;
+        const harvest = formatDate(selectedDate);
+        let compareDates = compareTwoDates(sowing, harvest);
+
+        if (compareDates === 0) {
+          alert("Sowing date is before harvest date");
+          //console.log("✅ Sowing date is before harvest date");
+        } else if (compareDates === 1) {
+          alert("harvest date should be greater then sowing date");
+          //console.log("❌ Sowing date is after harvest date");
+          handleInputChange(currentDateField, "");
+        } else {
+          // alert("Both dates are the same");
+          // console.log("⚠️ Both dates are the same");
+        }
+      }
+    }
   };
 
   const formatDate = (date) => {
@@ -903,41 +953,72 @@ const InspectionForm = ({ route }) => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Time From</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.timeFrom ? styles.errorInput : null,
-                ]}
-                placeholder="HH:MM"
-                value={formData.timeFrom}
-                onChangeText={(text) => {
-                  // Allow only digits and colon, max length 5
-                  const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
-                  handleInputChange("timeFrom", formatted);
+              <TouchableOpacity
+                //style={{ backgroundColor: "red" }}
+                onPress={() => {
+                  setshowTimeForField("timeFrom");
+                  setShow(true);
                 }}
-                keyboardType="numbers-and-punctuation"
-              />
+              >
+                <TextInput
+                  editable={false}
+                  style={[
+                    styles.input,
+                    errors.timeFrom ? styles.errorInput : null,
+                  ]}
+                  placeholder="HH:MM"
+                  value={formData.timeFrom}
+                  onChangeText={(text) => {
+                    // Allow only digits and colon, max length 5
+                    // const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
+                    // handleInputChange("timeFrom", formatted);
+                  }}
+                  keyboardType="numbers-and-punctuation"
+                />
+              </TouchableOpacity>
+
               {errors.timeFrom && (
                 <Text style={styles.errorText}>{errors.timeFrom}</Text>
+              )}
+              {show && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  is24Hour={true}
+                  display="default"
+                  onChange={onChange}
+                />
               )}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Time To</Text>
-              <TextInput
-                style={[styles.input, errors.timeTo ? styles.errorInput : null]}
-                placeholder="HH:MM"
-                value={formData.timeTo}
-                onChangeText={(text) => {
-                  const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
-                  handleInputChange("timeTo", formatted);
+              <TouchableOpacity
+                //style={{ backgroundColor: "red" }}
+                onPress={() => {
+                  setshowTimeForField("timeTo");
+                  setShow(true);
                 }}
-                keyboardType="numbers-and-punctuation"
-                maxLength={5}
-              />
-              {errors.timeTo && (
-                <Text style={styles.errorText}>{errors.timeTo}</Text>
-              )}
+              >
+                <TextInput
+                  editable={false}
+                  style={[
+                    styles.input,
+                    errors.timeTo ? styles.errorInput : null,
+                  ]}
+                  placeholder="HH:MM"
+                  value={formData.timeTo}
+                  onChangeText={(text) => {
+                    const formatted = text.replace(/[^0-9:]/g, "").slice(0, 5);
+                    //handleInputChange("timeTo", formatted);
+                  }}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                {errors.timeTo && (
+                  <Text style={styles.errorText}>{errors.timeTo}</Text>
+                )}
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -1115,7 +1196,19 @@ const InspectionForm = ({ route }) => {
                 ]}
                 placeholder={item.placeholder || "Enter value"}
                 value={String(formData[item.field] ?? "")}
-                onChangeText={(text) => handleInputChange(item.field, text)}
+                onChangeText={(text) => {
+                  if (item.field == "stageofgrowthofcontaminant") {
+                    const hasSpecialChars = /[^a-zA-Z0-9]/.test(text);
+
+                    if (hasSpecialChars) {
+                      alert("Special characyers are not allow.");
+                    } else {
+                      handleInputChange(item.field, text);
+                    }
+                  } else {
+                    handleInputChange(item.field, text);
+                  }
+                }}
                 keyboardType={item.keyboardType || "default"}
               />
             )}
@@ -1337,7 +1430,20 @@ const InspectionForm = ({ route }) => {
                       errors[item.field] ? styles.errorInput : null,
                     ]}
                     value={String(formData[item.field] ?? "")}
-                    onChangeText={(text) => handleInputChange(item.field, text)}
+                    onChangeText={(text) => {
+                      if (item.field == "areaRejectedHa") {
+                        const parts = text.split(".");
+                        if (parts.length === 1 || parts[1].length <= 2) {
+                          handleInputChange(item.field, text);
+                        } else {
+                          // console.log(
+                          //   "❌ Invalid (more than 2 digits after decimal)"
+                          // );
+                        }
+                      } else {
+                        handleInputChange(item.field, text);
+                      }
+                    }}
                     keyboardType={item.keyboardType || "default"}
                     multiline={!!item.multiline}
                   />

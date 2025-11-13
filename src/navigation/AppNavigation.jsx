@@ -22,6 +22,9 @@ import DPREdit from "../screens/app/home/DPR/DPREdit";
 import DPRSubmit from "../screens/app/home/DPR/DPRSubmit";
 import DPRRevision from "../screens/app/home/DPR/DPRRevision";
 import CreateNew from "../screens/app/home/DPR/CreateNew";
+import SquarePlanList from "../screens/app/SquarePlanList";
+import DprProcessAllocation from "../screens/app/home/DPR/DprProcessAllocation";
+import ViewDprDetail from "../screens/app/home/DPR/ViewDprDetail";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -61,6 +64,12 @@ const AppNavigation = () => {
       <Stack.Screen name="DPRSubmit" component={DPRSubmit} />
       <Stack.Screen name="DPRRevision" component={DPRRevision} />
       <Stack.Screen name="CreateNewDPR" component={CreateNew} />
+      <Stack.Screen name="SquarePlanList" component={SquarePlanList} />
+      <Stack.Screen
+        name="DprProcessAllocation"
+        component={DprProcessAllocation}
+      />
+      <Stack.Screen name="ViewDprDetail" component={ViewDprDetail} />
     </Stack.Navigator>
   );
 };
