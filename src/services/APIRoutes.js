@@ -45,4 +45,5 @@ export const API_ROUTES = {
   PLAN_FOR_SQURE_LIST: "prod_farm/DP_REPORT/find-plan-for-square",
   GET_DPR_HISTORY: "prod_farm/dp-report/find-by-filter",
   GET_OPERATION_LIST: "master/operation-master/dd",
+  UPDATE_DPR: "prod_farm/dp-report/update",
 };

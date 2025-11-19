@@ -23,7 +23,7 @@ export default function DropDown({
       <Text style={styles.label}>Activity/Operation</Text>
       <TouchableOpacity
         disabled={disabled}
-        style={styles.dropdownButton}
+        style={disabled ? styles.dropdownButtonDisable : styles.dropdownButton}
         onPress={() => {
           setIsVisible(!isVisible);
         }}
@@ -97,9 +97,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   label: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.grey,
     marginBottom: 4,
+    fontWeight: "700",
   },
   input: {
     borderWidth: 1,
@@ -114,6 +115,15 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 6,
     padding: 10,
+  },
+  dropdownButtonDisable: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.disableFieldColor,
+    borderRadius: 6,
+    padding: 10,
+    backgroundColor: Colors.disableFieldColor,
   },
   dropdownButtonText: {
     color: "#000",

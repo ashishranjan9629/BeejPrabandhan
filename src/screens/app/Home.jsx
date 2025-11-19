@@ -84,30 +84,30 @@ const Home = () => {
       backgroundColor: Colors.bg2,
       //navigationScreenName: "DailyProgressReportList",
       navigationScreenName: "SquarePlanList",
-      //navigationScreenName: "DprProcessAllocation",
+      //navigationScreenName: "AddNewDpr",
     },
-    {
-      id: 2,
-      name: "Old DPR",
-      icon: ImagePath.registrationIcon,
-      backgroundColor: Colors.bg2,
-      //navigationScreenName: "DailyProgressReportList",
-      navigationScreenName: "DailyProgressReportList",
-    },
-    {
-      id: 3,
-      name: "Crop",
-      icon: ImagePath.complaint,
-      backgroundColor: Colors.bg3,
-      // navigationScreenName: "Crop",
-    },
-    {
-      id: 4,
-      name: "Daily Progress Reports",
-      icon: ImagePath.registrationIcon,
-      backgroundColor: Colors.bg4,
-      // navigationScreenName: "FieldInspectionReport",
-    },
+    // {
+    //   id: 2,
+    //   name: "Old DPR",
+    //   icon: ImagePath.registrationIcon,
+    //   backgroundColor: Colors.bg2,
+    //   //navigationScreenName: "DailyProgressReportList",
+    //   navigationScreenName: "DailyProgressReportList",
+    // },
+    // {
+    //   id: 3,
+    //   name: "Crop",
+    //   icon: ImagePath.complaint,
+    //   backgroundColor: Colors.bg3,
+    //   // navigationScreenName: "Crop",
+    // },
+    // {
+    //   id: 4,
+    //   name: "Daily Progress Reports",
+    //   icon: ImagePath.registrationIcon,
+    //   backgroundColor: Colors.bg4,
+    //   // navigationScreenName: "FieldInspectionReport",
+    // },
   ];
 
   useEffect(() => {
@@ -213,7 +213,7 @@ const Home = () => {
           <CustomHeader data={userData} />
         </Animated.View>
 
-        <Animated.View
+        {/* <Animated.View
           style={{
             transform: [{ translateX: searchSlideAnim }],
           }}
@@ -223,7 +223,7 @@ const Home = () => {
             onChangeText={(text) => setSearchText(text)}
             resetSearchText={() => setSearchText("")}
           />
-        </Animated.View>
+        </Animated.View> */}
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Banner Images with animation */}

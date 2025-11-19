@@ -79,7 +79,7 @@ const AnimatedCard = ({
           ]}
         >
           <Text style={styles.statusText}>
-            {(item.currentDprStatus === "SUBMITTED" && "Completed") ||
+            {/* {(item.currentDprStatus === "SUBMITTED" && "Completed") ||
               (item.currentDprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
                 "Pending at Block In") ||
               (item.currentDprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
@@ -92,7 +92,8 @@ const AnimatedCard = ({
               (item.currentDprStatus ===
                 "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
                 "Pending at Chak For Corr.") ||
-              "PENDING WITH BLOCK"}
+              "PENDING WITH BLOCK"} */}
+            {item.currentDprStatus}
           </Text>
         </View>
       </View>
@@ -371,15 +372,29 @@ const SquarePlanList = () => {
   };
 
   const getStatusColor = (status) => {
+    // switch (status) {
+    //   case "SUBMITTED":
+    //     return Colors.greenColor;
+    //   case "PENDING_WITH_CHAK_INCHARGE":
+    //     return Colors.orange;
+    //   case "PENDING_WITH_BLOCK_INCHARGE":
+    //     return Colors.blue;
+    //   case "PENDING_WITH_MECHANICAL_INCHARGE":
+    //     return Colors.purple;
+    //   case "REJECTED":
+    //     return Colors.redThemeColor;
+    //   default:
+    //     return Colors.gray;
+    // }
     switch (status) {
       case "SUBMITTED":
         return Colors.greenColor;
-      case "PENDING_WITH_CHAK_INCHARGE":
+      case "APPROVED":
         return Colors.orange;
-      case "PENDING_WITH_BLOCK_INCHARGE":
+      case "PENDING":
         return Colors.blue;
-      case "PENDING_WITH_MECHANICAL_INCHARGE":
-        return Colors.purple;
+      case "DONE":
+        return Colors.greenThemeColor;
       case "REJECTED":
         return Colors.redThemeColor;
       default:
