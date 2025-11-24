@@ -2052,15 +2052,64 @@ export default function AddNewDpr({ route }) {
                 </View>
               </TouchableOpacity>
 
-              {show && (
+              {Platform.OS === "android" && show && (
                 <DateTimePicker
                   value={date}
                   mode="date" // "time" or "datetime"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  display="default"
                   onChange={onChangeDate}
                   maximumDate={new Date(2030, 11, 31)}
                   minimumDate={new Date(2020, 0, 1)}
                 />
+              )}
+
+              {Platform.OS === "ios" && show && (
+                <Modal transparent={true} animationType="slide">
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: "flex-end",
+                      backgroundColor: "rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: "#fff",
+                        padding: 20,
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                      }}
+                    >
+                      <View style={{ alignItems: "flex-end" }}>
+                        <TouchableOpacity onPress={() => setShow(false)}>
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              color: "blue",
+                              marginBottom: 10,
+                            }}
+                          >
+                            Done
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <DateTimePicker
+                        value={date}
+                        mode="date"
+                        display="spinner"
+                        onChange={(event, selectedDate) => {
+                          if (selectedDate) {
+                            setDate(selectedDate);
+                          }
+                        }}
+                        style={{ width: "100%" }}
+                        maximumDate={new Date(2030, 11, 31)}
+                        minimumDate={new Date(2020, 0, 1)}
+                      />
+                    </View>
+                  </View>
+                </Modal>
               )}
 
               <View style={styles.inputContainer}>

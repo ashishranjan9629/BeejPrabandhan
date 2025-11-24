@@ -629,6 +629,7 @@ export default function ViewDprDetail({ route }) {
                 borderWidth: 2,
                 borderColor: "#2e7d32",
                 borderStyle: "dotted",
+                marginTop: 10,
               }}
             >
               <View style={styles.row}>
