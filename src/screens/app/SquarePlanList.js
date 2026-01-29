@@ -32,6 +32,44 @@ import en from "../../constants/en";
 import WrapperContainer from "../../utils/WrapperContainer";
 import InnerHeader from "../../components/InnerHeader";
 
+const squareList = [
+  {
+    squareId: 15,
+    squareName: "LKU SQUARE",
+    farmBlockId: 8,
+    farmBlockName: "LKU Block",
+    farmId: 14,
+    farmName: null,
+    plans: [
+      {
+        planId: 22,
+        planCode: "2029-2030 | Rabi | Lady Fingar | Arka Anamika | FS | I",
+        finYearId: 22,
+        status: "ACTIVE",
+        contractorList:
+          '[{"contractorId": 51, "agreementType": "SHARING_BASIS", "contractorName": "gunjan Contractor"}]',
+      },
+      {
+        planId: 25,
+        planCode: "2025-2026 | Zaid | Wheat | W75 | FS | I",
+        finYearId: 17,
+        status: "ACTIVE",
+        contractorList:
+          '[{"contractorId": 51, "agreementType": "SHARING_BASIS", "contractorName": "gunjan Contractor"}]',
+      },
+    ],
+  },
+  {
+    squareId: 17,
+    squareName: "sqaure 1",
+    farmBlockId: 8,
+    farmBlockName: "LKU Block",
+    farmId: 14,
+    farmName: null,
+    plans: [],
+  },
+];
+
 const AnimatedCard = ({
   item,
   index,
@@ -70,7 +108,7 @@ const AnimatedCard = ({
     >
       {/* Header Row with Date and Status */}
 
-      <View style={styles.cardHeader}>
+      {/* <View style={styles.cardHeader}>
         <Text style={styles.dateText}>{item.farmName}</Text>
         <View
           style={[
@@ -78,43 +116,27 @@ const AnimatedCard = ({
             { backgroundColor: getStatusColor(item.currentDprStatus) },
           ]}
         >
-          <Text style={styles.statusText}>
-            {/* {(item.currentDprStatus === "SUBMITTED" && "Completed") ||
-              (item.currentDprStatus === "PENDING_WITH_BLOCK_INCHARGE" &&
-                "Pending at Block In") ||
-              (item.currentDprStatus === "PENDING_WITH_MECHANICAL_INCHARGE" &&
-                "Pending at Mech. In") ||
-              (item.currentDprStatus === "PENDING_WITH_CHAK_INCHARGE" &&
-                "In Progress") ||
-              (item.currentDprStatus === "REJECTED" && "Rejected") ||
-              (item.currentDprStatus === "PENDING" && "Pending") ||
-              (item.currentDprStatus === "APPROVED" && "Approved") ||
-              (item.currentDprStatus ===
-                "PENDING_WITH_CHAK_INCHARGE_FOR_CORRECTION" &&
-                "Pending at Chak For Corr.") ||
-              "PENDING WITH BLOCK"} */}
-            {item.currentDprStatus}
-          </Text>
+          <Text style={styles.statusText}>{item.currentDprStatus}</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Main Content */}
       <View>
         {/* Square and Operation Row */}
-        <View style={styles.row}>
+        {/* <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.label}>Plan Id</Text>
             <Text style={styles.value}>{item.planId || "N/A"}</Text>
           </View>
-        </View>
+        </View> */}
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.label}>Square Name</Text>
-            <Text style={styles.value}>{item.squareName || "N/A"}</Text>
+            <Text style={styles.value}>{item?.squareName || "N/A"}</Text>
           </View>
           <View style={styles.column}>
-            <Text style={styles.label}>Operation</Text>
-            <Text style={styles.value}>{item.operationName || "N/A"}</Text>
+            <Text style={styles.label}>No. of Plan</Text>
+            <Text style={styles.value}>{item?.plans?.length}</Text>
           </View>
         </View>
 
@@ -137,7 +159,7 @@ const AnimatedCard = ({
         ) : null}
 
         {/* Season and Class Row */}
-        <View style={styles.row}>
+        {/* <View style={styles.row}>
           <View style={styles.column}>
             <Text style={styles.label}>Total Area(in ha)</Text>
             <Text style={styles.value}>{item.squareArea || "N/A"}</Text>
@@ -146,7 +168,7 @@ const AnimatedCard = ({
             <Text style={styles.label}>Cultivation Area(in ha)</Text>
             <Text style={styles.value}>{item.cultivatedArea || "N/A"}</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Required Output and Equipment Row */}
         {/* <View style={styles.row}>
@@ -218,27 +240,34 @@ const SquarePlanList = () => {
   const fetchDPRList = async (userData) => {
     setLoading(false);
     try {
+      // const payloadData = {
+      //   blockId: userData?.unitType === "BLOCK" ? userData?.blockId : null,
+      //   chakId: userData?.unitType === "CHAK" ? userData?.chakId : null,
+      //   // equipment: userData?.subUnitType === "WORKSHOP" ? true : false,
+      //   equipment: userData?.subUnitType === "WORKSHOP",
+      //   page: 0,
+      //   pageSize: 25,
+      // };
+
       const payloadData = {
         blockId: userData?.unitType === "BLOCK" ? userData?.blockId : null,
         chakId: userData?.unitType === "CHAK" ? userData?.chakId : null,
-        // equipment: userData?.subUnitType === "WORKSHOP" ? true : false,
-        equipment: userData?.subUnitType === "WORKSHOP",
         page: 0,
         pageSize: 25,
       };
 
-      //   const payloadData = {
-      //     page: 0,
-      //     pageSize: 25,
-      //     chakId: "3",
-      //     blockId: "",
-      //   };
       console.log("parsedDecrypted", payloadData);
       const encryptedPayload = encryptWholeObject(payloadData);
+      // const response = await apiRequest(
+      //   API_ROUTES.PLAN_FOR_SQURE_LIST,
+      //   "post",
+      //   encryptedPayload,
+      // );
+
       const response = await apiRequest(
-        API_ROUTES.PLAN_FOR_SQURE_LIST,
+        API_ROUTES.SQUARE_LIST,
         "post",
-        encryptedPayload
+        encryptedPayload,
       );
 
       const decrypted = decryptAES(response);
@@ -248,11 +277,13 @@ const SquarePlanList = () => {
         parsedDecrypted?.status === "SUCCESS" &&
         parsedDecrypted?.statusCode === "200"
       ) {
-        setDpReportList(parsedDecrypted?.data);
+        setDpReportList(parsedDecrypted?.data || squareList);
       } else {
+        setDpReportList(squareList);
         showErrorMessage(parsedDecrypted?.message || "Not getting Data");
       }
     } catch (error) {
+      setDpReportList(squareList);
       console.log("parsedDecrypted", error);
     } finally {
       setLoading(false);
@@ -310,7 +341,7 @@ const SquarePlanList = () => {
       const response = await apiRequest(
         API_ROUTES.DP_REPORT_UPDATE,
         "POST",
-        encryptedPayload
+        encryptedPayload,
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
@@ -345,7 +376,7 @@ const SquarePlanList = () => {
       const response = await apiRequest(
         API_ROUTES.DP_REPORT_UPDATE,
         "POST",
-        encryptedPayload
+        encryptedPayload,
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
@@ -406,7 +437,7 @@ const SquarePlanList = () => {
     <WrapperContainer isLoading={loading}>
       <InnerHeader
         // title={en.DAILY_PROGRESS_REPORT.TITLE}
-        title={"Process Allocation List"}
+        title={"Crop Process Allocation"}
         rightIcon={
           <TouchableOpacity
             activeOpacity={0.5}

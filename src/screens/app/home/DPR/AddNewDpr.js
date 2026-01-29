@@ -2,966 +2,319 @@
 //   View,
 //   Text,
 //   StyleSheet,
-//   KeyboardAvoidingView,
 //   ScrollView,
 //   TextInput,
 //   TouchableOpacity,
+//   KeyboardAvoidingView,
 //   Platform,
-//   Modal,
-//   FlatList,
-//   Switch,
 // } from "react-native";
-// import React, { useEffect, useState } from "react";
-// import { useIsFocused, useNavigation } from "@react-navigation/native";
-// import {
-//   moderateScale,
-//   moderateScaleVertical,
-//   textScale,
-// } from "../../../../utils/responsiveSize";
-// import DateTimePicker, {
-//   DateTimePickerAndroid,
-// } from "@react-native-community/datetimepicker";
-// import DropDown from "../../../../components/DropDown";
-// import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-// import { apiRequest } from "../../../../services/APIRequest";
-// import { API_ROUTES } from "../../../../services/APIRoutes";
-// import {
-//   showErrorMessage,
-//   showSuccessMessage,
-// } from "../../../../utils/HelperFunction";
+// import React, { useState } from "react";
+// import { useNavigation } from "@react-navigation/native";
+// import Icon from "react-native-vector-icons/MaterialIcons";
+
 // import WrapperContainer from "../../../../utils/WrapperContainer";
 // import InnerHeader from "../../../../components/InnerHeader";
+// import DropDown from "../../../../components/DropDown";
 // import Colors from "../../../../utils/Colors";
-// import FontFamily from "../../../../utils/FontFamily";
-// import Icon from "react-native-vector-icons/MaterialIcons";
-// import { getUserData } from "../../../../utils/Storage";
 
 // export default function AddNewDpr({ route }) {
 //   const navigation = useNavigation();
-//   const [loading, setLoading] = useState(false);
-//   const [date, setDate] = useState(new Date());
-//   const [show, setShow] = useState(false);
-//   const [noOfLabour, setnoOfLabour] = useState(0);
-//   const [editNoOfLabour, seteditNoOfLabour] = useState(0);
-//   const [debouncedCount, setDebouncedCount] = useState(editNoOfLabour);
-//   const [operationList, setOperationList] = useState([]);
-//   const [showActivityOperation, setshowActivityOperation] = useState(false);
-//   const [userData, setUserData] = useState([]);
-//   const [activityOperationVal, setactivityOperationVal] = useState("");
-//   const [materialList, setMaterialList] = useState([]);
-//   const [activeDropdown, setActiveDropdown] = useState(null);
-//   const [materialTypeList, setmaterialTypeList] = useState([
-//     "VALUE_ADDED",
-//     "PACKAGING_MATERIAL",
-//     "AGRO_CHEMICAL",
-//     "SEED",
-//     "SAPLING",
-//   ]);
-//   const [rows, setRows] = useState([
-//     {
-//       id: 1,
-//       materialType: "",
-//       material: "",
-//       noOfItems: "",
-//       quantity: "",
-//       uom: "",
-//       showMaterialType: false,
-//       showMaterial: false,
-//     },
-//   ]);
-//   const [equipments, setEquipments] = useState([
-//     { id: 1, equipment: "", estHours: "", operatorRequired: false },
-//   ]);
-
-//   const [labourOption, setlabourOption] = useState([
-//     // {
-//     //   id: 1,
-//     //   labourName: "",
-//     //   estimateHours: "0",
-//     // },
-//   ]);
-//   const [equipmentOptions, setequipmentOptions] = useState([
-//     {
-//       createdBy: "SYSTEM",
-//       createdOn: "2025-04-29T12:10:36.310+05:30",
-//       updatedBy: "SYSTEM",
-//       updatedOn: "2025-05-01T11:10:39.450+05:30",
-//       status: "ACTIVE",
-//       id: 1,
-//       macShortName: "98",
-//       macName: "Furniture AND Fixture(Furniture & Fixtures)",
-//       macDesc: "Furniture AND Fixture",
-//       costPerHr: 5,
-//       remarks: "Machine Data Ported",
-//       machineType: {
-//         createdBy: "ADMIN",
-//         createdOn: "2025-04-11T16:31:38.915+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-04-30T19:03:19.231+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macTypeShortName: "FURNITUREANDFIXTURES",
-//         macTypeName: "FURNITURE AND FIXTURES",
-//       },
-//       machineStatus: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:02:45.593+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T13:02:07.417+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macStatusCode: 11,
-//         macStatusName: "WORKING",
-//       },
-//     },
-//     {
-//       createdBy: "SYSTEM",
-//       createdOn: "2025-04-29T12:15:08.864+05:30",
-//       updatedBy: "SYSTEM",
-//       updatedOn: "2025-05-01T11:12:04.069+05:30",
-//       status: "ACTIVE",
-//       id: 2,
-//       macShortName: "99",
-//       macName: "Furniture AND Fixture(Air Cooler, Air Conditioner)",
-//       macDesc: "Furniture AND Fixture",
-//       costPerHr: 5,
-//       remarks: "Machine Data Ported",
-//       machineType: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-28T16:08:10.677+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-04-30T19:01:15.292+05:30",
-//         status: "ACTIVE",
-//         id: 2,
-//         macTypeShortName: "AIRCOOLERAIRCONDITIONERFOROFFICEUSE",
-//         macTypeName: "AIR COOLER , AIR CONDITIONER FOR OFFICE USE",
-//       },
-//       machineStatus: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:02:45.593+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T13:02:07.417+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macStatusCode: 11,
-//         macStatusName: "WORKING",
-//       },
-//     },
-//     {
-//       createdBy: "SYSTEM",
-//       createdOn: "2025-05-01T11:13:18.492+05:30",
-//       updatedBy: "SYSTEM",
-//       updatedOn: "2025-05-01T11:13:18.492+05:30",
-//       status: "ACTIVE",
-//       id: 3,
-//       macShortName: "100",
-//       macName: "FIRE EXTINGUISHER",
-//       macDesc: "FIRE EXTINGUISHER",
-//       costPerHr: 5,
-//       remarks: "Machine Data Ported",
-//       machineType: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:17:00.230+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T15:34:58.560+05:30",
-//         status: "ACTIVE",
-//         id: 3,
-//         macTypeShortName: "FIREEXT",
-//         macTypeName: "FIRE EXTINGUISHER ",
-//       },
-//       machineStatus: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:02:45.593+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T13:02:07.417+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macStatusCode: 11,
-//         macStatusName: "WORKING",
-//       },
-//     },
-//     {
-//       createdBy: "SYSTEM",
-//       createdOn: "2025-05-20T12:40:56.940+05:30",
-//       updatedBy: "SYSTEM",
-//       updatedOn: "2025-05-20T12:40:56.940+05:30",
-//       status: "ACTIVE",
-//       id: 4,
-//       macShortName: "MNO",
-//       macName: "Mac Name One",
-//       macDesc: "Machine Desc One",
-//       costPerHr: 45,
-//       remarks: "Testing",
-//       machineType: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:17:00.230+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T15:34:58.560+05:30",
-//         status: "ACTIVE",
-//         id: 3,
-//         macTypeShortName: "FIREEXT",
-//         macTypeName: "FIRE EXTINGUISHER ",
-//       },
-//       machineStatus: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:02:45.593+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T13:02:07.417+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macStatusCode: 11,
-//         macStatusName: "WORKING",
-//       },
-//     },
-//     {
-//       createdBy: "SYSTEM",
-//       createdOn: "2025-05-20T15:46:20.075+05:30",
-//       updatedBy: "SYSTEM",
-//       updatedOn: "2025-05-20T15:46:20.075+05:30",
-//       status: "ACTIVE",
-//       id: 5,
-//       macShortName: "MNT",
-//       macName: "Mac Name Two",
-//       macDesc: "Machine Desc Two",
-//       costPerHr: 47.32,
-//       remarks: "Test another record",
-//       machineType: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-28T16:08:10.677+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-04-30T19:01:15.292+05:30",
-//         status: "ACTIVE",
-//         id: 2,
-//         macTypeShortName: "AIRCOOLERAIRCONDITIONERFOROFFICEUSE",
-//         macTypeName: "AIR COOLER , AIR CONDITIONER FOR OFFICE USE",
-//       },
-//       machineStatus: {
-//         createdBy: "SYSTEM",
-//         createdOn: "2025-04-29T12:02:45.593+05:30",
-//         updatedBy: "SYSTEM",
-//         updatedOn: "2025-05-20T13:02:07.417+05:30",
-//         status: "ACTIVE",
-//         id: 1,
-//         macStatusCode: 11,
-//         macStatusName: "WORKING",
-//       },
-//     },
-//   ]);
-
-//   const isFocused = useIsFocused();
 //   const landData = route?.params?.landData;
 
-//   useEffect(() => {
-//     if (isFocused) {
-//       fetchUserData();
-//     }
-//   }, [isFocused]);
+//   const [loading, setLoading] = useState(false);
 
-//   const fetchUserData = async () => {
-//     setLoading(true);
-//     const userData = await getUserData();
-//     console.log("userData", userData);
-//     setUserData(userData);
-//     getActivityOperationData();
-//   };
+//   /** SINGLE DROPDOWN CONTROLLER */
+//   const [openDropdown, setOpenDropdown] = useState(null);
 
-//   const onChangeDate = (event, selectedDate) => {
-//     setShow(false); // hide after selection
-//     if (selectedDate) {
-//       setDate(selectedDate);
-//     }
-//   };
-//   const getActivityOperationData = async () => {
-//     try {
-//       const operationPayloadData = {};
-//       const encryptedOperationPayload =
-//         encryptWholeObject(operationPayloadData);
-//       const operationListResponse = await apiRequest(
-//         API_ROUTES.OPERATION_MASTER_DD,
-//         "POST",
-//         encryptedOperationPayload
-//       );
-//       const decryptedOperationListData = decryptAES(operationListResponse);
-//       const parsedDecryptedOperationListData = JSON.parse(
-//         decryptedOperationListData
-//       );
-//       console.log(
-//         "parsedDecryptedOperationListData",
-//         parsedDecryptedOperationListData
-//       );
-//       if (
-//         parsedDecryptedOperationListData?.status === "SUCCESS" &&
-//         parsedDecryptedOperationListData?.statusCode === "200"
-//       ) {
-//         setOperationList(parsedDecryptedOperationListData?.data || []);
-//       } else {
-//         showErrorMessage("Unable to get the Operation List Data");
-//       }
-//     } catch (error) {
-//       console.log("parsedDecryptedOperationListData", error);
-//       showErrorMessage("Unable to get the Operation List Data");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+//   /* ================= MASTER LISTS (API later) ================= */
+//   const operationList = [
+//     { id: 1, operationName: "Ploughing" },
+//     { id: 2, operationName: "Sowing" },
+//   ];
 
-//   const addRow = () => {
-//     const newId = rows.length + 1;
-//     setRows([
-//       ...rows,
+//   const contractorTypeList = [
+//     { id: 1, name: "OWN" },
+//     { id: 2, name: "OUTSOURCE" },
+//   ];
+
+//   const contractorNameList = [
+//     { id: 1, name: "Ram Singh" },
+//     { id: 2, name: "Shyam Contractor" },
+//   ];
+
+//   /* ================= ENTRY STATE ================= */
+//   const [entries, setEntries] = useState([
+//     {
+//       id: Date.now(),
+//       expanded: true,
+//       activities: [
+//         {
+//           id: Date.now() + 1,
+//           activity: null,
+//           contractorType: null,
+//           contractorName: null,
+//           noOfLabour: "",
+//         },
+//       ],
+//     },
+//   ]);
+
+//   /* ================= ENTRY ================= */
+//   const addEntry = () => {
+//     setEntries((prev) => [
+//       ...prev,
 //       {
-//         id: newId,
-//         materialType: "",
-//         material: "",
-//         noOfItems: "",
-//         quantity: "",
-//         uom: "",
-//         showMaterialType: false,
-//         showMaterial: false,
+//         id: Date.now(),
+//         expanded: true,
+//         activities: [
+//           {
+//             id: Date.now() + 1,
+//             activity: null,
+//             contractorType: null,
+//             contractorName: null,
+//             noOfLabour: "",
+//           },
+//         ],
 //       },
 //     ]);
 //   };
 
-//   const removeRow = (id) => {
-//     setRows(rows.filter((row) => row.id !== id));
-//   };
-//   const renderDropdown = (
-//     parentId,
-//     type,
-//     data,
-//     isVisible,
-//     setVisible,
-//     placeholder,
-//     value
-//   ) => (
-//     <View style={styles.inputContainer}>
-//       <Text style={styles.label}>{placeholder}</Text>
-//       <TouchableOpacity
-//         style={styles.dropdownButton}
-//         onPress={() => setVisible(!isVisible)}
-//       >
-//         <Text
-//           style={[
-//             styles.dropdownButtonText,
-//             !value && styles.dropdownButtonPlaceholder,
-//             { flex: 1, marginRight: 8 },
-//           ]}
-//           numberOfLines={1}
-//           ellipsizeMode="tail"
-//         >
-//           {/* {value || `Select ${placeholder}`} */}
-//           {typeof value === "object"
-//             ? value?.itemName || `Select ${placeholder}`
-//             : value || `Select ${placeholder}`}
-//         </Text>
-//         <Icon name="arrow-drop-down" size={24} color={Colors.grey} />
-//       </TouchableOpacity>
-
-//       <Modal
-//         visible={isVisible}
-//         transparent={true}
-//         animationType="fade"
-//         onRequestClose={() => setVisible(false)}
-//       >
-//         <TouchableOpacity
-//           style={styles.modalOverlay}
-//           activeOpacity={1}
-//           onPress={() => setVisible(false)}
-//         >
-//           <View style={styles.dropdownModal}>
-//             <FlatList
-//               data={data}
-//               keyExtractor={(item, index) => index.toString()}
-//               renderItem={({ item }) =>
-//                 renderDropdownItem({ item, type, parentId })
-//               }
-//               style={styles.dropdownList}
-//             />
-//           </View>
-//         </TouchableOpacity>
-//       </Modal>
-//     </View>
-//   );
-//   const renderDropdownItem = ({ item, type, parentId }) => (
-//     <TouchableOpacity
-//       style={styles.dropdownItem}
-//       onPress={() => {
-//         if (type === "materialType") {
-//           fetchMaterialList(item);
-//           handleChange(parentId, type, item);
-//           handleChange(parentId, `show${capitalize(type)}`, false);
-//         } else if (type === "material") {
-//           handleChange(parentId, type, item);
-//           handleChange(parentId, `show${capitalize(type)}`, false);
-//         } else {
-//           handleChange(parentId, type, item);
-//           handleChange(parentId, `show${capitalize(type)}`, false);
-//         }
-//       }}
-//     >
-//       <Text>
-//         {typeof item === "object" ? item?.itemName || "Unnamed Item" : item}
-//       </Text>
-//     </TouchableOpacity>
-//   );
-//   const handleChange = (id, field, value) => {
-//     if (value.uom) {
-//       setRows((prev) =>
-//         prev.map((row) =>
-//           row.id === id
-//             ? { ...row, [field]: value, uom: value.uom || "emp" }
-//             : row
-//         )
-//       );
-//     } else {
-//       setRows((prev) =>
-//         prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
-//       );
-//     }
-//   };
-//   const fetchMaterialList = async (materialType) => {
-//     try {
-//       setLoading(true);
-//       const payload = {
-//         materialType: materialType,
-//       };
-
-//       const encryptedPayload = encryptWholeObject(payload);
-
-//       const response = await apiRequest(
-//         API_ROUTES.MATERIAL_LIST,
-//         "POST",
-//         encryptedPayload
-//       );
-
-//       const decryptedResponse = decryptAES(response);
-//       const parsedResponse = JSON.parse(decryptedResponse);
-//       console.log("fetchMaterialList", parsedResponse);
-//       if (
-//         parsedResponse?.status === "SUCCESS" &&
-//         parsedResponse?.statusCode === "200"
-//       ) {
-//         setMaterialList(parsedResponse?.data);
-//       } else {
-//         showErrorMessage("Unable to fetch material list");
-//       }
-//     } catch (error) {
-//       console.log("fetchMaterialList", error);
-//       console.error("Error fetching material list:", error);
-//       showErrorMessage("Error fetching material list");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-//   const addNewEquipment = () => {
-//     const newId = equipments.length + 1;
-//     setEquipments([
-//       ...equipments,
-//       { id: newId, equipment: "", estHours: "", operatorRequired: false },
-//     ]);
-//   };
-//   const removeEquipment = (id) => {
-//     const updated = equipments.filter((item) => item.id !== id);
-//     setEquipments(updated);
+//   const deleteEntry = (entryId) => {
+//     setEntries((prev) => prev.filter((e) => e.id !== entryId));
 //   };
 
-//   const renderEqupmentItem = ({ item, index }) => (
-//     <View
-//       style={{
-//         borderWidth: 1,
-//         borderColor: "#ccc",
-//         borderRadius: 10,
-//         marginBottom: 10,
-//       }}
-//     >
-//       <View
-//         style={{
-//           flexDirection: "row",
-//           justifyContent: "space-between",
-//           alignItems: "center",
-//           paddingHorizontal: 10,
-//           marginVertical: 5,
-//         }}
-//       >
-//         <Text style={styles.serial}>S. No {index + 1}</Text>
-//         {equipments?.length > 1 && (
-//           <TouchableOpacity onPress={() => removeEquipment(item.id)}>
-//             <Icon name="delete" size={24} color={Colors.red} />
-//           </TouchableOpacity>
-//         )}
-//       </View>
-//       <View style={styles.devider} />
-//       <View style={{ marginHorizontal: 10 }}>
-//         <DropDown
-//           isVisible={activeDropdown === item.id}
-//           setIsVisible={(visible) =>
-//             setActiveDropdown(visible ? item.id : null)
-//           }
-//           value={item.equipment}
-//           selectItem={(selected) => {
-//             handleChangeEqupment(item.id, "equipment", selected);
-//             setActiveDropdown(null);
-//           }}
-//           data={equipmentOptions}
-//         />
+//   const toggleEntry = (entryId) => {
+//     setEntries((prev) =>
+//       prev.map((e) => (e.id === entryId ? { ...e, expanded: !e.expanded } : e)),
+//     );
+//   };
 
-//         <View style={{ marginBottom: 8 }}>
-//           <Text style={styles.label}>Est. Hours</Text>
-//           <TextInput
-//             style={{
-//               borderWidth: 1,
-//               borderColor: Colors.border,
-//               borderRadius: 6,
-//               paddingHorizontal: 10,
-//               height: 40,
-//             }}
-//             value={item.estHours}
-//             placeholder="Enter hours"
-//             keyboardType="numeric"
-//             onChangeText={(val) =>
-//               handleChangeEqupment(item.id, "estHours", val)
-//             }
-//           />
-//         </View>
-
-//         <View
-//           style={{
-//             flexDirection: "row",
-//             alignItems: "center",
-//             marginBottom: 8,
-//             justifyContent: "space-between",
-//           }}
-//         >
-//           <View
-//             style={{
-//               flexDirection: "row",
-//               alignItems: "center",
-//               width: "80%",
-//             }}
-//           >
-//             <Switch
-//               value={item.operatorRequired}
-//               onValueChange={(val) =>
-//                 handleChangeEqupment(item.id, "operatorRequired", val)
-//               }
-//               trackColor={{ false: "#ccc", true: "lightgreen" }}
-//               thumbColor={item.operatorRequired ? "green" : "#f4f3f4"}
-//             />
-//             <Text
-//               style={{
-//                 marginLeft: 10,
-//                 fontSize: 14,
-//                 color: "#333",
-//               }}
-//             >
-//               Operator Required
-//             </Text>
-//           </View>
-//         </View>
-//       </View>
-//     </View>
-//   );
-//   const handleChangeEqupment = (id, key, value) => {
-//     const updated = equipments.map((item) => {
-//       if (value?.id) {
-//         return item.id === id
+//   /* ================= ACTIVITY ================= */
+//   const addActivity = (entryId) => {
+//     setEntries((prev) =>
+//       prev.map((e) =>
+//         e.id === entryId
 //           ? {
-//               ...item,
-//               [key]: value?.macName ? value?.macName : value,
-//               equipmentId: value?.id,
+//               ...e,
+//               activities: [
+//                 ...e.activities,
+//                 {
+//                   id: Date.now(),
+//                   activity: null,
+//                   contractorType: null,
+//                   contractorName: null,
+//                   noOfLabour: "",
+//                 },
+//               ],
 //             }
-//           : item;
-//       } else {
-//         return item.id === id
-//           ? { ...item, [key]: value?.macName ? value?.macName : value }
-//           : item;
-//       }
-//     });
-
-//     setEquipments(updated);
-//   };
-//   const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-
-//   const transformRows = (rows) => {
-//     const dprAgricultures = rows.map((row) => ({
-//       materialType: row.materialType,
-//       itemId: row.material?.id,
-//       itemName: row.material?.itemName,
-//       uom: row.material?.uom || row.uom,
-//       noOfItems: row.noOfItems,
-//       qty: row.quantity,
-//     }));
-
-//     return { dprAgricultures };
+//           : e,
+//       ),
+//     );
 //   };
 
-//   const transformMachanicalTools = (equipments) => {
-//     const equipmentFormat = equipments.map((equipment) => ({
-//       equipmentId: equipment?.equipmentId,
-//       equipmentName: equipment?.equipment,
-//       operatorName: "",
-//       cpNumber: "",
-//       actualHours: "",
-//       estimatedHours: equipment?.estHours,
-//       operatorRequired: equipment?.operatorRequired,
-//     }));
-
-//     return { equipmentFormat };
+//   const deleteActivity = (entryId, activityId) => {
+//     setEntries((prev) =>
+//       prev.map((e) =>
+//         e.id === entryId
+//           ? {
+//               ...e,
+//               activities: e.activities.filter((a) => a.id !== activityId),
+//             }
+//           : e,
+//       ),
+//     );
 //   };
 
-//   const submitForm = async () => {
-//     setLoading(true);
-//     const formatedRows = transformRows(rows);
-//     const formatedEquipment = transformMachanicalTools(equipments);
-//     let data = [
-//       {
-//         squareName: landData?.squareName,
-//         reportDate: date,
-//         activityId: activityOperationVal?.id,
-//         noOfLabour: noOfLabour,
-//         dprAgricultures: formatedRows.dprAgricultures,
-//         dprMechanicals: formatedEquipment?.equipmentFormat,
-//         activityName: activityOperationVal?.operationName,
-//         cultivableArea: landData?.cultivatedArea,
-//         planId: landData?.planId,
+//   /* ================= SUBMIT ================= */
+//   const submitForm = () => {
+//     const payload = entries.flatMap((entry) =>
+//       entry.activities.map((act) => ({
+//         activityId: act.activity?.id,
+//         contractorTypeId: act.contractorType?.id,
+//         contractorNameId: act.contractorName?.id,
+//         noOfLabour: Number(act.noOfLabour),
 //         squareId: landData?.squareId,
-//         farmPlanId: landData?.farmPlanId,
-//         totalArea: landData?.squareArea,
-//         unitType: userData?.unitType,
-//         chakId: userData?.chakId,
-//         farmId: landData?.farmId,
-//         farmBlockId: landData?.farmBlockId,
-//         chakName: landData?.chakName,
-//         farmName: landData?.farmName,
-//         farmBlockName: landData?.farmBlockName,
-//         currentDprStatus: "PENDING",
-//         workshopId: landData?.workshopId,
-//       },
-//     ];
-
-//     const encryptedPayload = encryptWholeObject(data);
-//     const response = await apiRequest(
-//       API_ROUTES.SAVE_DPR,
-//       "POST",
-//       encryptedPayload
+//       })),
 //     );
 
-//     const decryptedResponse = decryptAES(response);
-//     const parsedResponse = JSON.parse(decryptedResponse);
-//     setLoading(false);
-//     console.log("parsedResponse___", parsedResponse);
-
-//     if (
-//       parsedResponse?.status === "SUCCESS" &&
-//       parsedResponse?.statusCode === "200"
-//     ) {
-//       console.log("parsedResponse___", "if");
-//       navigation.goBack();
-//       showSuccessMessage(`${parsedResponse?.message} `);
-//     } else if (
-//       parsedResponse?.status === "FAILED" &&
-//       parsedResponse?.statusCode === "300"
-//     ) {
-//       console.log("parsedResponse___", "else if");
-//       showErrorMessage(`${parsedResponse?.message} `);
-//     } else {
-//       console.log("parsedResponse___", "else");
-//       showErrorMessage("Error in filling form");
-//     }
+//     console.log("FINAL PAYLOAD", payload);
 //   };
+
+//   /* ================= UI ================= */
 //   return (
 //     <WrapperContainer isLoading={loading}>
-//       <InnerHeader title={"Add Process Allocation"} />
+//       <InnerHeader title="Add Process Allocation" />
+
 //       <KeyboardAvoidingView
 //         style={{ flex: 1 }}
 //         behavior={Platform.OS === "ios" ? "padding" : "height"}
-//         keyboardVerticalOffset={moderateScaleVertical(
-//           Platform.OS === "ios" ? 90 : 10
-//         )}
 //       >
-//         <ScrollView
-//           style={styles.container}
-//           showsVerticalScrollIndicator={false}
-//           contentContainerStyle={styles.scrollContent}
-//         >
-//           <View style={[styles.rowContainer]}>
-//             <View style={styles.row}>
-//               <View style={styles.inputContainer}>
-//                 <Text style={styles.label}>Square</Text>
-//                 <TextInput
-//                   editable={false}
-//                   style={styles.input}
-//                   keyboardType="numeric"
-//                   value={landData?.squareName}
-//                 />
-//               </View>
+//         <ScrollView style={{ padding: 10 }}>
+//           {/* ADD ENTRY */}
+//           <TouchableOpacity style={styles.addEntryBtn} onPress={addEntry}>
+//             <Icon name="add" size={24} color="#fff" />
+//             <Text style={styles.addEntryText}>Add New Entry</Text>
+//           </TouchableOpacity>
 
+//           {/* ENTRIES */}
+//           {entries.map((entry, entryIndex) => (
+//             <View key={entry.id} style={styles.entryCard}>
+//               {/* ENTRY HEADER */}
 //               <TouchableOpacity
-//                 onPress={() => setShow(true)}
-//                 style={styles.inputContainer}
+//                 style={styles.entryHeader}
+//                 onPress={() => toggleEntry(entry.id)}
 //               >
-//                 <Text style={styles.label}>Date</Text>
-//                 <View style={styles.input}>
-//                   <Text>{date.toLocaleDateString()}</Text>
+//                 <Text style={styles.entryTitle}>Entry #{entryIndex + 1}</Text>
+
+//                 <View style={{ flexDirection: "row" }}>
+//                   {entries.length > 1 && (
+//                     <TouchableOpacity onPress={() => deleteEntry(entry.id)}>
+//                       <Icon name="delete" size={22} color="red" />
+//                     </TouchableOpacity>
+//                   )}
+//                   <Icon
+//                     name={entry.expanded ? "expand-less" : "expand-more"}
+//                     size={28}
+//                   />
 //                 </View>
 //               </TouchableOpacity>
 
-//               {show && (
-//                 <DateTimePicker
-//                   value={date}
-//                   mode="date" // "time" or "datetime"
-//                   display={Platform.OS === "ios" ? "spinner" : "default"}
-//                   onChange={onChangeDate}
-//                   maximumDate={new Date(2030, 11, 31)}
-//                   minimumDate={new Date(2020, 0, 1)}
-//                 />
-//               )}
+//               {/* ENTRY BODY */}
+//               {entry.expanded && (
+//                 <View>
+//                   {entry.activities.map((act) => (
+//                     <View key={act.id} style={styles.activityCard}>
+//                       {/* DELETE ACTIVITY */}
+//                       {entry.activities.length > 1 && (
+//                         <TouchableOpacity
+//                           style={{ alignItems: "flex-end" }}
+//                           onPress={() => deleteActivity(entry.id, act.id)}
+//                         >
+//                           <Icon name="delete" size={18} color="red" />
+//                         </TouchableOpacity>
+//                       )}
 
-//               <View style={styles.inputContainer}>
-//                 <Text style={styles.label}>No. Of Labour</Text>
-//                 <TextInput
-//                   style={styles.input}
-//                   value={noOfLabour}
-//                   placeholder="0"
-//                   onChangeText={(val) => {
-//                     setnoOfLabour(val);
-//                   }}
-//                 />
-//               </View>
-//             </View>
+//                       {/* ACTIVITY */}
+//                       <DropDown
+//                         label="Activity"
+//                         isVisible={openDropdown === `act-${act.id}`}
+//                         setIsVisible={(v) =>
+//                           setOpenDropdown(v ? `act-${act.id}` : null)
+//                         }
+//                         data={operationList}
+//                         value={act.activity?.operationName || ""}
+//                         selectItem={(item) => {
+//                           setEntries((prev) =>
+//                             prev.map((e) =>
+//                               e.id === entry.id
+//                                 ? {
+//                                     ...e,
+//                                     activities: e.activities.map((a) =>
+//                                       a.id === act.id
+//                                         ? { ...a, activity: item }
+//                                         : a,
+//                                     ),
+//                                   }
+//                                 : e,
+//                             ),
+//                           );
+//                           setOpenDropdown(null);
+//                         }}
+//                       />
 
-//             <View style={styles.row}>
-//               <DropDown
-//                 isVisible={showActivityOperation}
-//                 setIsVisible={() => {
-//                   setshowActivityOperation(!showActivityOperation);
-//                 }}
-//                 data={operationList}
-//                 value={
-//                   activityOperationVal
-//                     ? activityOperationVal?.operationName
-//                     : ""
-//                 }
-//                 selectItem={(item) => {
-//                   setactivityOperationVal(item);
-//                   setshowActivityOperation(false);
-//                 }}
-//               />
-//             </View>
-//             <View
-//               style={{
-//                 backgroundColor: "#e8f5e9",
-//                 padding: 10,
-//                 borderRadius: 10,
-//                 borderWidth: 2,
-//                 borderColor: "#2e7d32",
-//                 borderStyle: "dotted",
-//                 margin: 10,
-//               }}
-//             >
-//               <View style={styles.row}>
-//                 <Text
-//                   style={{
-//                     color: Colors.black,
-//                     fontSize: 18,
-//                     marginBottom: 10,
-//                   }}
-//                 >
-//                   Square Detail
-//                 </Text>
-//               </View>
-//               <View style={styles.row}>
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Production Plan</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={landData?.planId}
-//                     editable={false}
-//                   />
+//                       {/* CONTRACTOR TYPE */}
+//                       <DropDown
+//                         label="Contractor Type"
+//                         isVisible={openDropdown === `ct-${act.id}`}
+//                         setIsVisible={(v) =>
+//                           setOpenDropdown(v ? `ct-${act.id}` : null)
+//                         }
+//                         data={contractorTypeList}
+//                         value={act.contractorType?.name || ""}
+//                         selectItem={(item) => {
+//                           setEntries((prev) =>
+//                             prev.map((e) =>
+//                               e.id === entry.id
+//                                 ? {
+//                                     ...e,
+//                                     activities: e.activities.map((a) =>
+//                                       a.id === act.id
+//                                         ? {
+//                                             ...a,
+//                                             contractorType: item,
+//                                             contractorName: null,
+//                                           }
+//                                         : a,
+//                                     ),
+//                                   }
+//                                 : e,
+//                             ),
+//                           );
+//                           setOpenDropdown(null);
+//                         }}
+//                       />
+
+//                       {/* CONTRACTOR NAME */}
+//                       <DropDown
+//                         label="Contractor Name"
+//                         isVisible={openDropdown === `cn-${act.id}`}
+//                         setIsVisible={(v) =>
+//                           setOpenDropdown(v ? `cn-${act.id}` : null)
+//                         }
+//                         data={contractorNameList}
+//                         value={act.contractorName?.name || ""}
+//                         selectItem={(item) => {
+//                           setEntries((prev) =>
+//                             prev.map((e) =>
+//                               e.id === entry.id
+//                                 ? {
+//                                     ...e,
+//                                     activities: e.activities.map((a) =>
+//                                       a.id === act.id
+//                                         ? { ...a, contractorName: item }
+//                                         : a,
+//                                     ),
+//                                   }
+//                                 : e,
+//                             ),
+//                           );
+//                           setOpenDropdown(null);
+//                         }}
+//                       />
+
+//                       {/* LABOUR */}
+//                       <TextInput
+//                         style={styles.input}
+//                         placeholder="No of Labour"
+//                         keyboardType="numeric"
+//                         value={act.noOfLabour}
+//                         onChangeText={(v) =>
+//                           setEntries((prev) =>
+//                             prev.map((e) =>
+//                               e.id === entry.id
+//                                 ? {
+//                                     ...e,
+//                                     activities: e.activities.map((a) =>
+//                                       a.id === act.id
+//                                         ? { ...a, noOfLabour: v }
+//                                         : a,
+//                                     ),
+//                                   }
+//                                 : e,
+//                             ),
+//                           )
+//                         }
+//                       />
+//                     </View>
+//                   ))}
 //                 </View>
-//               </View>
-//               <View style={styles.row}>
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Total Area</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     value={landData?.squareArea.toString()}
-//                     editable={false}
-//                   />
-//                 </View>
-
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Cultivable Area</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={landData?.cultivatedArea.toString()}
-//                     editable={false}
-//                   />
-//                 </View>
-//               </View>
-//               <View style={styles.row}>
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Contractor Type</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={landData?.contractors?.[0]?.contractorType || "NA"}
-//                     editable={false}
-//                   />
-//                 </View>
-
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Contractor</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={landData?.contractors?.[0]?.contractorName || "NA"}
-//                     editable={false}
-//                   />
-//                 </View>
-//               </View>
-//             </View>
-//           </View>
-
-//           <View
-//             style={{
-//               flexDirection: "row",
-//               justifyContent: "space-between",
-//               alignItems: "center",
-//               marginBottom: 20,
-//               padding: 10,
-//             }}
-//           >
-//             <Text
-//               style={{
-//                 color: Colors.greenColor,
-//                 fontSize: 18,
-//                 fontWeight: "bold",
-//               }}
-//             >
-//               Agriculture Inputs
-//             </Text>
-//             <TouchableOpacity style={styles.addBtn} onPress={addRow}>
-//               <Text style={styles.addText}>+ Add New</Text>
-//             </TouchableOpacity>
-//           </View>
-
-//           {rows.map((item, index) => (
-//             <View key={item.id} style={styles.rowContainer}>
-//               <Text style={[styles.serialNo, { margin: 10 }]}>
-//                 S. No {index + 1}
-//               </Text>
-//               <View style={styles.devider} />
-
-//               <View style={styles.row}>
-//                 {renderDropdown(
-//                   item.id,
-//                   "materialType",
-//                   materialTypeList,
-//                   item.showMaterialType,
-//                   (val) => {
-//                     handleChange(item.id, "showMaterialType", val);
-//                     //await fetchMaterialList(val);
-//                   },
-//                   "Material Type",
-//                   item.materialType
-//                 )}
-//               </View>
-//               <View style={styles.row}>
-//                 {renderDropdown(
-//                   item.id,
-//                   "material",
-//                   materialList,
-//                   item.showMaterial,
-//                   (val) => handleChange(item.id, "showMaterial", val),
-//                   "Material",
-//                   item.material
-//                 )}
-//               </View>
-
-//               <View style={styles.row}>
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>No. of Items</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={item.noOfItems}
-//                     onChangeText={(val) =>
-//                       handleChange(item.id, "noOfItems", val)
-//                     }
-//                   />
-//                 </View>
-
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>Quantity</Text>
-//                   <TextInput
-//                     style={styles.input}
-//                     keyboardType="numeric"
-//                     value={item.quantity}
-//                     onChangeText={(val) =>
-//                       handleChange(item.id, "quantity", val)
-//                     }
-//                   />
-//                 </View>
-
-//                 <View style={styles.inputContainer}>
-//                   <Text style={styles.label}>UOM</Text>
-//                   <TextInput
-//                     editable={false}
-//                     style={styles.input}
-//                     value={item.uom}
-//                     //onChangeText={(val) => handleChange(item.id, "uom", val)}
-//                   />
-//                 </View>
-//               </View>
-
-//               {rows.length > 1 && (
-//                 <TouchableOpacity
-//                   style={styles.deleteBtn}
-//                   onPress={() => removeRow(item.id)}
-//                 >
-//                   <Icon name="delete" size={24} color={Colors.red} />
-//                 </TouchableOpacity>
 //               )}
 //             </View>
 //           ))}
 
-//           <View
-//             style={{
-//               flexDirection: "row",
-//               justifyContent: "space-between",
-//               alignItems: "center",
-//               marginBottom: 20,
-//             }}
-//           >
-//             <Text
-//               style={{
-//                 color: Colors.greenColor,
-//                 fontSize: 18,
-//                 fontWeight: "bold",
-//               }}
-//             >
-//               Equipment & Mechanical Details
-//             </Text>
-//             <TouchableOpacity style={styles.addBtn} onPress={addNewEquipment}>
-//               <Text style={styles.addText}>+ Add New</Text>
-//             </TouchableOpacity>
-//           </View>
-//           <FlatList
-//             data={equipments}
-//             keyExtractor={(item) => item.id.toString()}
-//             renderItem={renderEqupmentItem}
-//           />
-
-//           <TouchableOpacity
-//             style={styles.addBtn}
-//             onPress={() => {
-//               submitForm();
-//             }}
-//           >
-//             <Text style={styles.addText}>Submit</Text>
+//           {/* SUBMIT */}
+//           <TouchableOpacity style={styles.submitBtn} onPress={submitForm}>
+//             <Text style={styles.submitText}>Submit</Text>
 //           </TouchableOpacity>
 //         </ScrollView>
 //       </KeyboardAvoidingView>
@@ -969,243 +322,74 @@
 //   );
 // }
 
+// /* ================= STYLES ================= */
+
 // const styles = StyleSheet.create({
-//   addParentButton: {
+//   addEntryBtn: {
 //     flexDirection: "row",
 //     alignItems: "center",
 //     justifyContent: "center",
 //     backgroundColor: Colors.greenColor,
-//     padding: moderateScale(12),
-//     borderRadius: moderateScale(5),
-//     //marginBottom: moderateScaleVertical(16),
+//     padding: 14,
+//     borderRadius: 6,
 //   },
-//   addParentButtonText: {
-//     color: Colors.white,
-//     fontSize: textScale(14),
-//     fontFamily: FontFamily.PoppinsMedium,
-//     marginLeft: moderateScale(8),
-//   },
-//   container: {
-//     flex: 1,
-//   },
-//   scrollContent: {
-//     padding: moderateScale(8),
-//     paddingBottom: moderateScale(20),
-//   },
-//   listContainer: {
-//     padding: moderateScale(15),
-//     paddingBottom: moderateScaleVertical(20),
+//   addEntryText: {
+//     color: "#fff",
+//     marginLeft: 8,
+//     fontWeight: "600",
 //   },
 
-//   itemCard: {
-//     backgroundColor: Colors.white,
-//     borderRadius: moderateScale(8),
-//     padding: moderateScale(16),
-//     marginBottom: moderateScaleVertical(16),
-//     shadowColor: Colors.black,
-//     shadowOffset: {
-//       width: 0,
-//       height: 2,
-//     },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 3.84,
-//     elevation: moderateScale(5),
-//   },
-//   itemRow: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginBottom: moderateScaleVertical(12),
-//   },
-//   itemColumn: {
-//     flex: 1,
-//     marginRight: moderateScale(8),
-//   },
-//   itemLabel: {
-//     fontSize: textScale(12),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.gray,
-//     marginBottom: moderateScaleVertical(2),
-//     textTransform: "capitalize",
-//   },
-//   itemValue: {
-//     fontSize: textScale(14),
-//     fontFamily: FontFamily.PoppinsMedium,
-//     color: Colors.textColor,
-//     textTransform: "capitalize",
-//   },
-//   statusBadge: {
-//     paddingHorizontal: moderateScale(12),
-//     paddingVertical: moderateScaleVertical(4),
-//     borderRadius: moderateScale(5),
-//   },
-//   statusText: {
-//     fontSize: textScale(11),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.white,
-//   },
-//   cardHeader: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     marginBottom: moderateScaleVertical(12),
-//     borderBottomWidth: 1,
-//     borderBottomColor: Colors.diabledColor,
-//     paddingBottom: moderateScaleVertical(8),
-//   },
-//   dateText: {
-//     fontSize: textScale(13),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.textColor,
-//     textTransform: "capitalize",
-//   },
-//   bottomSheetContent: {
-//     gap: moderateScaleVertical(8),
-//   },
-//   bottomSheetButton: {
-//     backgroundColor: Colors.greenColor,
-//     padding: moderateScaleVertical(12),
-//     borderRadius: moderateScale(8),
-//     alignItems: "center",
-//   },
-//   bottomSheetButtonText: {
-//     color: Colors.white,
-//     fontSize: textScale(14),
-//     fontFamily: FontFamily.PoppinsMedium,
-//   },
-//   notificationHolder: {
-//     borderWidth: 2,
-//     width: moderateScale(50),
-//     height: moderateScale(50),
-//     borderRadius: moderateScale(25),
-//     backgroundColor: Colors.bg3,
-//     borderColor: Colors.bg3,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   notificationHolder: {
-//     borderWidth: 2,
-//     width: moderateScale(50),
-//     height: moderateScale(50),
-//     borderRadius: moderateScale(25),
-//     backgroundColor: Colors.greenColor,
-//     borderColor: Colors.greenColor,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-
-//   ////////
-
-//   devider: {
-//     backgroundColor: "#ddd",
-//     height: 1,
-//     width: "100%",
-//   },
-
-//   rowContainer: {
-//     backgroundColor: "#fff",
+//   entryCard: {
 //     borderWidth: 1,
 //     borderColor: "#ddd",
 //     borderRadius: 10,
-//     marginBottom: 12,
-//     position: "relative",
+//     marginTop: 15,
+//     backgroundColor: "#fff",
 //   },
-//   serialNo: {
-//     fontWeight: "600",
-//     marginBottom: 8,
-//   },
-//   row: {
+//   entryHeader: {
 //     flexDirection: "row",
 //     justifyContent: "space-between",
-//     paddingHorizontal: 10,
-//   },
-//   inputContainer: {
-//     flex: 1,
-//     marginRight: 8,
-//     marginBottom: 10,
-//   },
-//   label: {
-//     fontSize: 14,
-//     color: Colors.grey,
-//     marginBottom: 4,
-//     fontWeight: "700",
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: Colors.border,
-//     borderRadius: 6,
-//     padding: 8,
-//   },
-//   dropdownButton: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     borderWidth: 1,
-//     borderColor: Colors.border,
-//     borderRadius: 6,
 //     padding: 10,
+//     backgroundColor: "#f1f8e9",
 //   },
-//   dropdownButtonText: {
-//     color: "#000",
-//   },
-//   dropdownButtonPlaceholder: {
-//     color: Colors.grey,
-//   },
-//   modalOverlay: {
-//     flex: 1,
-//     backgroundColor: "rgba(0,0,0,0.3)",
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   dropdownModal: {
-//     backgroundColor: "#fff",
-//     width: "80%",
-//     borderRadius: 10,
-//     paddingVertical: 10,
-//   },
-//   dropdownItem: {
-//     padding: 12,
-//     borderBottomWidth: 1,
-//     borderColor: "#eee",
-//   },
-//   addBtn: {
-//     backgroundColor: "#e8f5e9",
-//     borderColor: Colors.green,
-//     borderWidth: 1,
-//     borderRadius: 10,
-//     alignItems: "center",
-//     padding: 12,
-//     marginTop: 10,
-//   },
-//   addText: {
-//     color: Colors.green,
-//     fontWeight: "600",
-//   },
-//   deleteBtn: {
-//     position: "absolute",
-//     right: 10,
-//     top: 10,
+//   entryTitle: {
+//     fontWeight: "700",
+//     fontSize: 16,
 //   },
 
-//   /// equipment
-//   serial: { fontWeight: "bold", marginBottom: 6 },
-//   pickerContainer: {
+//   addActivityText: {
+//     color: Colors.green,
+//     fontWeight: "600",
+//     margin: 10,
+//   },
+
+//   activityCard: {
+//     borderWidth: 1,
+//     borderColor: "#eee",
+//     borderRadius: 8,
+//     padding: 10,
+//     margin: 10,
+//     backgroundColor: "#fafafa",
+//   },
+
+//   input: {
 //     borderWidth: 1,
 //     borderColor: "#ccc",
-//     borderRadius: 8,
-//     marginBottom: 8,
+//     borderRadius: 6,
+//     padding: 8,
+//     marginTop: 8,
 //   },
-//   //label: { fontSize: 12, color: "#555", marginLeft: 5, marginTop: 4 },
-//   //inputContainer: { marginBottom: 8 },
-//   // input: {
-//   //   borderWidth: 1,
-//   //   borderColor: "#ccc",
-//   //   borderRadius: 8,
-//   //   paddingHorizontal: 10,
-//   //   height: 40,
-//   // },
-//   checkboxContainer: {
-//     flexDirection: "row",
+
+//   submitBtn: {
+//     backgroundColor: Colors.green,
+//     padding: 16,
+//     borderRadius: 8,
+//     marginVertical: 20,
 //     alignItems: "center",
-//     marginBottom: 8,
+//   },
+//   submitText: {
+//     color: "#fff",
+//     fontWeight: "700",
 //   },
 // });
 
@@ -1213,26 +397,24 @@ import {
   View,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
   ScrollView,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
-  Modal,
-  FlatList,
   Switch,
+  Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import {
-  moderateScale,
-  moderateScaleVertical,
-  textScale,
-} from "../../../../utils/responsiveSize";
-import DateTimePicker, {
-  DateTimePickerAndroid,
-} from "@react-native-community/datetimepicker";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/MaterialIcons";
+
+import WrapperContainer from "../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../components/InnerHeader";
 import DropDown from "../../../../components/DropDown";
+import Colors from "../../../../utils/Colors";
+import { moderateScale, textScale } from "../../../../utils/responsiveSize";
+import FontFamily from "../../../../utils/FontFamily";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
@@ -1240,237 +422,245 @@ import {
   showErrorMessage,
   showSuccessMessage,
 } from "../../../../utils/HelperFunction";
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
-import Colors from "../../../../utils/Colors";
-import FontFamily from "../../../../utils/FontFamily";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
 import { getUserData } from "../../../../utils/Storage";
 
 export default function AddNewDpr({ route }) {
   const navigation = useNavigation();
+  const landData = route?.params?.landData;
+  console.log("landData", landData);
+
   const [loading, setLoading] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [operationList, setoperationList] = useState([]);
+  const [contractorNameList, setcontractorNameList] = useState([]);
+  const [equipmentList, setequipmentList] = useState([]);
+  const [equipmentSubGroupList, setequipmentSubGroupList] = useState([]);
+  const [materialList, setmaterialList] = useState([]);
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
-  const [noOfLabour, setnoOfLabour] = useState("0"); // keep as string for TextInput
-  const [editNoOfLabour, seteditNoOfLabour] = useState(0);
-  const [debouncedCount, setDebouncedCount] = useState(editNoOfLabour);
-  const [operationList, setOperationList] = useState([]);
-  const [showActivityOperation, setshowActivityOperation] = useState(false);
-  const [userData, setUserData] = useState([]);
-  const [activityOperationVal, setactivityOperationVal] = useState("");
-  const [materialList, setMaterialList] = useState([]);
-  const [activeDropdown, setActiveDropdown] = useState(null);
-  const [materialTypeList, setmaterialTypeList] = useState([
-    "VALUE_ADDED",
-    "PACKAGING_MATERIAL",
-    "AGRO_CHEMICAL",
-    "SEED",
-    "SAPLING",
-  ]);
-  const [rows, setRows] = useState([
-    {
-      id: 1,
-      materialType: "",
-      material: "",
-      noOfItems: "",
-      quantity: "",
-      uom: "",
-      showMaterialType: false,
-      showMaterial: false,
-    },
-  ]);
-  const [equipments, setEquipments] = useState([
-    { id: 1, equipment: "", estHours: "", operatorRequired: false },
-  ]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [materialTableData, setMaterialTableData] = useState([]);
+  const [userData, setUserData] = useState("");
 
-  const [labourOption, setlabourOption] = useState([]);
-  const [equipmentOptions, setequipmentOptions] = useState([
+  /* ================= MASTER LISTS ================= */
+
+  const contractorTypeList = [
     {
-      createdBy: "SYSTEM",
-      createdOn: "2025-04-29T12:10:36.310+05:30",
-      updatedBy: "SYSTEM",
-      updatedOn: "2025-05-01T11:10:39.450+05:30",
-      status: "ACTIVE",
       id: 1,
-      macShortName: "98",
-      macName: "Furniture AND Fixture(Furniture & Fixtures)",
-      macDesc: "Furniture AND Fixture",
-      costPerHr: 5,
-      remarks: "Machine Data Ported",
-      machineType: {
-        createdBy: "ADMIN",
-        createdOn: "2025-04-11T16:31:38.915+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-04-30T19:03:19.231+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macTypeShortName: "FURNITUREANDFIXTURES",
-        macTypeName: "FURNITURE AND FIXTURES",
-      },
-      machineStatus: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:02:45.593+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T13:02:07.417+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macStatusCode: 11,
-        macStatusName: "WORKING",
-      },
+      name: "Activity Wise Contractor",
+      agreementType: "ACTIVITY_WISE_CONTRACTOR",
     },
+    { id: 2, name: "Sharing Basis", agreementType: "SHARING_BASIS" },
     {
-      createdBy: "SYSTEM",
-      createdOn: "2025-04-29T12:15:08.864+05:30",
-      updatedBy: "SYSTEM",
-      updatedOn: "2025-05-01T11:12:04.069+05:30",
-      status: "ACTIVE",
       id: 2,
-      macShortName: "99",
-      macName: "Furniture AND Fixture(Air Cooler, Air Conditioner)",
-      macDesc: "Furniture AND Fixture",
-      costPerHr: 5,
-      remarks: "Machine Data Ported",
-      machineType: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-28T16:08:10.677+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-04-30T19:01:15.292+05:30",
-        status: "ACTIVE",
-        id: 2,
-        macTypeShortName: "AIRCOOLERAIRCONDITIONERFOROFFICEUSE",
-        macTypeName: "AIR COOLER , AIR CONDITIONER FOR OFFICE USE",
-      },
-      machineStatus: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:02:45.593+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T13:02:07.417+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macStatusCode: 11,
-        macStatusName: "WORKING",
-      },
+      name: "Piece Works Contractor",
+      agreementType: "PIECE_WORKS_CONTRACTOR",
     },
-    {
-      createdBy: "SYSTEM",
-      createdOn: "2025-05-01T11:13:18.492+05:30",
-      updatedBy: "SYSTEM",
-      updatedOn: "2025-05-01T11:13:18.492+05:30",
-      status: "ACTIVE",
-      id: 3,
-      macShortName: "100",
-      macName: "FIRE EXTINGUISHER",
-      macDesc: "FIRE EXTINGUISHER",
-      costPerHr: 5,
-      remarks: "Machine Data Ported",
-      machineType: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:17:00.230+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T15:34:58.560+05:30",
-        status: "ACTIVE",
-        id: 3,
-        macTypeShortName: "FIREEXT",
-        macTypeName: "FIRE EXTINGUISHER ",
-      },
-      machineStatus: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:02:45.593+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T13:02:07.417+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macStatusCode: 11,
-        macStatusName: "WORKING",
-      },
-    },
-    {
-      createdBy: "SYSTEM",
-      createdOn: "2025-05-20T12:40:56.940+05:30",
-      updatedBy: "SYSTEM",
-      updatedOn: "2025-05-20T12:40:56.940+05:30",
-      status: "ACTIVE",
-      id: 4,
-      macShortName: "MNO",
-      macName: "Mac Name One",
-      macDesc: "Machine Desc One",
-      costPerHr: 45,
-      remarks: "Testing",
-      machineType: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:17:00.230+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T15:34:58.560+05:30",
-        status: "ACTIVE",
-        id: 3,
-        macTypeShortName: "FIREEXT",
-        macTypeName: "FIRE EXTINGUISHER ",
-      },
-      machineStatus: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:02:45.593+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T13:02:07.417+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macStatusCode: 11,
-        macStatusName: "WORKING",
-      },
-    },
-    {
-      createdBy: "SYSTEM",
-      createdOn: "2025-05-20T15:46:20.075+05:30",
-      updatedBy: "SYSTEM",
-      updatedOn: "2025-05-20T15:46:20.075+05:30",
-      status: "ACTIVE",
-      id: 5,
-      macShortName: "MNT",
-      macName: "Mac Name Two",
-      macDesc: "Machine Desc Two",
-      costPerHr: 47.32,
-      remarks: "Test another record",
-      machineType: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-28T16:08:10.677+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-04-30T19:01:15.292+05:30",
-        status: "ACTIVE",
-        id: 2,
-        macTypeShortName: "AIRCOOLERAIRCONDITIONERFOROFFICEUSE",
-        macTypeName: "AIR COOLER , AIR CONDITIONER FOR OFFICE USE",
-      },
-      machineStatus: {
-        createdBy: "SYSTEM",
-        createdOn: "2025-04-29T12:02:45.593+05:30",
-        updatedBy: "SYSTEM",
-        updatedOn: "2025-05-20T13:02:07.417+05:30",
-        status: "ACTIVE",
-        id: 1,
-        macStatusCode: 11,
-        macStatusName: "WORKING",
-      },
-    },
-  ]);
+  ];
 
-  const isFocused = useIsFocused();
-  const landData = route?.params?.landData;
+  const materialTypeList = [
+    { id: 1, name: "SEED" },
+    { id: 2, name: "VALUE_ADDED" },
+    { id: 3, name: "PACKAGING_MATERIAL" },
+    { id: 4, name: "AGRO_CHEMICAL" },
+    { id: 5, name: "SAPLING" },
+    { id: 6, name: "FIXED" },
+    { id: 7, name: "CONSUMABLE_PARTS" },
+  ];
 
-  // errors object to store validation messages
-  const [errors, setErrors] = useState({});
+  const NONE_PLAN_OPTION = {
+    id: null,
+    planCode: "None",
+    planName: "None",
+  };
 
   useEffect(() => {
-    if (isFocused) {
-      fetchUserData();
-    }
-  }, [isFocused]);
+    getActivityList();
+    getEquipmentList();
+    fetchUserData();
+  }, []);
 
   const fetchUserData = async () => {
+    setSelectedPlan(null);
     setLoading(true);
     const userData = await getUserData();
-    console.log("userData", userData);
     setUserData(userData);
-    getActivityOperationData();
+  };
+
+  const getEquipmentList = async () => {
+    try {
+      const equipmentPayloadData = {};
+      const encryptedEquipmentPayload =
+        encryptWholeObject(equipmentPayloadData);
+      const equipmentListResponse = await apiRequest(
+        API_ROUTES.EQUIPMENT_LIST,
+        "POST",
+        encryptedEquipmentPayload,
+      );
+      const decryptedEquipmentListData = decryptAES(equipmentListResponse);
+      const parsedDecryptedEquipmentListData = JSON.parse(
+        decryptedEquipmentListData,
+      );
+
+      console.log(
+        "parsedDecryptedEquipmentListData",
+        parsedDecryptedEquipmentListData,
+      );
+      if (
+        (parsedDecryptedEquipmentListData?.status === "SUCCESS" &&
+          parsedDecryptedEquipmentListData?.statusCode === "200") ||
+        (parsedDecryptedEquipmentListData?.status === "200" &&
+          parsedDecryptedEquipmentListData?.statusCode === "SUCCESS")
+      ) {
+        setequipmentList(parsedDecryptedEquipmentListData?.data || []);
+      } else {
+        showErrorMessage("Unable to get the Equipment List Data");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getActivityList = async () => {
+    setLoading(true);
+    try {
+      const operationPayloadData = {};
+      const encryptedOperationPayload =
+        encryptWholeObject(operationPayloadData);
+      const operationListResponse = await apiRequest(
+        API_ROUTES.OPERATION_MASTER_DD,
+        "POST",
+        encryptedOperationPayload,
+      );
+      const decryptedOperationListData = decryptAES(operationListResponse);
+      const parsedDecryptedOperationListData = JSON.parse(
+        decryptedOperationListData,
+      );
+      if (
+        parsedDecryptedOperationListData?.status === "SUCCESS" &&
+        parsedDecryptedOperationListData?.statusCode === "200"
+      ) {
+        setoperationList(parsedDecryptedOperationListData?.data || []);
+      } else {
+        showErrorMessage("Unable to get the Operation List Data");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= STATE ================= */
+  const [entries, setEntries] = useState([
+    {
+      id: Date.now(),
+      expanded: true,
+      activities: [
+        {
+          id: Date.now() + 1,
+          activity: null,
+          contractorType: null,
+          contractorName: null,
+          noOfLabour: "",
+
+          agricultures: [
+            {
+              id: Date.now() + 2,
+              materialType: "",
+              material: null,
+            },
+          ],
+
+          equipments: [
+            {
+              id: Date.now() + 3,
+              equipment: null,
+              subGroup: null,
+              estHours: "",
+              operatorRequired: false,
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+
+  /* ================= HELPERS ================= */
+  const updateActivity = (entryId, actId, updater) => {
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === entryId
+          ? {
+              ...e,
+              activities: e.activities.map((a) =>
+                a.id === actId ? updater(a) : a,
+              ),
+            }
+          : e,
+      ),
+    );
+  };
+
+  const deleteEntry = (entryId) => {
+    setEntries((prev) => prev.filter((e) => e.id !== entryId));
+  };
+
+  /* ================= ENTRY ================= */
+  // const addEntry = () => {
+  //   setEntries((prev) => [
+  //     ...prev,
+  //     { id: Date.now(), expanded: true, activities: [] },
+  //   ]);
+  // };
+
+  const addEntry = () => {
+    setEntries((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        expanded: true,
+        activities: [
+          {
+            id: Date.now() + 1,
+            activity: null,
+            contractorType: null,
+            contractorName: null,
+            noOfLabour: "",
+            agricultures: [
+              {
+                id: Date.now() + 2,
+                materialType: "",
+                material: null,
+              },
+            ],
+            equipments: [
+              {
+                id: Date.now() + 3,
+                equipment: null,
+                subGroup: null,
+                estHours: "",
+                operatorRequired: false,
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  };
+
+  const toggleEntry = (id) => {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, expanded: !e.expanded } : e)),
+    );
   };
 
   const onChangeDate = (event, selectedDate) => {
@@ -1480,923 +670,866 @@ export default function AddNewDpr({ route }) {
     }
   };
 
-  const getActivityOperationData = async () => {
+  /* ================= ACTIVITY ================= */
+  const addActivity = (entryId) => {
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === entryId
+          ? {
+              ...e,
+              activities: [
+                ...e.activities,
+                {
+                  id: Date.now(),
+                  activity: null,
+                  contractorType: null,
+                  contractorName: null,
+                  noOfLabour: "",
+                  agricultures: [],
+                  equipments: [],
+                },
+              ],
+            }
+          : e,
+      ),
+    );
+  };
+
+  /* ================= AGRICULTURE ================= */
+  const addAgriculture = (entryId, actId) => {
+    updateActivity(entryId, actId, (a) => ({
+      ...a,
+      agricultures: [
+        ...a.agricultures,
+        { id: Date.now(), materialType: "", material: null },
+      ],
+    }));
+  };
+
+  const removeAgriculture = (entryId, actId, agId) => {
+    updateActivity(entryId, actId, (a) => ({
+      ...a,
+      agricultures: a.agricultures.filter((ag) => ag.id !== agId),
+    }));
+  };
+
+  /* ================= EQUIPMENT ================= */
+  const addEquipment = (entryId, actId) => {
+    updateActivity(entryId, actId, (a) => ({
+      ...a,
+      equipments: [
+        ...a.equipments,
+        {
+          id: Date.now(),
+          equipment: null,
+          subGroup: null,
+          estHours: "",
+          operatorRequired: false,
+        },
+      ],
+    }));
+  };
+
+  const removeEquipment = (entryId, actId, eqId) => {
+    updateActivity(entryId, actId, (a) => ({
+      ...a,
+      equipments: a.equipments.filter((eq) => eq.id !== eqId),
+    }));
+  };
+
+  const getContractorName = async (id) => {
+    setLoading(true);
     try {
-      const operationPayloadData = {};
-      const encryptedOperationPayload =
-        encryptWholeObject(operationPayloadData);
-      const operationListResponse = await apiRequest(
-        API_ROUTES.OPERATION_MASTER_DD,
+      const payloadData = {
+        squareId: null,
+        epoId: null,
+        activityId: id,
+        agreementType: "ACTIVITY_WISE_CONTRACTOR",
+      };
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const getContractorList = await apiRequest(
+        API_ROUTES.CONTRACTOR,
         "POST",
-        encryptedOperationPayload
+        encryptPayloadData,
       );
-      const decryptedOperationListData = decryptAES(operationListResponse);
-      const parsedDecryptedOperationListData = JSON.parse(
-        decryptedOperationListData
-      );
+      const decryptedContractorList = decryptAES(getContractorList);
+      const parsedDecryptedContractorList = JSON.parse(decryptedContractorList);
+
       console.log(
-        "parsedDecryptedOperationListData",
-        parsedDecryptedOperationListData
+        "parsedDecryptedContractorList",
+        parsedDecryptedContractorList,
       );
       if (
-        parsedDecryptedOperationListData?.status === "SUCCESS" &&
-        parsedDecryptedOperationListData?.statusCode === "200"
+        parsedDecryptedContractorList?.status === "SUCCESS" &&
+        parsedDecryptedContractorList?.statusCode === "200"
       ) {
-        setOperationList(parsedDecryptedOperationListData?.data || []);
+        setcontractorNameList(parsedDecryptedContractorList?.data || []);
       } else {
         showErrorMessage("Unable to get the Operation List Data");
       }
     } catch (error) {
-      console.log("parsedDecryptedOperationListData", error);
-      showErrorMessage("Unable to get the Operation List Data");
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
     } finally {
       setLoading(false);
     }
   };
 
-  const addRow = () => {
-    const newId = rows.length + 1;
-    setRows([
-      ...rows,
-      {
-        id: newId,
-        materialType: "",
-        material: "",
-        noOfItems: "",
-        quantity: "",
-        uom: "",
-        showMaterialType: false,
-        showMaterial: false,
-      },
-    ]);
-  };
-
-  const removeRow = (id) => {
-    setRows(rows.filter((row) => row.id !== id));
-    // remove any errors associated with that row
-    setErrors((prev) => {
-      const copy = { ...prev };
-      Object.keys(copy).forEach((k) => {
-        if (k.includes(`_${id - 1}`) || k.includes(`_${id}`)) {
-          // remove keys matching pattern - best-effort
-          delete copy[k];
-        }
-      });
-      return copy;
-    });
-  };
-
-  const renderDropdown = (
-    parentId,
-    type,
-    data,
-    isVisible,
-    setVisible,
-    placeholder,
-    value
-  ) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{placeholder}</Text>
-      <TouchableOpacity
-        style={[
-          styles.dropdownButton,
-          // apply red border if error exists for corresponding field
-          (type === "materialType" &&
-            errors[`materialType_${parentId}`] &&
-            styles.inputError) ||
-            (type === "material" &&
-              errors[`material_${parentId}`] &&
-              styles.inputError),
-        ]}
-        onPress={() => setVisible(!isVisible)}
-      >
-        <Text
-          style={[
-            styles.dropdownButtonText,
-            !value && styles.dropdownButtonPlaceholder,
-            { flex: 1, marginRight: 8 },
-          ]}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {typeof value === "object"
-            ? value?.itemName || `Select ${placeholder}`
-            : value || `Select ${placeholder}`}
-        </Text>
-        <Icon name="arrow-drop-down" size={24} color={Colors.grey} />
-      </TouchableOpacity>
-
-      <Modal
-        visible={isVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setVisible(false)}
-        >
-          <View style={styles.dropdownModal}>
-            <FlatList
-              data={data}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) =>
-                renderDropdownItem({ item, type, parentId })
-              }
-              style={styles.dropdownList}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* inline error */}
-      {type === "materialType" && errors[`materialType_${parentId}`] && (
-        <Text style={styles.errorText}>
-          {errors[`materialType_${parentId}`]}
-        </Text>
-      )}
-      {type === "material" && errors[`material_${parentId}`] && (
-        <Text style={styles.errorText}>{errors[`material_${parentId}`]}</Text>
-      )}
-    </View>
-  );
-
-  const renderDropdownItem = ({ item, type, parentId }) => (
-    <TouchableOpacity
-      style={styles.dropdownItem}
-      onPress={() => {
-        if (type === "materialType") {
-          fetchMaterialList(item);
-          handleChange(parentId, type, item);
-          handleChange(parentId, `show${capitalize(type)}`, false);
-        } else if (type === "material") {
-          handleChange(parentId, type, item);
-          handleChange(parentId, `show${capitalize(type)}`, false);
-        } else {
-          handleChange(parentId, type, item);
-          handleChange(parentId, `show${capitalize(type)}`, false);
-        }
-      }}
-    >
-      <Text>
-        {typeof item === "object" ? item?.itemName || "Unnamed Item" : item}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  const handleChange = (id, field, value) => {
-    // Clear field-specific error when user changes it
-    setErrors((prev) => {
-      const copy = { ...prev };
-      const key = `${field}_${id}`;
-      if (copy[key]) delete copy[key];
-      return copy;
-    });
-
-    if (value && value.uom) {
-      setRows((prev) =>
-        prev.map((row) =>
-          row.id === id
-            ? { ...row, [field]: value, uom: value.uom || row.uom || "" }
-            : row
-        )
-      );
-    } else {
-      setRows((prev) =>
-        prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
-      );
-    }
-  };
-
-  const fetchMaterialList = async (materialType) => {
+  const getSubGroup = async (id) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const payload = {
-        materialType: materialType,
+      const payloadData = {
+        assetGroupId: id,
       };
-
-      const encryptedPayload = encryptWholeObject(payload);
-
-      const response = await apiRequest(
-        API_ROUTES.MATERIAL_LIST,
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const getSubGroupList = await apiRequest(
+        API_ROUTES.GET_EQUIPMENT_SUB_GROUP,
         "POST",
-        encryptedPayload
+        encryptPayloadData,
       );
+      const decryptedSubGroupList = decryptAES(getSubGroupList);
+      const parsedDecryptedSubGroupList = JSON.parse(decryptedSubGroupList);
 
-      const decryptedResponse = decryptAES(response);
-      const parsedResponse = JSON.parse(decryptedResponse);
-      console.log("fetchMaterialList", parsedResponse);
+      console.log("parsedDecryptedSubGroupList", parsedDecryptedSubGroupList);
       if (
-        parsedResponse?.status === "SUCCESS" &&
-        parsedResponse?.statusCode === "200"
+        (parsedDecryptedSubGroupList?.status === "SUCCESS" &&
+          parsedDecryptedSubGroupList?.statusCode === "200") ||
+        (parsedDecryptedSubGroupList?.status === "200" &&
+          parsedDecryptedSubGroupList?.statusCode === "200")
       ) {
-        setMaterialList(parsedResponse?.data);
+        setequipmentSubGroupList(parsedDecryptedSubGroupList?.data || []);
       } else {
-        showErrorMessage("Unable to fetch material list");
+        showErrorMessage("Unable to get the Subgroup List Data");
       }
     } catch (error) {
-      console.log("fetchMaterialList", error);
-      console.error("Error fetching material list:", error);
-      showErrorMessage("Error fetching material list");
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
     } finally {
       setLoading(false);
     }
   };
 
-  const addNewEquipment = () => {
-    const newId = equipments.length + 1;
-    setEquipments([
-      ...equipments,
-      { id: newId, equipment: "", estHours: "", operatorRequired: false },
-    ]);
-  };
-
-  const removeEquipment = (id) => {
-    const updated = equipments.filter((item) => item.id !== id);
-    setEquipments(updated);
-    // remove related errors
-    setErrors((prev) => {
-      const copy = { ...prev };
-      delete copy[`equipment_${id}`];
-      delete copy[`estHours_${id}`];
-      return copy;
-    });
-  };
-
-  const renderEqupmentItem = ({ item, index }) => (
-    <View
-      style={{
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        marginBottom: 10,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: 10,
-          marginVertical: 5,
-        }}
-      >
-        <Text style={styles.serial}>S. No {index + 1}</Text>
-        {equipments?.length > 1 && (
-          <TouchableOpacity onPress={() => removeEquipment(item.id)}>
-            <Icon name="delete" size={24} color={Colors.red} />
-          </TouchableOpacity>
-        )}
-      </View>
-      <View style={styles.devider} />
-      <View style={{ marginHorizontal: 10 }}>
-        <DropDown
-          isVisible={activeDropdown === item.id}
-          setIsVisible={(visible) =>
-            setActiveDropdown(visible ? item.id : null)
-          }
-          value={item.equipment}
-          selectItem={(selected) => {
-            handleChangeEqupment(item.id, "equipment", selected);
-            setActiveDropdown(null);
-          }}
-          data={equipmentOptions}
-        />
-
-        {errors[`equipment_${item.id}`] && (
-          <Text style={styles.errorText}>{errors[`equipment_${item.id}`]}</Text>
-        )}
-
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.label}>Est. Hours</Text>
-          <TextInput
-            style={[
-              {
-                borderWidth: 1,
-                borderColor: Colors.border,
-                borderRadius: 6,
-                paddingHorizontal: 10,
-                height: 40,
-              },
-              errors[`estHours_${item.id}`] && styles.inputError,
-            ]}
-            value={item.estHours}
-            placeholder="Enter hours"
-            keyboardType="numeric"
-            onChangeText={(val) =>
-              handleChangeEqupment(item.id, "estHours", val)
-            }
-          />
-          {errors[`estHours_${item.id}`] && (
-            <Text style={styles.errorText}>
-              {errors[`estHours_${item.id}`]}
-            </Text>
-          )}
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            marginBottom: 8,
-            justifyContent: "space-between",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              width: "80%",
-            }}
-          >
-            <Switch
-              value={item.operatorRequired}
-              onValueChange={(val) =>
-                handleChangeEqupment(item.id, "operatorRequired", val)
-              }
-              trackColor={{ false: "#ccc", true: "lightgreen" }}
-              thumbColor={item.operatorRequired ? "green" : "#f4f3f4"}
-            />
-            <Text
-              style={{
-                marginLeft: 10,
-                fontSize: 14,
-                color: "#333",
-              }}
-            >
-              Operator Required
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const handleChangeEqupment = (id, key, value) => {
-    // clear errors for equipment field
-    setErrors((prev) => {
-      const copy = { ...prev };
-      const eqKey = `${key}_${id}`;
-      if (copy[eqKey]) delete copy[eqKey];
-      return copy;
-    });
-
-    const updated = equipments.map((item) => {
-      if (value?.id) {
-        return item.id === id
-          ? {
-              ...item,
-              [key]: value?.macName ? value?.macName : value,
-              equipmentId: value?.id,
-            }
-          : item;
-      } else {
-        return item.id === id
-          ? { ...item, [key]: value?.macName ? value?.macName : value }
-          : item;
-      }
-    });
-
-    setEquipments(updated);
-  };
-
-  const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
-
-  const transformRows = (rows) => {
-    const dprAgricultures = rows.map((row) => ({
-      materialType: row.materialType,
-      itemId: row.material?.id,
-      itemName: row.material?.itemName,
-      uom: row.material?.uom || row.uom,
-      noOfItems: row.noOfItems,
-      qty: row.quantity,
-    }));
-
-    return { dprAgricultures };
-  };
-
-  const transformMachanicalTools = (equipments) => {
-    const equipmentFormat = equipments.map((equipment) => ({
-      equipmentId: equipment?.equipmentId,
-      equipmentName: equipment?.equipment,
-      operatorName: "",
-      cpNumber: "",
-      actualHours: "",
-      estimatedHours: equipment?.estHours,
-      operatorRequired: equipment?.operatorRequired,
-    }));
-
-    return { equipmentFormat };
-  };
-
-  const validateForm = () => {
-    let tempErrors = {};
-
-    // Activity must be selected
-    if (!activityOperationVal?.id) {
-      tempErrors.activity = "Please select activity";
-    }
-
-    // No of labour
-    const labourNum = Number(noOfLabour);
-    if (
-      noOfLabour === "" ||
-      isNaN(labourNum) ||
-      !isFinite(labourNum) ||
-      labourNum <= 0
-    ) {
-      tempErrors.noOfLabour = "Enter valid labour count (greater than 0)";
-    }
-
-    // Agriculture rows
-    rows.forEach((row, idx) => {
-      const id = row.id;
-      if (!row.materialType) {
-        tempErrors[`materialType_${id}`] = "Select Material Type";
-      }
-      if (!row.material || !row.material?.id) {
-        tempErrors[`material_${id}`] = "Select Material";
-      }
-      if (!row.noOfItems || Number(row.noOfItems) <= 0) {
-        tempErrors[`noOfItems_${id}`] = "Enter valid No. of items";
-      }
-      if (!row.quantity || Number(row.quantity) <= 0) {
-        tempErrors[`quantity_${id}`] = "Enter valid Quantity";
-      }
-    });
-
-    // Equipment rows
-    equipments.forEach((eq, idx) => {
-      const id = eq.id;
-      if (!eq.equipment || !eq.equipmentId) {
-        tempErrors[`equipment_${id}`] = "Select equipment";
-      }
-      if (!eq.estHours || Number(eq.estHours) <= 0) {
-        tempErrors[`estHours_${id}`] = "Enter valid estimated hours";
-      }
-    });
-
-    setErrors(tempErrors);
-
-    // scroll/ focus logic could be added here to focus first error
-    return Object.keys(tempErrors).length === 0;
-  };
-
-  const submitForm = async () => {
-    if (!validateForm()) {
-      showErrorMessage("Please fix all errors");
-      return;
-    }
-
+  const getMaterialItem = async (val) => {
     setLoading(true);
-    const formatedRows = transformRows(rows);
-    const formatedEquipment = transformMachanicalTools(equipments);
-    let data = [
-      {
-        squareName: landData?.squareName,
-        reportDate: date,
-        activityId: activityOperationVal?.id,
-        noOfLabour: Number(noOfLabour),
-        dprAgricultures: formatedRows.dprAgricultures,
-        dprMechanicals: formatedEquipment?.equipmentFormat,
-        activityName: activityOperationVal?.operationName,
-        cultivableArea: landData?.cultivatedArea,
-        planId: landData?.planId,
-        squareId: landData?.squareId,
-        farmPlanId: landData?.farmPlanId,
-        totalArea: landData?.squareArea,
-        unitType: userData?.unitType,
-        chakId: userData?.chakId,
-        farmId: landData?.farmId,
-        farmBlockId: landData?.farmBlockId,
-        chakName: landData?.chakName,
-        farmName: landData?.farmName,
-        farmBlockName: landData?.farmBlockName,
-        currentDprStatus: "PENDING",
-        workshopId: landData?.workshopId,
-      },
-    ];
-
     try {
-      const encryptedPayload = encryptWholeObject(data);
+      const payloadData = {
+        materialType: val.name,
+      };
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const getMaterialItem = await apiRequest(
+        API_ROUTES.MATERIAL_LIST,
+        "POST",
+        encryptPayloadData,
+      );
+      const decryptedMaterialItemList = decryptAES(getMaterialItem);
+      const parsedDecryptedMaterialItemList = JSON.parse(
+        decryptedMaterialItemList,
+      );
+
+      console.log(
+        "parsedDecryptedMaterialItemList",
+        parsedDecryptedMaterialItemList,
+      );
+      if (
+        (parsedDecryptedMaterialItemList?.status === "SUCCESS" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200") ||
+        (parsedDecryptedMaterialItemList?.status === "200" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200")
+      ) {
+        setmaterialList(parsedDecryptedMaterialItemList?.data || []);
+      } else {
+        showErrorMessage("Unable to get the Subgroup List Data");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (date) => {
+    return date.toISOString().split("T")[0];
+  };
+
+  const submitDPR = async () => {
+    try {
+      setLoading(true);
+
+      const formattedDate = formatDate(date);
+      //console.log("selectedPlan", selectedPlan);
+
+      const payload = [
+        {
+          planDate: formattedDate,
+          actualDate: formattedDate,
+
+          chakId: userData?.chakId,
+          chakName: userData?.chakName,
+
+          farmId: landData?.farmId,
+          farmName: landData?.farmName,
+
+          farmBlockId: landData?.farmBlockId,
+          farmBlockName: null,
+
+          squareId: landData?.squareId,
+          squareName: landData?.squareName,
+
+          farmPlanId: selectedPlan?.planId || null,
+          farmPlanCode: selectedPlan?.planCode || null,
+
+          dprType: "CROP",
+          dprStatus: "PENDING",
+          currentDprStatus: "PENDING",
+          dprMechanicalSubmit: false,
+
+          /* ================= ACTIVITIES ================= */
+          activities: entries.flatMap((entry) =>
+            entry.activities
+              .filter((act) => act.activity) // safety
+              .map((act) => ({
+                activityId: act.activity.id,
+                activityName: act.activity.operationName,
+                noOfLabour: Number(act.noOfLabour || 0),
+                contractorType: act.contractorType?.agreementType,
+                contractorId: act.contractorName?.contractorId,
+                contractorName: act.contractorName?.name,
+              })),
+          ),
+
+          /* ================= AGRICULTURE ================= */
+          dprAgricultures: entries.flatMap((entry) =>
+            entry.activities.flatMap((act) =>
+              act.agricultures
+                .filter((ag) => ag.material && ag.materialType)
+                .map((ag) => ({
+                  activityId: act.activity.id,
+                  activityName: act.activity.operationName,
+                  itemCode: ag.material.itemCode,
+                  cashMemoDto: {
+                    materialType: ag.materialType.name,
+                    activityId: act.activity.id,
+                    activityName: act.activity.operationName,
+                    cashMemoItems: [],
+                  },
+                })),
+            ),
+          ),
+
+          /* ================= MECHANICAL ================= */
+          dprMechanicals: entries.flatMap((entry) =>
+            entry.activities.flatMap((act) =>
+              act.equipments
+                .filter((eq) => eq.equipment && eq.subGroup)
+                .map((eq) => ({
+                  equipmentId: eq.equipment.id,
+                  equipmentName: eq.equipment.assetGroupName,
+                  subGroupId: eq.subGroup.id,
+                  subGroupName: eq.subGroup.assetSubGroupName,
+                  estimatedHours: eq.estHours,
+                  actualHours: "",
+                  operatorRequired: eq.operatorRequired,
+                  operatorName: "",
+                  cpNumber: "",
+                  mechIdleHours: "",
+                  mechWalkingTime: "",
+                  activityId: act.activity.id,
+                  activityName: act.activity.operationName,
+                })),
+            ),
+          ),
+
+          /* ================= LABOUR ================= */
+          dprLabour: [],
+
+          epoId: null,
+          epoName: null,
+        },
+      ];
+
+      //console.log("Submit DPR", JSON.stringify(payload, null, 2));
+
+      /* ================= API CALL ================= */
+      const encryptedPayload = encryptWholeObject(payload);
       const response = await apiRequest(
         API_ROUTES.SAVE_DPR,
         "POST",
-        encryptedPayload
+        encryptedPayload,
       );
+      const parsed = JSON.parse(decryptAES(response));
 
-      const decryptedResponse = decryptAES(response);
-      const parsedResponse = JSON.parse(decryptedResponse);
-      setLoading(false);
-      console.log("parsedResponse___", parsedResponse);
-
-      if (
-        parsedResponse?.status === "SUCCESS" &&
-        parsedResponse?.statusCode === "200"
-      ) {
-        console.log("parsedResponse___", "if");
+      if (parsed?.status === "SUCCESS") {
+        showSuccessMessage("DPR submitted successfully");
         navigation.goBack();
-        showSuccessMessage(`${parsedResponse?.message} `);
-      } else if (
-        parsedResponse?.status === "FAILED" &&
-        parsedResponse?.statusCode === "300"
-      ) {
-        console.log("parsedResponse___", "else if");
-        showErrorMessage(`${parsedResponse?.message} `);
       } else {
-        console.log("parsedResponse___", "else");
-        showErrorMessage("Error in filling form");
+        showErrorMessage(parsed?.message || "DPR submit failed");
       }
-    } catch (err) {
+    } catch (error) {
+      console.log("Submit DPR", error);
+      showErrorMessage("Something went wrong while submitting DPR");
+    } finally {
       setLoading(false);
-      console.log("submit error", err);
-      showErrorMessage("Error submitting form");
     }
   };
 
+  const fetchMaterialList = async (item) => {
+    setLoading(true);
+    try {
+      const payloadData = {
+        itemCode: item?.itemCode,
+        itemSubType: item?.itemSubType,
+      };
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const getMaterialItem = await apiRequest(
+        API_ROUTES.MATERIAL_LIST_DPR,
+        "POST",
+        encryptPayloadData,
+      );
+      const decryptedMaterialItemList = decryptAES(getMaterialItem);
+      const parsedDecryptedMaterialItemList = JSON.parse(
+        decryptedMaterialItemList,
+      );
+
+      console.log(
+        "parsedDecryptedMaterialList",
+        parsedDecryptedMaterialItemList,
+      );
+      if (
+        (parsedDecryptedMaterialItemList?.status === "SUCCESS" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200") ||
+        (parsedDecryptedMaterialItemList?.status === "200" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200")
+      ) {
+        setMaterialTableData(parsedDecryptedMaterialItemList?.data || []);
+      } else {
+        showErrorMessage("Unable to get the Subgroup List Data");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= UI ================= */
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"Add Process Allocation"} />
+      <InnerHeader title="Add Process Allocation" />
+      {showMaterialModal && (
+        <Modal visible={showMaterialModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {/* HEADER */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Materials</Text>
+                <TouchableOpacity onPress={() => setShowMaterialModal(false)}>
+                  <Icon name="close" size={24} />
+                </TouchableOpacity>
+              </View>
+
+              {/* BODY */}
+              <ScrollView contentContainerStyle={{ padding: 10 }}>
+                {materialTableData.map((item, index) => (
+                  <View key={index} style={styles.materialCard}>
+                    {/* TOP ROW */}
+                    <View style={styles.cardHeader}>
+                      <Switch
+                        value={item.selected}
+                        onValueChange={(v) => {
+                          const copy = [...materialTableData];
+                          copy[index].selected = v;
+                          if (!v) copy[index].issueQty = "";
+                          setMaterialTableData(copy);
+                        }}
+                      />
+
+                      <Text style={styles.materialTitle}>
+                        {item.materialName}
+                      </Text>
+                    </View>
+
+                    {/* DETAILS */}
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Lot No:</Text>
+                      <Text style={styles.value}>{item.lotNo}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Packing Size:</Text>
+                      <Text style={styles.value}>{item.packingSize}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>No. of Bags:</Text>
+                      <Text style={styles.value}>{item.noOfBags}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Available Qty:</Text>
+                      <Text style={styles.value}>{item.availableQty}</Text>
+                    </View>
+
+                    {/* ISSUE QTY */}
+                    <TextInput
+                      style={[
+                        styles.issueInput,
+                        { backgroundColor: item.selected ? "#fff" : "#eee" },
+                      ]}
+                      placeholder="Enter Issue Qty"
+                      keyboardType="numeric"
+                      editable={item.selected}
+                      value={item.issueQty}
+                      onChangeText={(v) => {
+                        const copy = [...materialTableData];
+                        copy[index].issueQty = v;
+                        setMaterialTableData(copy);
+                      }}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* FOOTER */}
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setShowMaterialModal(false)}
+                >
+                  <Text>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={() => {
+                    setShowMaterialModal(false);
+                    console.log("Selected Materials", materialTableData);
+                  }}
+                >
+                  <Text style={{ color: "#fff" }}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={moderateScaleVertical(
-          Platform.OS === "ios" ? 90 : 10
-        )}
       >
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <View style={[styles.rowContainer]}>
+        <ScrollView style={{ padding: 10 }}>
+          {/* ADD ENTRY */}
+          <TouchableOpacity style={styles.addEntryBtn} onPress={addEntry}>
+            <Icon name="add" size={24} color="#fff" />
+            <Text style={styles.addEntryText}>Add New Entry</Text>
+          </TouchableOpacity>
+
+          {Platform.OS === "android" && show && (
+            <DateTimePicker
+              value={date}
+              mode="date" // "time" or "datetime"
+              display="default"
+              onChange={onChangeDate}
+              maximumDate={new Date(2030, 11, 31)}
+              minimumDate={new Date(2020, 0, 1)}
+            />
+          )}
+
+          {Platform.OS === "ios" && show && (
+            <Modal transparent={true} animationType="slide">
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "flex-end",
+                  backgroundColor: "rgba(0,0,0,0.3)",
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: "#fff",
+                    padding: 20,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                  }}
+                >
+                  <View style={{ alignItems: "flex-end" }}>
+                    <TouchableOpacity onPress={() => setShow(false)}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          color: "blue",
+                          marginBottom: 10,
+                        }}
+                      >
+                        Done
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, selectedDate) => {
+                      if (selectedDate) {
+                        setDate(selectedDate);
+                      }
+                    }}
+                    style={{ width: "100%" }}
+                    maximumDate={new Date(2030, 11, 31)}
+                    minimumDate={new Date(2020, 0, 1)}
+                  />
+                </View>
+              </View>
+            </Modal>
+          )}
+
+          <View
+            style={{
+              backgroundColor: "#f1f8e9",
+              padding: 10,
+              borderRadius: 10,
+              borderWidth: 2,
+              borderColor: "#2e7d32",
+              borderStyle: "dotted",
+              marginTop: 10,
+            }}
+          >
             <View style={styles.row}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Square</Text>
+              <Text
+                style={{
+                  color: Colors.black,
+                  fontSize: 18,
+                  marginBottom: 10,
+                }}
+              >
+                Basic Detail
+              </Text>
+            </View>
+            <View style={styles.row}>
+              {/* <View style={styles.inputContainer}>
+                <Text style={styles.label}>Plan Id</Text>
                 <TextInput
-                  editable={false}
                   style={styles.input}
                   keyboardType="numeric"
-                  value={landData?.squareName}
+                  value={landData?.planId}
+                  editable={false}
                 />
-              </View>
-
+              </View> */}
               <TouchableOpacity
                 onPress={() => setShow(true)}
                 style={styles.inputContainer}
               >
-                <Text style={styles.label}>Date</Text>
+                <Text style={styles.label}>Report Date</Text>
                 <View style={styles.input}>
                   <Text>{date.toLocaleDateString()}</Text>
                 </View>
               </TouchableOpacity>
-
-              {Platform.OS === "android" && show && (
-                <DateTimePicker
-                  value={date}
-                  mode="date" // "time" or "datetime"
-                  display="default"
-                  onChange={onChangeDate}
-                  maximumDate={new Date(2030, 11, 31)}
-                  minimumDate={new Date(2020, 0, 1)}
-                />
-              )}
-
-              {Platform.OS === "ios" && show && (
-                <Modal transparent={true} animationType="slide">
-                  <View
-                    style={{
-                      flex: 1,
-                      justifyContent: "flex-end",
-                      backgroundColor: "rgba(0,0,0,0.3)",
-                    }}
-                  >
-                    <View
-                      style={{
-                        backgroundColor: "#fff",
-                        padding: 20,
-                        borderTopLeftRadius: 20,
-                        borderTopRightRadius: 20,
-                      }}
-                    >
-                      <View style={{ alignItems: "flex-end" }}>
-                        <TouchableOpacity onPress={() => setShow(false)}>
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              color: "blue",
-                              marginBottom: 10,
-                            }}
-                          >
-                            Done
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <DateTimePicker
-                        value={date}
-                        mode="date"
-                        display="spinner"
-                        onChange={(event, selectedDate) => {
-                          if (selectedDate) {
-                            setDate(selectedDate);
-                          }
-                        }}
-                        style={{ width: "100%" }}
-                        maximumDate={new Date(2030, 11, 31)}
-                        minimumDate={new Date(2020, 0, 1)}
-                      />
-                    </View>
-                  </View>
-                </Modal>
-              )}
-
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>No. Of Labour</Text>
-                <TextInput
-                  style={[styles.input, errors.noOfLabour && styles.inputError]}
-                  value={noOfLabour}
-                  placeholder="0"
-                  keyboardType="numeric"
-                  onChangeText={(val) => {
-                    // allow only numbers and decimal point
-                    const cleaned = val.replace(/[^0-9.]/g, "");
-                    setnoOfLabour(cleaned);
-                    if (errors.noOfLabour) {
-                      setErrors((prev) => {
-                        const copy = { ...prev };
-                        delete copy.noOfLabour;
-                        return copy;
-                      });
-                    }
-                  }}
-                />
-                {errors.noOfLabour && (
-                  <Text style={styles.errorText}>{errors.noOfLabour}</Text>
-                )}
-              </View>
-            </View>
-
-            <View style={styles.row}>
               <DropDown
-                isVisible={showActivityOperation}
-                setIsVisible={() => {
-                  setshowActivityOperation(!showActivityOperation);
-                }}
-                data={operationList}
-                value={
-                  activityOperationVal
-                    ? activityOperationVal?.operationName
-                    : ""
-                }
+                label="Plan"
+                data={[NONE_PLAN_OPTION, ...(landData?.plans || [])]}
+                value={selectedPlan?.planCode || ""}
                 selectItem={(item) => {
-                  setactivityOperationVal(item);
-                  setshowActivityOperation(false);
-                  // clear activity error
-                  setErrors((prev) => {
-                    const copy = { ...prev };
-                    delete copy.activity;
-                    return copy;
-                  });
+                  if (item.id === null) {
+                    // NONE selected
+                    setSelectedPlan(null);
+                  } else {
+                    setSelectedPlan(item);
+                  }
                 }}
               />
             </View>
-            {errors.activity && (
-              <Text style={[styles.errorText, { marginLeft: 12 }]}>
-                {errors.activity}
-              </Text>
-            )}
-            <View
-              style={{
-                backgroundColor: "#e8f5e9",
-                padding: 10,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: "#2e7d32",
-                borderStyle: "dotted",
-                margin: 10,
-              }}
-            >
-              <View style={styles.row}>
-                <Text
-                  style={{
-                    color: Colors.black,
-                    fontSize: 18,
-                    marginBottom: 10,
-                  }}
-                >
-                  Square Detail
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Production Plan</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={landData?.planId}
-                    editable={false}
-                  />
-                </View>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Total Area</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={landData?.squareArea?.toString()}
-                    editable={false}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Cultivable Area</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={landData?.cultivatedArea?.toString()}
-                    editable={false}
-                  />
-                </View>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Contractor Type</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={landData?.contractors?.[0]?.contractorType || "NA"}
-                    editable={false}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Contractor</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={landData?.contractors?.[0]?.contractorName || "NA"}
-                    editable={false}
-                  />
-                </View>
-              </View>
-            </View>
           </View>
 
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-              padding: 10,
-            }}
-          >
-            <Text
-              style={{
-                color: Colors.greenColor,
-                fontSize: 18,
-                fontWeight: "bold",
-              }}
-            >
-              Agriculture Inputs
-            </Text>
-            <TouchableOpacity style={styles.addBtn} onPress={addRow}>
-              <Text style={styles.addText}>+ Add New</Text>
-            </TouchableOpacity>
-          </View>
-
-          {rows.map((item, index) => (
-            <View key={item.id} style={styles.rowContainer}>
-              <Text style={[styles.serialNo, { margin: 10 }]}>
-                S. No {index + 1}
-              </Text>
-              <View style={styles.devider} />
-
-              <View style={styles.row}>
-                {renderDropdown(
-                  item.id,
-                  "materialType",
-                  materialTypeList,
-                  item.showMaterialType,
-                  (val) => {
-                    handleChange(item.id, "showMaterialType", val);
-                  },
-                  "Material Type",
-                  item.materialType
-                )}
-              </View>
-              <View style={styles.row}>
-                {renderDropdown(
-                  item.id,
-                  "material",
-                  materialList,
-                  item.showMaterial,
-                  (val) => handleChange(item.id, "showMaterial", val),
-                  "Material",
-                  item.material
-                )}
-              </View>
-
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>No. of Items</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors[`noOfItems_${item.id}`] && styles.inputError,
-                    ]}
-                    keyboardType="numeric"
-                    value={item.noOfItems}
-                    onChangeText={(val) => {
-                      const cleaned = val.replace(/[^0-9.]/g, "");
-                      handleChange(item.id, "noOfItems", cleaned);
-                    }}
-                  />
-                  {errors[`noOfItems_${item.id}`] && (
-                    <Text style={styles.errorText}>
-                      {errors[`noOfItems_${item.id}`]}
-                    </Text>
-                  )}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Quantity</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors[`quantity_${item.id}`] && styles.inputError,
-                    ]}
-                    keyboardType="numeric"
-                    value={item.quantity}
-                    onChangeText={(val) => {
-                      const cleaned = val.replace(/[^0-9.]/g, "");
-                      handleChange(item.id, "quantity", cleaned);
-                    }}
-                  />
-                  {errors[`quantity_${item.id}`] && (
-                    <Text style={styles.errorText}>
-                      {errors[`quantity_${item.id}`]}
-                    </Text>
-                  )}
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>UOM</Text>
-                  <TextInput
-                    editable={false}
-                    style={styles.input}
-                    value={item.uom}
-                  />
-                </View>
-              </View>
-
-              {rows.length > 1 && (
+          {entries.map((entry, ei) => (
+            <View key={entry.id} style={styles.entryCard}>
+              <View style={styles.entryHeader}>
                 <TouchableOpacity
-                  style={styles.deleteBtn}
-                  onPress={() => removeRow(item.id)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
+                  onPress={() => toggleEntry(entry.id)}
                 >
-                  <Icon name="delete" size={24} color={Colors.red} />
+                  <Text style={styles.entryTitle}>Entry #{ei + 1}</Text>
                 </TouchableOpacity>
-              )}
+
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {/* ❌ DELETE ENTRY (hide for first entry if you want) */}
+                  {entries.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => deleteEntry(entry.id)}
+                      style={{ marginRight: 8 }}
+                    >
+                      <Icon name="delete" size={22} color="red" />
+                    </TouchableOpacity>
+                  )}
+
+                  <Icon
+                    name={entry.expanded ? "expand-less" : "expand-more"}
+                    size={28}
+                  />
+                </View>
+              </View>
+
+              {entry.expanded &&
+                entry.activities.map((act) => (
+                  <View key={act.id} style={styles.activityCard}>
+                    {/* ACTIVITY */}
+                    <DropDown
+                      label="Activity"
+                      data={operationList}
+                      value={act.activity?.operationName || ""}
+                      selectItem={(item) => {
+                        getContractorName(item.id);
+                        updateActivity(entry.id, act.id, (a) => ({
+                          ...a,
+                          activity: item,
+                          contractorType: {
+                            id: 1,
+                            name: "Activity Wise Contractor",
+                            agreementType: "ACTIVITY_WISE_CONTRACTOR",
+                          },
+                        }));
+                      }}
+                    />
+
+                    <DropDown
+                      label="Contractor Type"
+                      data={contractorTypeList}
+                      value={act.contractorType?.name || ""}
+                      selectItem={(item) => {
+                        console.log(item);
+                        updateActivity(entry.id, act.id, (a) => ({
+                          ...a,
+                          contractorType: item,
+                          contractorName: null,
+                        }));
+                      }}
+                    />
+
+                    <DropDown
+                      label="Contractor Name"
+                      data={contractorNameList}
+                      value={act.contractorName?.name || ""}
+                      selectItem={(item) =>
+                        updateActivity(entry.id, act.id, (a) => ({
+                          ...a,
+                          contractorName: item,
+                        }))
+                      }
+                    />
+
+                    <TextInput
+                      style={styles.input}
+                      placeholder="No of Labour"
+                      keyboardType="numeric"
+                      value={act.noOfLabour}
+                      onChangeText={(v) =>
+                        updateActivity(entry.id, act.id, (a) => ({
+                          ...a,
+                          noOfLabour: v,
+                        }))
+                      }
+                    />
+
+                    {/* AGRICULTURE */}
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>
+                        Agriculture Inputs
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => addAgriculture(entry.id, act.id)}
+                      >
+                        <Text style={styles.addText}>+ Add New</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {act.agricultures.map((ag, index) => (
+                      <View key={ag.id} style={styles.rowBox}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "bold",
+                              color: "black",
+                            }}
+                          >
+                            S.N. {index + 1}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() =>
+                              removeAgriculture(entry.id, act.id, ag.id)
+                            }
+                          >
+                            <Icon name="delete" size={20} color="red" />
+                          </TouchableOpacity>
+                        </View>
+                        <View style={styles.divider} />
+                        <DropDown
+                          label="Material Type"
+                          data={materialTypeList}
+                          value={ag.materialType || ""}
+                          selectItem={(val) => {
+                            getMaterialItem(val);
+                            updateActivity(entry.id, act.id, (a) => ({
+                              ...a,
+                              agricultures: a.agricultures.map((x) =>
+                                x.id === ag.id
+                                  ? { ...x, materialType: val }
+                                  : x,
+                              ),
+                            }));
+                          }}
+                        />
+
+                        <DropDown
+                          label="Item"
+                          data={materialList}
+                          value={ag.material?.itemName || ""}
+                          selectItem={(item) => {
+                            fetchMaterialList(item);
+                            updateActivity(entry.id, act.id, (a) => ({
+                              ...a,
+                              agricultures: a.agricultures.map((x) =>
+                                x.id === ag.id ? { ...x, material: item } : x,
+                              ),
+                            }));
+                          }}
+                        />
+                        <TouchableOpacity
+                          style={styles.selectMaterialBtn}
+                          onPress={() => {
+                            setShowMaterialModal(true);
+                          }}
+                        >
+                          <Text style={styles.selectMaterialText}>
+                            Select / View Material(s)
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+
+                    {/* EQUIPMENT */}
+                    <View style={styles.sectionHeader}>
+                      <Text style={styles.sectionTitle}>
+                        Equipment & Mechanical Details
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => addEquipment(entry.id, act.id)}
+                      >
+                        <Text style={styles.addText}>+ Add New</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {act.equipments.map((eq, index) => (
+                      <View>
+                        <View key={eq.id} style={styles.rowBox}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                color: "black",
+                              }}
+                            >
+                              S.N. {index + 1}
+                            </Text>
+                            <TouchableOpacity
+                              onPress={() =>
+                                removeEquipment(entry.id, act.id, eq.id)
+                              }
+                            >
+                              <Icon name="delete" size={20} color="red" />
+                            </TouchableOpacity>
+                          </View>
+                          <View style={styles.divider} />
+                          <DropDown
+                            label="Equipment"
+                            data={equipmentList}
+                            value={eq.equipment}
+                            selectItem={(item) => {
+                              getSubGroup(item.id);
+                              updateActivity(entry.id, act.id, (a) => ({
+                                ...a,
+                                equipments: a.equipments.map((x) =>
+                                  x.id === eq.id
+                                    ? { ...x, equipment: item }
+                                    : x,
+                                ),
+                              }));
+                            }}
+                          />
+
+                          <DropDown
+                            label="Sub Group"
+                            data={equipmentSubGroupList}
+                            value={eq.subGroup}
+                            selectItem={(item) =>
+                              updateActivity(entry.id, act.id, (a) => ({
+                                ...a,
+                                equipments: a.equipments.map((x) =>
+                                  x.id === eq.id ? { ...x, subGroup: item } : x,
+                                ),
+                              }))
+                            }
+                          />
+
+                          <TextInput
+                            style={styles.input}
+                            placeholder="Estimated Hours"
+                            value={eq.estHours}
+                            onChangeText={(v) =>
+                              updateActivity(entry.id, act.id, (a) => ({
+                                ...a,
+                                equipments: a.equipments.map((x) =>
+                                  x.id === eq.id ? { ...x, estHours: v } : x,
+                                ),
+                              }))
+                            }
+                          />
+
+                          <View style={styles.switchRow}>
+                            <Text>Operator Required</Text>
+                            <Switch
+                              value={eq.operatorRequired}
+                              onValueChange={(v) =>
+                                updateActivity(entry.id, act.id, (a) => ({
+                                  ...a,
+                                  equipments: a.equipments.map((x) =>
+                                    x.id === eq.id
+                                      ? { ...x, operatorRequired: v }
+                                      : x,
+                                  ),
+                                }))
+                              }
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                ))}
             </View>
           ))}
 
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
-            }}
-          >
-            <Text
-              style={{
-                color: Colors.greenColor,
-                fontSize: 18,
-                fontWeight: "bold",
-              }}
-            >
-              Equipment & Mechanical Details
-            </Text>
-            <TouchableOpacity style={styles.addBtn} onPress={addNewEquipment}>
-              <Text style={styles.addText}>+ Add New</Text>
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            data={equipments}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderEqupmentItem}
-          />
-
-          <TouchableOpacity
-            style={styles.addBtn}
-            onPress={() => {
-              submitForm();
-            }}
-          >
-            <Text style={styles.addText}>Submit</Text>
+          <TouchableOpacity style={styles.submitBtn} onPress={submitDPR}>
+            <Text style={styles.addEntryText}>Submit</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -2404,245 +1537,181 @@ export default function AddNewDpr({ route }) {
   );
 }
 
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
-  addParentButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+  addEntryBtn: {
     backgroundColor: Colors.greenColor,
-    padding: moderateScale(12),
-    borderRadius: moderateScale(5),
-    //marginBottom: moderateScaleVertical(16),
-  },
-  addParentButtonText: {
-    color: Colors.white,
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsMedium,
-    marginLeft: moderateScale(8),
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: moderateScale(8),
-    paddingBottom: moderateScale(20),
-  },
-  listContainer: {
-    padding: moderateScale(15),
-    paddingBottom: moderateScaleVertical(20),
-  },
-
-  itemCard: {
-    backgroundColor: Colors.white,
-    borderRadius: moderateScale(8),
-    padding: moderateScale(16),
-    marginBottom: moderateScaleVertical(16),
-    shadowColor: Colors.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: moderateScale(5),
-  },
-  itemRow: {
+    padding: 14,
+    borderRadius: 6,
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: moderateScaleVertical(12),
-  },
-  itemColumn: {
-    flex: 1,
-    marginRight: moderateScale(8),
-  },
-  itemLabel: {
-    fontSize: textScale(12),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.gray,
-    marginBottom: moderateScaleVertical(2),
-    textTransform: "capitalize",
-  },
-  itemValue: {
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsMedium,
-    color: Colors.textColor,
-    textTransform: "capitalize",
-  },
-  statusBadge: {
-    paddingHorizontal: moderateScale(12),
-    paddingVertical: moderateScaleVertical(4),
-    borderRadius: moderateScale(5),
-  },
-  statusText: {
-    fontSize: textScale(11),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.white,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: moderateScaleVertical(12),
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.diabledColor,
-    paddingBottom: moderateScaleVertical(8),
-  },
-  dateText: {
-    fontSize: textScale(13),
-    fontFamily: FontFamily.PoppinsRegular,
-    color: Colors.textColor,
-    textTransform: "capitalize",
-  },
-  bottomSheetContent: {
-    gap: moderateScaleVertical(8),
-  },
-  bottomSheetButton: {
-    backgroundColor: Colors.greenColor,
-    padding: moderateScaleVertical(12),
-    borderRadius: moderateScale(8),
-    alignItems: "center",
-  },
-  bottomSheetButtonText: {
-    color: Colors.white,
-    fontSize: textScale(14),
-    fontFamily: FontFamily.PoppinsMedium,
-  },
-  notificationHolder: {
-    borderWidth: 2,
-    width: moderateScale(50),
-    height: moderateScale(50),
-    borderRadius: moderateScale(25),
-    backgroundColor: Colors.bg3,
-    borderColor: Colors.bg3,
-    alignItems: "center",
     justifyContent: "center",
   },
-  notificationHolder: {
-    borderWidth: 2,
-    width: moderateScale(50),
-    height: moderateScale(50),
-    borderRadius: moderateScale(25),
+  submitBtn: {
     backgroundColor: Colors.greenColor,
-    borderColor: Colors.greenColor,
-    alignItems: "center",
+    padding: 14,
+    borderRadius: 6,
+    flexDirection: "row",
     justifyContent: "center",
+    marginBottom: 20,
   },
+  addEntryText: { color: "#fff", marginLeft: 8 },
 
-  ////////
-
-  devider: {
-    backgroundColor: "#ddd",
-    height: 1,
-    width: "100%",
-  },
-
-  rowContainer: {
-    backgroundColor: "#fff",
+  entryCard: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
-    marginBottom: 12,
-    position: "relative",
+    marginTop: 15,
+    backgroundColor: "#fff",
   },
-  serialNo: {
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  row: {
+  entryHeader: {
+    padding: 10,
+    backgroundColor: "#f1f8e9",
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 10,
+  },
+  entryTitle: { fontSize: 16, fontWeight: "700" },
+
+  activityCard: {
+    borderWidth: 1,
+    borderColor: "#eee",
+    margin: 10,
+    padding: 10,
+    borderRadius: 8,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontWeight: "700",
+    borderLeftWidth: moderateScale(3),
+    borderColor: Colors.primary,
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsSemiBold,
+    color: Colors.greenColor,
+    paddingLeft: 5,
+  },
+  addText: { color: Colors.green },
+
+  rowBox: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 8,
+    marginVertical: 6,
+    borderRadius: 6,
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 8,
+    marginVertical: 6,
+  },
+
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  submitText: { color: "#fff", fontWeight: "700" },
+  divider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginTop: 8,
+    marginBottom: 8,
+  },
+
+  // materialvactivity style
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    padding: 10,
+  },
+
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    maxHeight: "85%",
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 14,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  materialCard: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  materialTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 2,
+  },
+
+  label: {
+    fontSize: 12,
+    color: "#555",
+  },
+
+  value: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#000",
+  },
+
+  issueInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 10,
+    textAlign: "center",
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 12,
+  },
+
+  cancelBtn: {
+    padding: 10,
+  },
+
+  saveBtn: {
+    backgroundColor: Colors.greenColor,
+    padding: 10,
+    borderRadius: 6,
   },
   inputContainer: {
     flex: 1,
     marginRight: 8,
     marginBottom: 10,
-  },
-  label: {
-    fontSize: 14,
-    color: Colors.grey,
-    marginBottom: 4,
-    fontWeight: "700",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 6,
-    padding: 8,
-  },
-  dropdownButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 6,
-    padding: 10,
-  },
-  dropdownButtonText: {
-    color: "#000",
-  },
-  dropdownButtonPlaceholder: {
-    color: Colors.grey,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dropdownModal: {
-    backgroundColor: "#fff",
-    width: "80%",
-    borderRadius: 10,
-    paddingVertical: 10,
-  },
-  dropdownItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-  },
-  addBtn: {
-    backgroundColor: "#e8f5e9",
-    borderColor: Colors.green,
-    borderWidth: 1,
-    borderRadius: 10,
-    alignItems: "center",
-    padding: 12,
-    marginTop: 10,
-  },
-  addText: {
-    color: Colors.green,
-    fontWeight: "600",
-  },
-  deleteBtn: {
-    position: "absolute",
-    right: 10,
-    top: 10,
-  },
-
-  /// equipment
-  serial: { fontWeight: "bold", marginBottom: 6 },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-
-  checkboxContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-
-  // Error styles
-  inputError: {
-    borderColor: Colors.red,
-    borderWidth: 1.6,
-  },
-  errorText: {
-    color: Colors.red,
-    fontSize: 12,
-    marginTop: 4,
   },
 });

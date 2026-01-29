@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   moderateScale,
   moderateScaleVertical,
@@ -10,12 +10,80 @@ import FontFamily from "../../../utils/FontFamily";
 import Colors from "../../../utils/Colors";
 import { useNavigation } from "@react-navigation/native";
 import PropTypes from "prop-types";
+import CustomBottomSheet from "../../../components/CustomBottomSheet";
+import ImagePath from "../../../utils/ImagePath";
 
-const BrowseProduct = ({ browseProductList }) => {
+const BrowseProduct = ({ browseProductList, userData }) => {
+  const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
   const navigation = useNavigation();
   return (
     <View style={{ padding: moderateScale(10) }}>
       <Text style={styles.headerText}>Browse Products</Text>
+      <CustomBottomSheet
+        visible={bottomSheetVisible}
+        onRequestClose={() => setBottomSheetVisible(false)}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-evenly",
+            alignItems: "center",
+          }}
+        >
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => {
+              navigation.navigate("SquarePlanList");
+            }}
+          >
+            <View
+              style={[
+                styles.imageView,
+                {
+                  borderColor: Colors.bg2,
+                  backgroundColor: Colors.bg2,
+                },
+              ]}
+            >
+              <Image
+                source={ImagePath.registrationIcon}
+                resizeMode="contain"
+                style={{
+                  width: moderateScale(40),
+                  height: moderateScale(40),
+                }}
+              />
+            </View>
+            <Text style={styles.nameText}>Crop</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => {
+              navigation.navigate("MechanicalAllocationProcessList");
+            }}
+          >
+            <View
+              style={[
+                styles.imageView,
+                {
+                  borderColor: Colors.bg2,
+                  backgroundColor: Colors.bg2,
+                },
+              ]}
+            >
+              <Image
+                source={ImagePath.registrationIcon}
+                resizeMode="contain"
+                style={{
+                  width: moderateScale(40),
+                  height: moderateScale(40),
+                }}
+              />
+            </View>
+            <Text style={styles.nameText}>Process List</Text>
+          </TouchableOpacity>
+        </View>
+      </CustomBottomSheet>
       <View style={styles.main} showsVerticalScrollIndicator={false}>
         {browseProductList?.map((item) => (
           <View key={item.id} style={styles.itemHolder}>
@@ -23,10 +91,20 @@ const BrowseProduct = ({ browseProductList }) => {
               style={styles.item}
               onPress={() => {
                 if (item?.navigationScreenName) {
-                  navigation.navigate(item.navigationScreenName);
+                  //console.log("userData", userData);
+                  const findRole = userData?.roleName?.includes(
+                    "FARM_BLOCK_ENGG_INCHARGE",
+                  );
+
+                  //console.log("findRole", findRole);
+                  if (findRole) {
+                    setBottomSheetVisible(true);
+                  } else {
+                    navigation.navigate(item.navigationScreenName);
+                  }
                 } else {
                   console.warn(
-                    "No navigationScreenName provided for this item"
+                    "No navigationScreenName provided for this item",
                   );
                 }
               }}
@@ -69,7 +147,7 @@ BrowseProduct.propTypes = {
       ]).isRequired,
       backgroundColor: PropTypes.string.isRequired,
       navigationScreenName: PropTypes.string,
-    })
+    }),
   ).isRequired,
 };
 

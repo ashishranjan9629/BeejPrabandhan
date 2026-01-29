@@ -41,7 +41,7 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [announcement, setAnnouncement] = useState(
-    "Welcome to our App! Securely login to continue. 🚀 Stay connected with us always!"
+    "Welcome to our App! Securely login to continue. 🚀 Stay connected with us always!",
   );
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -82,7 +82,7 @@ const Login = () => {
       const response = await apiRequest(
         API_ROUTES.AUTHORIZE_LOGIN,
         "post",
-        payloadData
+        payloadData,
       );
       if (
         response &&
@@ -95,7 +95,7 @@ const Login = () => {
             API_ROUTES.GET_PROFILE,
             "POST",
             null,
-            response?.authToken
+            response?.authToken,
           );
           const decrypted = decryptAES(response2);
           console.log("decrypted UserData ", decrypted);

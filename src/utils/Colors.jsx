@@ -52,4 +52,5 @@ export default {
   labelcolor: "#616161",
   unhighlightColor: "#9E9E9E",
   disableFieldColor: "rgba(224, 224, 224, 1)",
+  veryLightGreen: "#e8f5e9",
 };

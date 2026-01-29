@@ -22,6 +22,7 @@ import en from "../../constants/en";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
+  const [userData, setUserData] = useState("");
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -31,10 +32,10 @@ const Home = () => {
   const productTranslateAnim = useRef(new Animated.Value(20)).current;
   const dispatch = useDispatch();
 
-  const userData = {
-    name: "Ashish Ranjan",
-    userProfileImage: ImagePath.userProfile,
-  };
+  // const userData = {
+  //   name: "Ashish Ranjan",
+  //   userProfileImage: ImagePath.userProfile,
+  // };
 
   const bannerImageList = [
     {
@@ -85,6 +86,14 @@ const Home = () => {
       //navigationScreenName: "DailyProgressReportList",
       navigationScreenName: "SquarePlanList",
       //navigationScreenName: "AddNewDpr",
+    },
+
+    {
+      id: 3,
+      name: "Marketing",
+      icon: ImagePath.complaint,
+      backgroundColor: Colors.bg3,
+      navigationScreenName: "DealerIndentsList",
     },
     // {
     //   id: 2,
@@ -176,6 +185,7 @@ const Home = () => {
 
   const fethchUserprofileData = async () => {
     const userData = await getUserData();
+    setUserData(userData);
     try {
       const payloadData = {
         id: userData?.employeeId,
@@ -184,7 +194,7 @@ const Home = () => {
       const response = await apiRequest(
         API_ROUTES.PROFILE_DETAILS,
         "post",
-        encryptedPayload
+        encryptedPayload,
       );
       const decrypted = decryptAES(response);
       const parsedDecrypted = JSON.parse(decrypted);
@@ -250,6 +260,7 @@ const Home = () => {
             <BrowseProduct
               browseProductList={browseProductList}
               animated={true}
+              userData={userData}
             />
           </Animated.View>
         </ScrollView>

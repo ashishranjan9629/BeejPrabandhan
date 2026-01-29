@@ -2,13 +2,14 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   FlatList,
-  Switch,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  Switch,
+  Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import Colors from "../../../../utils/Colors";
@@ -17,958 +18,876 @@ import {
   moderateScaleVertical,
   textScale,
 } from "../../../../utils/responsiveSize";
-import DropDown from "../../../../components/DropDown";
 import WrapperContainer from "../../../../utils/WrapperContainer";
 import InnerHeader from "../../../../components/InnerHeader";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { getUserData } from "../../../../utils/Storage";
-import CustomButton from "../../../../components/CustomButton";
-import FontFamily from "../../../../utils/FontFamily";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
 import { apiRequest } from "../../../../services/APIRequest";
 import { API_ROUTES } from "../../../../services/APIRoutes";
-import { showSuccessMessage } from "../../../../utils/HelperFunction";
+import { showErrorMessage } from "../../../../utils/HelperFunction";
+import DropDown from "../../../../components/DropDown";
+import FontFamily from "../../../../utils/FontFamily";
+import CustomButton from "../../../../components/CustomButton";
+
+/* ================= MATERIAL TYPE ================= */
+
+const materialTypeList = [
+  { id: 1, name: "SEED" },
+  { id: 2, name: "VALUE_ADDED" },
+  { id: 3, name: "PACKAGING_MATERIAL" },
+  { id: 4, name: "AGRO_CHEMICAL" },
+  { id: 5, name: "SAPLING" },
+  { id: 6, name: "FIXED" },
+  { id: 7, name: "CONSUMABLE_PARTS" },
+];
+
+/* ================= COMPONENT ================= */
 
 export default function ViewDprDetail({ route }) {
-  const getData = route?.params?.selectedItem;
   const navigation = useNavigation();
-  console.log("getData", getData);
   const isFocused = useIsFocused();
-  const [userData, setUserData] = useState([]);
+  const dprId = route?.params?.item?.id;
+  const userData = route?.params?.userData;
+
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setselectedItem] = useState(getData);
-  const [labourOption, setlabourOption] = useState([
-    // {
-    //   id: 1,
-    //   labourName: "",
-    //   estimateHours: "0",
-    // },
-  ]);
+  const [dprData, setDprData] = useState(null);
+  const [activityGroups, setActivityGroups] = useState([]);
+  const [expandedActivityId, setExpandedActivityId] = useState(null);
+  const [materialList, setmaterialList] = useState([]);
+  const [materialTableData, setMaterialTableData] = useState([]);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+
+  //console.log("userData", userData);
+
+  //const USER_ROLE = userData?.roleName?.includes("FARM_BLOCK_ENGG_INCHARGE");
+  const USER_ROLE = userData?.unitType == "FARM_BLOCK";
 
   useEffect(() => {
-    if (isFocused) {
-      fetchUserData();
-      addLabourFieldDynamicaly(selectedItem?.noOfLabour);
+    if (isFocused && dprId) {
+      fetchDprDetail();
     }
-  }, [isFocused]);
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
+  }, [isFocused, dprId]);
 
-  const fetchUserData = async () => {
-    setLoading(true);
-    const userData = await getUserData();
-    console.log("userData", userData);
-    setUserData(userData);
-    setLoading(false);
-  };
+  /* ================= API ================= */
 
-  const addLabourFieldDynamicaly = (noOfLabour) => {
-    if (noOfLabour > 0) {
-      const newItems = Array.from({ length: noOfLabour }, () => ({
-        id: Date.now() + Math.random(), // unique id
-        labourName: "",
-        estimatedHours: "0",
-        actualHours: "0",
-      }));
+  const fetchDprDetail = async () => {
+    try {
+      setLoading(true);
+      const payload = encryptWholeObject({ id: dprId });
+      const res = await apiRequest(API_ROUTES.DPR_FIND_BY_ID, "POST", payload);
+      const parsed = JSON.parse(decryptAES(res));
 
-      // Add all new items to the existing list
-      setlabourOption((prev) => [...newItems]);
-    } else {
-      setlabourOption([]);
+      console.log("dprDetail", parsed);
+
+      if (parsed?.status === "SUCCESS") {
+        setDprData(parsed.data);
+        groupByActivity(parsed.data);
+      } else {
+        showErrorMessage(parsed?.message || "Failed to load DPR");
+      }
+    } catch (e) {
+      console.log("DPR Error", e);
+      showErrorMessage("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUpdateLabour = (id, key, val) => {
-    if (selectedItem?.dprLabour?.length > 0) {
-      const updatedData = {
-        ...selectedItem,
-        dprLabour: selectedItem.dprLabour.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                [type]: val,
-              }
-            : item
-        ),
+  /* ================= GROUP DATA ================= */
+
+  const groupByActivity = (data) => {
+    const map = {};
+
+    data.activities.forEach((a) => {
+      const existingLabour =
+        data.dprLabour?.filter((l) => l.activityId === a.activityId) || [];
+
+      const labours =
+        existingLabour.length > 0
+          ? existingLabour.map((l) => ({
+              id: l.id,
+              activityId: a.activityId,
+              labourName: l.labourName || "",
+              workingHours: l.workingHours || "",
+            }))
+          : Array.from({ length: a.noOfLabour || 0 }).map((_, i) => ({
+              id: `${a.id}-${i}`, // 🔥 use a.id
+              activityId: a.activityId,
+              labourName: "",
+              workingHours: "",
+            }));
+
+      map[a.id] = {
+        id: a.id, // 🔥 UNIQUE
+        activityId: a.activityId,
+        activityName: a.activityName,
+        basic: a,
+        agricultures: [],
+        mechanicals: [],
+        labours,
       };
-      //console.log("updatedData", updatedData);
-      setselectedItem(updatedData);
-    } else {
-      setlabourOption((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, [key]: val } : item))
+    });
+
+    data.dprAgricultures?.forEach((ag) => {
+      const act = Object.values(map).find(
+        (x) => x.activityId === ag.activityId,
       );
-    }
+      act?.agricultures.push(ag);
+    });
+
+    data.dprMechanicals?.forEach((me) => {
+      const act = Object.values(map).find(
+        (x) => x.activityId === me.activityId,
+      );
+      act?.mechanicals.push(me);
+    });
+
+    setActivityGroups(Object.values(map));
   };
 
-  const renderLabourItem = ({ item, index }) => {
-    return (
-      <View
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 10,
-          padding: 10,
-          marginBottom: 10,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text style={styles.serial}>S. No {index + 1}</Text>
-          {/* {labourOption?.length > 1 && (
-            <TouchableOpacity onPress={() => removeLabour(item.id)}>
-              <Icon name="delete" size={24} color={Colors.red} />
-            </TouchableOpacity>
-          )} */}
-        </View>
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.label}>Labour Name</Text>
-          <TextInput
-            editable={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? true
-                : false
+  const updateLabourField = (activityId, labourId, key, value) => {
+    setActivityGroups((prev) =>
+      prev.map((act) =>
+        act.activityId === activityId
+          ? {
+              ...act,
+              labours: act.labours.map((l) =>
+                l.id === labourId ? { ...l, [key]: value } : l,
+              ),
             }
-            style={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? styles.input
-                : styles.disabledInput
-            }
-            value={item?.labourName}
-            placeholder="Enter Name"
-            //keyboardType="numeric"
-            onChangeText={(val) =>
-              handleUpdateLabour(item.id, "labourName", val)
-            }
-          />
-        </View>
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.label}>Est. Hours</Text>
-          <TextInput
-            editable={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? true
-                : false
-            }
-            style={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? styles.input
-                : styles.disabledInput
-            }
-            value={item?.estimatedHours ? item?.estimatedHours.toString() : ""}
-            placeholder="Enter hours"
-            keyboardType="numeric"
-            onChangeText={(val) =>
-              handleUpdateLabour(item.id, "estimatedHours", val)
-            }
-          />
-        </View>
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.label}>Actual Hours</Text>
-          <TextInput
-            editable={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? true
-                : false
-            }
-            style={
-              userData?.unitType === "CHAK" &&
-              selectedItem?.dprMechanicalSubmit &&
-              selectedItem?.currentDprStatus == "APPROVED" &&
-              selectedItem?.dprStatus == "PENDING_WITH_CHAK_INCHARGE"
-                ? styles.input
-                : styles.disabledInput
-            }
-            value={item?.actualHours ? item?.actualHours.toString() : ""}
-            placeholder="Enter hours"
-            keyboardType="numeric"
-            onChangeText={(val) =>
-              handleUpdateLabour(item.id, "actualHours", val)
-            }
-          />
-        </View>
-      </View>
+          : act,
+      ),
     );
   };
 
-  const handleUpdateEquipment = (id, type, val) => {
-    const updatedData = {
-      ...selectedItem,
-      dprMechanicals: selectedItem.dprMechanicals.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              [type]: val?.macName ? val?.macName : val,
-            }
-          : item
-      ),
-    };
-    setselectedItem(updatedData);
+  /* ================= LABOUR GENERATOR ================= */
+
+  const getLabourRows = (activity) => {
+    if (activity.labours?.length > 0) return activity.labours;
+
+    const count = activity.basic?.noOfLabour || 0;
+    return Array.from({ length: count }).map((_, i) => ({
+      id: `${activity.activityId}-${i}`,
+      labourName: "",
+      workingHours: "",
+    }));
   };
-  const renderEqupmentItem = ({ item, index }) => (
-    <View
-      style={{
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Text style={styles.serial}>S. No {index + 1}</Text>
-      </View>
 
-      <DropDown disabled={true} isVisible={false} value={item.equipmentName} />
+  const addAgriculture = (activityId) => {
+    setActivityGroups((prev) =>
+      prev.map((act) =>
+        act.activityId === activityId
+          ? {
+              ...act,
+              agricultures: [
+                ...act.agricultures,
+                {
+                  id: `new-${Date.now()}`,
+                  activityId: act.activityId,
+                  materialType: "",
+                  materialList: [],
+                  itemCode: "",
+                  qty: "",
+                },
+              ],
+            }
+          : act,
+      ),
+    );
+  };
 
-      <View style={{ marginBottom: 8 }}>
-        <Text style={styles.label}>Est. Hours</Text>
-        <TextInput
-          editable={false}
-          style={styles.disabledInput}
-          value={item?.estimatedHours ? item?.estimatedHours.toString() : ""}
-          placeholder="Enter hours"
-          keyboardType="numeric"
-        />
-      </View>
+  const removeAgriculture = (activityId, agId) => {
+    setActivityGroups((prev) =>
+      prev.map((act) =>
+        act.activityId === activityId
+          ? {
+              ...act,
+              agricultures: act.agricultures.filter((ag) => ag.id !== agId),
+            }
+          : act,
+      ),
+    );
+  };
 
-      {userData?.unitType == "FARM" ? (
-        <>
-          <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>Operator Name</Text>
-            <TextInput
-              editable={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                item?.operatorRequired &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? true
-                  : false
-              }
-              style={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                item?.operatorRequired &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? styles.input
-                  : styles.disabledInput
-              }
-              value={item?.operatorName ? item?.operatorName : ""}
-              placeholder="Enter Operator Name"
-              //keyboardType="numeric"
-              onChangeText={(val) =>
-                handleUpdateEquipment(item.id, "operatorName", val)
-              }
-            />
-          </View>
-          <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>CP Number</Text>
-            <TextInput
-              editable={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? true
-                  : false
-              }
-              style={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? styles.input
-                  : styles.disabledInput
-              }
-              value={item?.cpNumber ? item?.cpNumber.toString() : ""}
-              placeholder="Enter"
-              keyboardType="numeric"
-              onChangeText={(val) =>
-                handleUpdateEquipment(item.id, "cpNumber", val)
-              }
-            />
-          </View>
+  const getMaterialItem = async (activityId, agId, val) => {
+    setLoading(true);
+    try {
+      const payloadData = { materialType: val.name };
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const res = await apiRequest(
+        API_ROUTES.MATERIAL_LIST,
+        "POST",
+        encryptPayloadData,
+      );
 
-          {userData?.unitType == "FARM" &&
-            selectedItem?.currentDprStatus == "DONE" &&
-            !selectedItem?.dprMechanicalSubmit && (
-              <View style={{ marginBottom: 8 }}>
-                <Text style={styles.label}>Actual Machanical Hours</Text>
-                <TextInput
-                  editable={
-                    userData?.unitType == "FARM" &&
-                    selectedItem?.currentDprStatus == "DONE" &&
-                    !selectedItem?.dprMechanicalSubmit
-                      ? true
-                      : false
-                  }
-                  style={
-                    userData?.unitType == "FARM" &&
-                    selectedItem?.currentDprStatus == "DONE" &&
-                    !selectedItem?.dprMechanicalSubmit
-                      ? styles.input
-                      : styles.disabledInput
-                  }
-                  value={
-                    item?.actualMechHour ? item?.actualMechHour.toString() : ""
-                  }
-                  placeholder="Enter"
-                  keyboardType="numeric"
-                  onChangeText={(val) =>
-                    handleUpdateEquipment(item.id, "actualMechHour", val)
-                  }
-                />
-              </View>
-            )}
-        </>
-      ) : userData?.unitType == "CHAK" ? (
-        <>
-          <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>Operator Name</Text>
-            <TextInput
-              editable={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                item?.operatorRequired &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? true
-                  : false
-              }
-              style={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                item?.operatorRequired &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? styles.input
-                  : styles.disabledInput
-              }
-              value={item?.operatorName ? item?.operatorName : ""}
-              placeholder="Enter Operator Name"
-              //keyboardType="numeric"
-              onChangeText={(val) =>
-                handleUpdateEquipment(item.id, "operatorName", val)
-              }
-            />
-          </View>
-          <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>CP Number</Text>
-            <TextInput
-              editable={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? true
-                  : false
-              }
-              style={
-                userData?.unitType == "FARM" &&
-                selectedItem?.currentDprStatus == "APPROVED" &&
-                !selectedItem?.dprMechanicalSubmit
-                  ? styles.input
-                  : styles.disabledInput
-              }
-              value={item?.cpNumber ? item?.cpNumber.toString() : ""}
-              placeholder="Enter"
-              keyboardType="numeric"
-              onChangeText={(val) =>
-                handleUpdateEquipment(item.id, "cpNumber", val)
-              }
-            />
-          </View>
+      const parsed = JSON.parse(decryptAES(res));
 
-          <View style={{ marginBottom: 8 }}>
-            <Text style={styles.label}>Actual Hours</Text>
-            <TextInput
-              editable={
-                userData?.unitType == "CHAK" &&
-                selectedItem?.currentDprStatus == "APPROVED"
-                  ? true
-                  : false
-              }
-              style={
-                userData?.unitType == "CHAK" &&
-                selectedItem?.currentDprStatus == "APPROVED"
-                  ? styles.input
-                  : styles.disabledInput
-              }
-              value={item?.actualHours ? item?.actualHours.toString() : ""}
-              placeholder="Enter"
-              keyboardType="numeric"
-              onChangeText={(val) =>
-                handleUpdateEquipment(item.id, "actualHours", val)
-              }
-            />
-          </View>
-
-          {userData?.unitType == "FARM" &&
-            selectedItem?.currentDprStatus == "DONE" &&
-            !selectedItem?.dprMechanicalSubmit && (
-              <View style={{ marginBottom: 8 }}>
-                <Text style={styles.label}>Actual Machanical Hours</Text>
-                <TextInput
-                  editable={
-                    userData?.unitType == "FARM" &&
-                    selectedItem?.currentDprStatus == "DONE" &&
-                    !selectedItem?.dprMechanicalSubmit
-                      ? true
-                      : false
-                  }
-                  style={
-                    userData?.unitType == "FARM" &&
-                    selectedItem?.currentDprStatus == "DONE" &&
-                    !selectedItem?.dprMechanicalSubmit
-                      ? styles.input
-                      : styles.disabledInput
-                  }
-                  value={
-                    item?.actualMechHour ? item?.actualMechHour.toString() : ""
-                  }
-                  placeholder="Enter"
-                  keyboardType="numeric"
-                  onChangeText={(val) =>
-                    handleUpdateEquipment(item.id, "actualMechHour", val)
-                  }
-                />
-              </View>
-            )}
-        </>
-      ) : null}
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: 8,
-          justifyContent: "space-between",
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            width: "80%",
-          }}
-        >
-          <Switch
-            disabled={true}
-            value={item?.operatorRequired}
-            trackColor={{ false: "#ccc", true: "lightgreen" }}
-            thumbColor={item.operatorRequired ? "green" : "#f4f3f4"}
-          />
-          <Text
-            style={{
-              marginLeft: 10,
-              fontSize: 14,
-              color: "#333",
-            }}
-          >
-            Operator Required
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const updateData = async (type) => {
-    if (type) {
-      let payloadData;
-      if (type == "update") {
-        payloadData = [
-          {
-            ...selectedItem,
-            dprMechanicalSubmit: true,
-          },
-        ];
-      } else if (type == "ReviewANDProceed") {
-        const updatedArray = labourOption.map((item) => {
-          const { id, ...rest } = item;
-          return rest;
-        });
-        payloadData = [
-          {
-            ...selectedItem,
-            dprMechanicalSubmit: false,
-            currentDprStatus: "DONE",
-            unitType: userData?.unitType,
-            dprLabour: updatedArray,
-          },
-        ];
-      } else if (type == "updateByMach") {
-        payloadData = [
-          {
-            ...selectedItem,
-            dprStatus: "SUBMITTED",
-            dprMechanicalSubmit: true,
-          },
-        ];
-      }
-      try {
-        setLoading(true);
-        console.log("payloadData", payloadData);
-        const encryptedPayload = encryptWholeObject(payloadData);
-        const response = await apiRequest(
-          API_ROUTES.UPDATE_DPR,
-          "POST",
-          encryptedPayload
+      if (parsed?.status === "SUCCESS") {
+        setActivityGroups((prev) =>
+          prev.map((act) =>
+            act.activityId === activityId
+              ? {
+                  ...act,
+                  agricultures: act.agricultures.map((x) =>
+                    x.id === agId
+                      ? {
+                          ...x,
+                          materialType: val.name,
+                          materialList: parsed.data || [],
+                          material: null, // reset item
+                        }
+                      : x,
+                  ),
+                }
+              : act,
+          ),
         );
-        const decrypted = decryptAES(response);
-        const parsedDecrypted = JSON.parse(decrypted);
-        console.log("payloadData", parsedDecrypted);
-        if (
-          parsedDecrypted?.status === "SUCCESS" &&
-          parsedDecrypted?.statusCode === "200"
-        ) {
-          showSuccessMessage(parsedDecrypted?.message || "success");
-          // setBottomSheetVisible(!bottomSheetVisible);
-          // getActivityOperationData();
-          navigation.goBack();
-        } else {
-          showErrorMessage(`${parsedDecrypted?.message}` || "Error");
-        }
-      } catch (error) {
-        console.log(error, "payloadData");
-      } finally {
-        setLoading(false);
       }
-    } else {
-      alert("else");
+    } finally {
+      setLoading(false);
     }
   };
-  return (
-    <WrapperContainer isLoading={loading}>
-      <InnerHeader title={"Process Allocation"} />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={moderateScaleVertical(
-          Platform.OS === "ios" ? 90 : 10
-        )}
-      >
-        <ScrollView
-          style={styles.container}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+
+  const fetchMaterialList = async (item) => {
+    setLoading(true);
+    try {
+      const payloadData = {
+        itemCode: item?.itemCode,
+        itemSubType: item?.itemSubType,
+      };
+      const encryptPayloadData = encryptWholeObject(payloadData);
+      const getMaterialItem = await apiRequest(
+        API_ROUTES.MATERIAL_LIST_DPR,
+        "POST",
+        encryptPayloadData,
+      );
+      const decryptedMaterialItemList = decryptAES(getMaterialItem);
+      const parsedDecryptedMaterialItemList = JSON.parse(
+        decryptedMaterialItemList,
+      );
+
+      console.log(
+        "parsedDecryptedMaterialList",
+        parsedDecryptedMaterialItemList,
+      );
+      if (
+        (parsedDecryptedMaterialItemList?.status === "SUCCESS" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200") ||
+        (parsedDecryptedMaterialItemList?.status === "200" &&
+          parsedDecryptedMaterialItemList?.statusCode === "200")
+      ) {
+        setMaterialTableData(parsedDecryptedMaterialItemList?.data || []);
+      } else {
+        showErrorMessage("Unable to get the Subgroup List Data");
+      }
+    } catch (error) {
+      console.log(error, "line error");
+      showErrorMessage("Error fetching dropdown data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= RENDER ACTIVITY ================= */
+
+  const renderActivity = ({ item, index }) => {
+    const isOpen = expandedActivityId === item.activityId;
+    // console.log("renderActivity", item);
+
+    return (
+      <View style={styles.activityCard}>
+        <TouchableOpacity
+          style={styles.activityHeader}
+          onPress={() => setExpandedActivityId(isOpen ? null : item.activityId)}
         >
-          <View style={[styles.rowContainer]}>
-            <View style={styles.row}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Square</Text>
-                <TextInput
-                  editable={false}
-                  style={styles.disabledInput}
-                  keyboardType="numeric"
-                  value={selectedItem?.squareName}
-                />
-              </View>
+          <Text style={styles.activityTitle}>
+            Activity {index + 1} · {item.activityName}
+          </Text>
+          <Icon
+            name={isOpen ? "expand-less" : "expand-more"}
+            size={26}
+            color={Colors.greenColor}
+          />
+        </TouchableOpacity>
 
-              <TouchableOpacity disabled={true} style={styles.inputContainer}>
-                <Text style={styles.label}>Date</Text>
-                <View style={styles.disabledInput}>
-                  <Text>{formatDate(selectedItem?.reportDate)}</Text>
-                </View>
-              </TouchableOpacity>
+        {isOpen && (
+          <View style={styles.activityBody}>
+            {/* BASIC */}
+            <DropDown disabled label="Activity" value={item.activityName} />
+            <DropDown
+              disabled
+              label="Contractor Type"
+              value={item.basic?.contractorType}
+            />
+            <DropDown
+              disabled
+              label="Contractor Name"
+              value={item.basic?.contractorName}
+            />
+            <TextInput
+              style={styles.disabledInput}
+              editable={false}
+              value={String(item.basic?.noOfLabour || 0)}
+              placeholder="No of Labour"
+            />
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>No. Of Labour</Text>
-                <TextInput
-                  editable={false}
-                  style={styles.disabledInput}
-                  value={selectedItem?.noOfLabour}
-                  placeholder="0"
-                  maxLength={3}
-                />
-              </View>
-            </View>
-
-            <View style={styles.row}>
-              <DropDown
-                disabled={true}
-                isVisible={false}
-                // setIsVisible={closeForm}
-                //data={data}
-                value={
-                  selectedItem?.activityName ? selectedItem?.activityName : ""
-                }
-                //selectItem={selectItem}
-              />
-            </View>
-            <View
-              style={{
-                backgroundColor: "#e8f5e9",
-                padding: 10,
-                borderRadius: 10,
-                borderWidth: 2,
-                borderColor: "#2e7d32",
-                borderStyle: "dotted",
-                marginTop: 10,
-              }}
-            >
-              <View style={styles.row}>
-                <Text
-                  style={{
-                    color: Colors.black,
-                    fontSize: 18,
-                    marginBottom: 10,
-                  }}
-                >
-                  Square Detail
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Production Plan</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={selectedItem?.planId}
-                    editable={false}
-                  />
-                </View>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Total Area</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={selectedItem?.totalArea.toString()}
-                    editable={false}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Cultivable Area</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={selectedItem?.cultivableArea.toString()}
-                    editable={false}
-                  />
-                </View>
-              </View>
-              <View style={styles.row}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Contractor Type</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={
-                      selectedItem?.contractors?.[0]?.contractorType || "NA"
-                    }
-                    editable={false}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Contractor</Text>
-                  <TextInput
-                    style={styles.input}
-                    keyboardType="numeric"
-                    value={
-                      selectedItem?.contractors?.[0]?.contractorName || "NA"
-                    }
-                    editable={false}
-                  />
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {(userData?.unitType == "CHAK" ||
-            userData?.unitType == "FARM_BLOCK") &&
-            selectedItem?.dprAgricultures?.length > 0 && (
+            {/* AGRICULTURE */}
+            {item.agricultures.length > 0 && (
               <>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 20,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: Colors.greenColor,
-                      fontSize: 18,
-                      fontWeight: "bold",
-                    }}
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Agriculture Inputs</Text>
+                  <TouchableOpacity
+                    onPress={() => addAgriculture(item.activityId)}
                   >
-                    Agriculture Inputs
-                  </Text>
+                    <Text style={styles.addText}>+ Add New</Text>
+                  </TouchableOpacity>
                 </View>
-                {selectedItem?.dprAgricultures.map((item, index) => (
-                  <>
-                    <View key={item.id} style={styles.rowContainer}>
-                      <Text style={styles.serialNo}>S. No {index + 1}</Text>
-                      <View style={styles.row}>
-                        <DropDown
-                          disabled={true}
-                          isVisible={false}
-                          // setIsVisible={() => {
-                          //   setshowMeterialDropdown(!showMeterialDropdown);
-                          // }}
-                          //data={materialTypeList}
-                          value={item?.materialType ? item?.materialType : ""}
-                          // selectItem={(val) => {
-                          //   selectedActivity(val, item.id);
-                          //   setshowMeterialDropdown(false);
-                          // }}
-                        />
-                      </View>
-                      <View style={styles.row}>
-                        <DropDown
-                          disabled={true}
-                          isVisible={false}
-                          //   setIsVisible={() => {
-                          //     setshowMaterialList(!showMaterialList);
-                          //   }}
-                          //   data={materialList}
-                          value={item?.itemName ? item?.itemName : ""}
-                          //   selectItem={(val) => {
-                          //     setshowMaterialList(!showMaterialList);
-                          //     selectedMaterial(val, item.id);
-                          //   }}
-                        />
-                      </View>
-                      <View style={styles.row}>
-                        <View style={styles.inputContainer}>
-                          <Text style={styles.label}>No. of Items</Text>
-                          <TextInput
-                            editable={false}
-                            style={styles.disabledInput}
-                            keyboardType="numeric"
-                            value={item.noOfItems.toString()}
-                          />
-                        </View>
 
-                        <View style={styles.inputContainer}>
-                          <Text style={styles.label}>Quantity</Text>
-                          <TextInput
-                            editable={false}
-                            style={styles.disabledInput}
-                            keyboardType="numeric"
-                            value={item.qty.toString()}
-                          />
-                        </View>
-
-                        <View style={styles.inputContainer}>
-                          <Text style={styles.label}>UOM</Text>
-                          <TextInput
-                            editable={false}
-                            style={styles.disabledInput}
-                            value={item.uom}
-                          />
-                        </View>
-                      </View>
+                {item.agricultures.map((ag, i) => (
+                  <View key={ag.id} style={styles.rowBox}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={styles.serial}>S.N. {i + 1}</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          removeAgriculture(item.activityId, ag.id)
+                        }
+                      >
+                        <Icon name="delete" size={20} color="red" />
+                      </TouchableOpacity>
                     </View>
-                  </>
+
+                    <View style={styles.divider} />
+                    <DropDown
+                      label="Material Type"
+                      data={materialTypeList}
+                      value={ag.materialType}
+                      selectItem={(val) => {
+                        getMaterialItem(item.activityId, ag.id, val);
+                        setActivityGroups((prev) =>
+                          prev.map((act) =>
+                            act.activityId === item.activityId
+                              ? {
+                                  ...act,
+                                  agricultures: act.agricultures.map((x) =>
+                                    x.id === ag.id
+                                      ? { ...x, materialType: val.name }
+                                      : x,
+                                  ),
+                                }
+                              : act,
+                          ),
+                        );
+                      }}
+                    />
+
+                    <DropDown
+                      label="Item"
+                      data={ag.materialList || []}
+                      value={ag.material?.itemName || ""}
+                      selectItem={(selectedItem) => {
+                        fetchMaterialList(item);
+                        setActivityGroups((prev) =>
+                          prev.map((act) =>
+                            act.activityId === item.activityId
+                              ? {
+                                  ...act,
+                                  agricultures: act.agricultures.map((x) =>
+                                    x.id === ag.id
+                                      ? { ...x, material: selectedItem }
+                                      : x,
+                                  ),
+                                }
+                              : act,
+                          ),
+                        );
+                      }}
+                    />
+                    <TouchableOpacity
+                      style={styles.selectMaterialBtn}
+                      onPress={() => {
+                        setShowMaterialModal(true);
+                      }}
+                    >
+                      <Text style={styles.selectMaterialText}>
+                        Select / View Material(s)
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </>
             )}
 
-          {selectedItem?.dprMechanicals?.length > 0 ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <Text
-                  style={{
-                    color: Colors.greenColor,
-                    fontSize: 18,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Equipment & Mechanical Details
-                </Text>
-              </View>
-              <FlatList
-                data={selectedItem?.dprMechanicals}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderEqupmentItem}
-              />
-            </>
-          ) : null}
+            {/* MECHANICAL */}
+            {item.mechanicals.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                    Equipment & Mechanical Details
+                  </Text>
+                </View>
 
-          {selectedItem?.noOfLabour > 0 && userData?.unitType == "CHAK" && (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <Text
-                  style={{
-                    color: Colors.greenColor,
-                    fontSize: 18,
-                    fontWeight: "bold",
+                {item.mechanicals.map((eq, i) => (
+                  <View key={eq.id} style={styles.rowBox}>
+                    <Text style={styles.serial}>S.N. {i + 1}</Text>
+                    <View style={styles.divider} />
+                    <DropDown
+                      disabled
+                      label="Equipment"
+                      value={eq.equipmentName}
+                    />
+                    <DropDown
+                      disabled
+                      label="Sub Group"
+                      value={eq.subGroupName}
+                    />
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Estimated Hours</Text>
+                      <TextInput
+                        editable={false}
+                        style={styles.disabledInput}
+                        value={String(eq.estimatedHours || "")}
+                        placeholder="Estimated Hours"
+                      />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Actual Hours</Text>
+                      <TextInput
+                        editable={false}
+                        style={styles.disabledInput}
+                        value={String(eq.actualHours || "")}
+                        placeholder="Actual Hours"
+                      />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Operator Name</Text>
+                      <TextInput
+                        editable={false}
+                        style={styles.disabledInput}
+                        value={String(eq.operatorName || "")}
+                        placeholder="Operator Name"
+                      />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>CP Number</Text>
+                      <TextInput
+                        editable={false}
+                        style={styles.disabledInput}
+                        value={String(eq.cpNumber || "")}
+                        placeholder="CP Number"
+                      />
+                    </View>
+
+                    <View style={styles.switchRow}>
+                      <Text>Operator Required</Text>
+                      <Switch value={eq.operatorRequired} disabled />
+                    </View>
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* LABOUR */}
+            {/* {item.labours.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Labour Details</Text>
+                </View>
+
+                {item.labours.map((lab, i) => (
+                  <View key={lab.id} style={styles.rowBox}>
+                    <Text style={styles.serial}>S.N. {i + 1}</Text>
+                    <View style={styles.divider} />
+
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Labour Name"
+                      value={lab.labourName}
+                      onChangeText={(val) =>
+                        updateLabourField(
+                          item.activityId,
+                          lab.id,
+                          "labourName",
+                          val,
+                        )
+                      }
+                    />
+
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Working Hours"
+                      keyboardType="numeric"
+                      value={lab.workingHours}
+                      onChangeText={(val) =>
+                        updateLabourField(
+                          item.activityId,
+                          lab.id,
+                          "workingHours",
+                          val,
+                        )
+                      }
+                    />
+                  </View>
+                ))}
+              </>
+            )} */}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  /* ================= UI ================= */
+
+  return (
+    <WrapperContainer isLoading={loading}>
+      <InnerHeader title="Crop DPR" />
+
+      {showMaterialModal && (
+        <Modal visible={showMaterialModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {/* HEADER */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select Materials</Text>
+                <TouchableOpacity onPress={() => setShowMaterialModal(false)}>
+                  <Icon name="close" size={24} />
+                </TouchableOpacity>
+              </View>
+
+              {/* BODY */}
+              <ScrollView contentContainerStyle={{ padding: 10 }}>
+                {materialTableData.map((item, index) => (
+                  <View key={index} style={styles.materialCard}>
+                    {/* TOP ROW */}
+                    <View style={styles.cardHeader}>
+                      <Switch
+                        value={item.selected}
+                        onValueChange={(v) => {
+                          const copy = [...materialTableData];
+                          copy[index].selected = v;
+                          if (!v) copy[index].issueQty = "";
+                          setMaterialTableData(copy);
+                        }}
+                      />
+
+                      <Text style={styles.materialTitle}>
+                        {item.materialName}
+                      </Text>
+                    </View>
+
+                    {/* DETAILS */}
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Lot No:</Text>
+                      <Text style={styles.value}>{item.lotNo}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Packing Size:</Text>
+                      <Text style={styles.value}>{item.packingSize}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>No. of Bags:</Text>
+                      <Text style={styles.value}>{item.noOfBags}</Text>
+                    </View>
+
+                    <View style={styles.cardRow}>
+                      <Text style={styles.label}>Available Qty:</Text>
+                      <Text style={styles.value}>{item.availableQty}</Text>
+                    </View>
+
+                    {/* ISSUE QTY */}
+                    <TextInput
+                      style={[
+                        styles.issueInput,
+                        { backgroundColor: item.selected ? "#fff" : "#eee" },
+                      ]}
+                      placeholder="Enter Issue Qty"
+                      keyboardType="numeric"
+                      editable={item.selected}
+                      value={item.issueQty}
+                      onChangeText={(v) => {
+                        const copy = [...materialTableData];
+                        copy[index].issueQty = v;
+                        setMaterialTableData(copy);
+                      }}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
+              {/* FOOTER */}
+              <View style={styles.modalFooter}>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setShowMaterialModal(false)}
+                >
+                  <Text>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveBtn}
+                  onPress={() => {
+                    setShowMaterialModal(false);
+                    console.log("Selected Materials", materialTableData);
                   }}
                 >
-                  Labour Details
-                </Text>
-                {/* <TouchableOpacity
-                style={styles.addBtn}
-                //onPress={addNewLabour}
-              >
-                <Text style={styles.addText}>+ Add New</Text>
-              </TouchableOpacity> */}
+                  <Text style={{ color: "#fff" }}>Save</Text>
+                </TouchableOpacity>
               </View>
-              <FlatList
-                data={
-                  selectedItem?.dprLabour?.length > 0
-                    ? selectedItem?.dprLabour
-                    : labourOption
-                }
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderLabourItem}
-              />
-            </>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={moderateScaleVertical(
+          Platform.OS === "ios" ? 80 : 10,
+        )}
+      >
+        <ScrollView style={styles.container}>
+          {dprData && (
+            <View style={styles.basicCard}>
+              <Text style={styles.basicTitle}>Basic Details</Text>
+              <Text>Square: {dprData.squareName}</Text>
+              <Text>Status: {dprData.currentDprStatus}</Text>
+              <Text>DPR Type: {dprData.dprType}</Text>
+            </View>
           )}
 
-          {userData?.unitType == "FARM" &&
-            selectedItem?.currentDprStatus == "APPROVED" &&
-            !selectedItem?.dprMechanicalSubmit && (
-              <CustomButton
-                text={"Update"}
-                buttonStyle={[
-                  styles.buttonStyle,
-                  { backgroundColor: Colors.greenColor },
-                ]}
-                textStyle={styles.buttonTextStyle}
-                handleAction={() => updateData("update")}
-              />
-            )}
+          <FlatList
+            data={activityGroups}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderActivity}
+          />
 
-          {userData?.unitType == "CHAK" &&
-            selectedItem?.currentDprStatus == "APPROVED" && (
-              <CustomButton
-                text={"Review & Proceed"}
-                buttonStyle={[
-                  styles.buttonStyle,
-                  { backgroundColor: Colors.greenColor },
-                ]}
-                textStyle={styles.buttonTextStyle}
-                handleAction={() => updateData("ReviewANDProceed")}
-              />
-            )}
-
-          {userData?.unitType == "FARM" &&
-            selectedItem?.currentDprStatus == "DONE" &&
-            !selectedItem?.dprMechanicalSubmit && (
-              <CustomButton
-                text={"Update"}
-                buttonStyle={[
-                  styles.buttonStyle,
-                  { backgroundColor: Colors.greenColor },
-                ]}
-                textStyle={styles.buttonTextStyle}
-                handleAction={() => updateData("updateByMach")}
-              />
-            )}
+          <CustomButton
+            text="Submit"
+            buttonStyle={styles.buttonStyle}
+            textStyle={styles.buttonTextStyle}
+            handleAction={() => navigation.goBack()}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </WrapperContainer>
   );
 }
 
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { padding: moderateScale(10) },
+
+  basicCard: {
+    backgroundColor: "#e8f5e9",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#2e7d32",
   },
-  scrollContent: {
-    padding: moderateScale(8),
-    paddingBottom: moderateScale(20),
-    //marginBottom: 50,
+  basicTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.greenColor,
+    marginBottom: 8,
   },
-  rowContainer: {
+
+  activityCard: { marginBottom: 12 },
+  activityHeader: {
+    backgroundColor: "#f1f8e9",
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#c8e6c9",
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  activityTitle: {
+    fontSize: textScale(14),
+    fontWeight: "700",
+    color: Colors.greenColor,
+  },
+  activityBody: {
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 10,
     padding: 12,
-    marginBottom: 12,
-    position: "relative",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  inputContainer: {
-    flex: 1,
-    marginRight: 8,
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 12,
-    color: Colors.grey,
-    marginBottom: 4,
+    borderRadius: 8,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderTopWidth: 0,
   },
   input: {
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.disableFieldColor,
+    //backgroundColor: Colors.disableFieldColor,
     borderRadius: 6,
     padding: 8,
+    marginVertical: 6,
   },
+
   disabledInput: {
     borderWidth: 1,
     borderColor: Colors.disableFieldColor,
+    backgroundColor: Colors.disableFieldColor,
     borderRadius: 6,
     padding: 8,
-    backgroundColor: Colors.disableFieldColor,
+    marginVertical: 6,
+    paddingVertical: 12,
   },
-  addBtn: {
-    backgroundColor: "#e8f5e9",
-    borderColor: Colors.green,
-    borderWidth: 1,
-    borderRadius: 10,
-    alignItems: "center",
-    padding: 12,
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 10,
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontWeight: "700",
+    borderLeftWidth: moderateScale(3),
+    borderColor: Colors.primary,
+    fontSize: textScale(14),
+    fontFamily: FontFamily.PoppinsSemiBold,
+    color: Colors.greenColor,
+    paddingLeft: 5,
+  },
+  addText: { color: Colors.green },
+  rowBox: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 6,
+    padding: 8,
+    marginVertical: 6,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginVertical: 6,
+  },
+  serial: {
+    fontWeight: "700",
+    color: "#000",
+  },
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   buttonStyle: {
     backgroundColor: Colors.greenColor,
     padding: moderateScaleVertical(12),
     borderRadius: moderateScale(8),
-    alignItems: "center",
+    marginVertical: 20,
   },
   buttonTextStyle: {
     color: Colors.white,
     fontSize: textScale(14),
     fontFamily: FontFamily.PoppinsMedium,
+  },
+
+  // materialvactivity style
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    padding: 10,
+  },
+
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    maxHeight: "85%",
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 14,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  materialCard: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  materialTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 2,
+  },
+
+  label: {
+    fontSize: 14,
+    color: Colors.grey,
+    marginBottom: 2,
+    fontWeight: "700",
+  },
+
+  value: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#000",
+  },
+
+  issueInput: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    padding: 8,
+    marginTop: 10,
+    textAlign: "center",
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 12,
+  },
+
+  cancelBtn: {
+    padding: 10,
+  },
+
+  saveBtn: {
+    backgroundColor: Colors.greenColor,
+    padding: 10,
+    borderRadius: 6,
+  },
+  inputContainer: {
+    flex: 1,
+    marginRight: 8,
+    marginBottom: 5,
   },
 });

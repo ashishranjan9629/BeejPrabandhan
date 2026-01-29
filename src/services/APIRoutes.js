@@ -1,11 +1,12 @@
 export const API_ROUTES = {
-  BASE_URL: "http://192.168.100.102:7930/api/", //(Q.A)
+  //BASE_URL: "http://192.168.100.102:7930/api/", //(Q.A)
   //BASE_URL: "http://192.168.100.102:7730/api/", //(UAT)
   //BASE_URL: "http://192.168.100.102:7830/api/", //(development)
   //BASE_URL: "http://192.168.100.102:7630/api/", //UAT Public
   //BASE_URL: "http://192.168.100.102:7730/api/",
   // BASE_URL: "http://192.168.80.148:7830/api/",// (Nitesh Ip)
-  BASE_URL: "http://160.25.172.19:9053/api/", //Public Server
+  //BASE_URL: "http://160.25.172.19:9053/api/", //Public Server
+  BASE_URL: "http://192.168.100.102:7630/api/",
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
   PROFILE_DETAILS: "master/employee-master/find-by-id",
@@ -38,14 +39,26 @@ export const API_ROUTES = {
   OPERATION_MASTER_DD: "master/operation-master/dd",
   MACHINE_MASTER_DD: "master/machine-master/dd",
   DP_REPORT_SAVE: "prod_plan/dp-report/save",
-  SAVE_DPR: "prod_farm/dp-report/save",
+  SAVE_DPR: "prod_farm/dpr/save",
   DP_REPORT_UPDATE: "prod_plan/dp-report/update",
   MATERIAL_LIST: "master/item-master/dd",
   PLAN_ID_LIST: "prod_plan/prd-schedule/find-planIds",
   forgetPassword: "userauth/public/user/forgot-password",
   Announcement: "master/BANNER_MASTER/public",
   PLAN_FOR_SQURE_LIST: "prod_farm/DP_REPORT/find-plan-for-square",
-  GET_DPR_HISTORY: "prod_farm/dp-report/find-by-filter",
+  GET_DPR_HISTORY: "prod_farm/dpr/find-by-filter",
   GET_OPERATION_LIST: "master/operation-master/dd",
   UPDATE_DPR: "prod_farm/dp-report/update",
+  SQUARE_LIST: "prod_farm/DPR/find-current-plans-squares",
+  CONTRACTOR: "master/contractor-agreement/contractors/dd",
+  EQUIPMENT_LIST: "master/asset-group-master/dd",
+  GET_EQUIPMENT_SUB_GROUP: "master/asset-sub-group-master/dd",
+  DPR_FIND_BY_ID: "prod_farm/dpr/find-by-id",
+  MATERIAL_LIST_DPR: "inventory/running-inventory/dd/find-by-filter",
+  DEALER_INDENTS_LIST: "marketing/dealer-indent/find-by-filter",
+  DEALER_INDENTS_FIND_BY_ID: "marketing/dealer-indent/find-by-id",
+  SEASON: "master/season-master/dd",
+  PARTY_LIST_DEALER_INDENT: "master/parties-master/dd",
+  GET_INDENT_NUMBER: "marketing/dealer-indent/dd",
+  SAVE_DEALER_INDENT: "marketing/dealer-indent/save",
 };

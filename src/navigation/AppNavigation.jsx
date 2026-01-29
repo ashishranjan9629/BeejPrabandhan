@@ -26,6 +26,11 @@ import SquarePlanList from "../screens/app/SquarePlanList";
 import DprProcessAllocation from "../screens/app/home/DPR/DprProcessAllocation";
 import ViewDprDetail from "../screens/app/home/DPR/ViewDprDetail";
 import AddNewDpr from "../screens/app/home/DPR/AddNewDpr";
+import MechanicalAllocationProcessList from "../screens/app/home/DPR/MechanicalAllocationProcessList";
+import MechanicalIssueDetails from "../screens/app/home/DPR/MechanicalIssueDetails";
+import DealerIndentsList from "../screens/app/marketing/dealerIndent/DealerIndentsList";
+import DealerIndentDetail from "../screens/app/marketing/dealerIndent/DealerIndentDetail";
+import CreateDealerIndent from "../screens/app/marketing/dealerIndent/CreateDealerIndent";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -70,6 +75,17 @@ const AppNavigation = () => {
         name="DprProcessAllocation"
         component={DprProcessAllocation}
       />
+      <Stack.Screen
+        name="MechanicalAllocationProcessList"
+        component={MechanicalAllocationProcessList}
+      />
+      <Stack.Screen
+        name="MechanicalIssueDetails"
+        component={MechanicalIssueDetails}
+      />
+      <Stack.Screen name="DealerIndentsList" component={DealerIndentsList} />
+      <Stack.Screen name="DealerIndentDetail" component={DealerIndentDetail} />
+      <Stack.Screen name="CreateDealerIndent" component={CreateDealerIndent} />
       <Stack.Screen name="ViewDprDetail" component={ViewDprDetail} />
       <Stack.Screen name="AddNewDpr" component={AddNewDpr} />
     </Stack.Navigator>

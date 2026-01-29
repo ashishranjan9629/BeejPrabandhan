@@ -1,439 +1,11 @@
-// import {
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   View,
-//   FlatList,
-// } from "react-native";
-// import React, { useState, useEffect } from "react";
-// import WrapperContainer from "../../../../utils/WrapperContainer";
-// import InnerHeader from "../../../../components/InnerHeader";
-// import {
-//   moderateScale,
-//   moderateScaleVertical,
-//   scale,
-//   textScale,
-// } from "../../../../utils/responsiveSize";
-// import FontFamily from "../../../../utils/FontFamily";
-// import Colors from "../../../../utils/Colors";
-// import CustomButton from "../../../../components/CustomButton";
-// import { useIsFocused, useNavigation } from "@react-navigation/native";
-// import Icon from "react-native-vector-icons/MaterialIcons";
-// import { apiRequest } from "../../../../services/APIRequest";
-// import { API_ROUTES } from "../../../../services/APIRoutes";
-// import { getUserData } from "../../../../utils/Storage";
-// import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-// import {
-//   showErrorMessage,
-//   showSuccessMessage,
-// } from "../../../../utils/HelperFunction";
-// import en from "../../../../constants/en";
-// import CustomBottomSheet from "../../../../components/CustomBottomSheet";
-
-// export default function DprProcessAllocation({ route }) {
-//   const navigation = useNavigation();
-//   const [loading, setLoading] = useState(false);
-//   const [activityList, setactivityList] = useState([]);
-//   const [selectedItem, setSelectedItem] = useState(null);
-//   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
-//   const [userData, setUserData] = useState([]);
-//   const [showAddNewButton, setshowAddNewButton] = useState(false);
-
-//   const isFocused = useIsFocused();
-//   const landData = route?.params?.landData;
-//   console.log("landData", landData);
-
-//   useEffect(() => {
-//     if (isFocused) {
-//       fetchUserData();
-//     }
-//   }, [isFocused]);
-
-//   const fetchUserData = async () => {
-//     setLoading(true);
-//     const userData = await getUserData();
-//     console.log("userData", userData);
-//     setUserData(userData);
-//     //getActivityOperationData();
-//     await fetchActivityList(userData);
-//   };
-
-//   const fetchActivityList = async (userData) => {
-//     setLoading(false);
-//     try {
-//       const payloadData = {
-//         page: 0,
-//         pageSize: 100,
-//         squareId: landData?.squareId,
-//       };
-
-//       // console.log("parsedDecrypted", payloadData);
-//       const encryptedPayload = encryptWholeObject(payloadData);
-//       const response = await apiRequest(
-//         API_ROUTES.GET_DPR_HISTORY,
-//         "post",
-//         encryptedPayload
-//       );
-
-//       const decrypted = decryptAES(response);
-//       const parsedDecrypted = JSON.parse(decrypted);
-
-//       if (
-//         parsedDecrypted?.status === "SUCCESS" &&
-//         parsedDecrypted?.statusCode === "200"
-//       ) {
-//         setactivityList(parsedDecrypted?.data);
-//         if (parsedDecrypted?.data.length > 0 && userData?.unitType == "CHAK") {
-//           let findPendingAct = parsedDecrypted?.data.find(
-//             (item) => item?.currentDprStatus == "PENDING"
-//           );
-
-//           if (findPendingAct) {
-//             setshowAddNewButton(false);
-//           } else {
-//             setshowAddNewButton(true);
-//           }
-//         } else {
-//           setshowAddNewButton(false);
-//         }
-//       } else {
-//         showErrorMessage(parsedDecrypted?.message || "Not getting Data");
-//       }
-//     } catch (error) {
-//       console.log("parsedDecrypted", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const getStatusColor = (status) => {
-//     switch (status) {
-//       case "SUBMITTED":
-//         return Colors.greenColor;
-//       case "APPROVED":
-//         return Colors.orange;
-//       case "PENDING":
-//         return Colors.blue;
-//       case "DONE":
-//         return Colors.greenThemeColor;
-//       case "REJECTED":
-//         return Colors.redThemeColor;
-//       default:
-//         return Colors.gray;
-//     }
-//   };
-
-//   const formatDate = (isoString) => {
-//     const date = new Date(isoString);
-//     const day = String(date.getDate()).padStart(2, "0");
-//     const month = String(date.getMonth() + 1).padStart(2, "0");
-//     const year = date.getFullYear();
-//     return `${day}-${month}-${year}`;
-//   };
-
-//   const handleCardPress = (item) => {
-//     setSelectedItem(item);
-//     setBottomSheetVisible(true);
-//   };
-
-//   const RenderCard = ({ item, index, getStatusColor, handleCardPress }) => {
-//     return (
-//       <TouchableOpacity
-//         onPress={() => {
-//           handleCardPress(item);
-//         }}
-//         style={styles.itemCard}
-//       >
-//         <View style={styles.cardHeader}>
-//           <Text style={styles.dateText}>{item.squareName}</Text>
-//           <View
-//             style={[
-//               styles.statusBadge,
-//               { backgroundColor: getStatusColor(item.currentDprStatus) },
-//             ]}
-//           >
-//             <Text style={styles.statusText}>{item.currentDprStatus}</Text>
-//           </View>
-//         </View>
-
-//         <View>
-//           <View style={styles.itemRow}>
-//             <View style={styles.itemColumn}>
-//               <Text style={styles.itemLabel}>Plan Id</Text>
-//               <Text style={styles.itemValue}>{item?.planId || "N/A"}</Text>
-//             </View>
-//           </View>
-//           <View style={styles.itemRow}>
-//             <View style={styles.itemColumn}>
-//               <Text style={styles.itemLabel}>Square Name</Text>
-//               <Text style={styles.itemValue}>{item?.squareName || "N/A"}</Text>
-//             </View>
-//             <View style={styles.itemColumn}>
-//               <Text style={styles.itemLabel}>Process Date</Text>
-//               <Text style={styles.itemValue}>
-//                 {formatDate(item?.reportDate) || "N/A"}
-//               </Text>
-//             </View>
-//           </View>
-//           <View style={styles.itemRow}>
-//             <View style={styles.itemColumn}>
-//               <Text style={styles.itemLabel}>Activity/Oper.</Text>
-//               <Text style={styles.itemValue}>
-//                 {item?.activityName || "N/A"}
-//               </Text>
-//             </View>
-//           </View>
-//         </View>
-//       </TouchableOpacity>
-//     );
-//   };
-
-//   const handleBottomSheetAction = (type) => {
-//     if (type == "Details") {
-//       setBottomSheetVisible(!bottomSheetVisible);
-//       navigation.navigate("ViewDprDetail", { selectedItem: selectedItem });
-//     }
-
-//     console.log("selectedItem___", selectedItem);
-//   };
-
-//   const approveOrRejectRequest = async (status) => {
-//     try {
-//       setLoading(true);
-//       const payloadData = [
-//         {
-//           ...selectedItem,
-//           currentDprStatus: status,
-//           equipment: status === "APPROVED" ? true : null,
-//           unitType: userData?.unitType,
-//         },
-//       ];
-//       console.log("payloadData", payloadData);
-//       const encryptedPayload = encryptWholeObject(payloadData);
-//       const response = await apiRequest(
-//         API_ROUTES.UPDATE_DPR,
-//         "POST",
-//         encryptedPayload
-//       );
-//       const decrypted = decryptAES(response);
-//       const parsedDecrypted = JSON.parse(decrypted);
-//       console.log("payloadData", parsedDecrypted);
-//       if (
-//         parsedDecrypted?.status === "SUCCESS" &&
-//         parsedDecrypted?.statusCode === "200"
-//       ) {
-//         showSuccessMessage(parsedDecrypted?.message || "success");
-//         setBottomSheetVisible(!bottomSheetVisible);
-//         fetchUserData();
-//       } else {
-//         showErrorMessage(`${parsedDecrypted?.message}` || "Error");
-//       }
-//     } catch (error) {
-//       console.log(error, "payloadData");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <WrapperContainer isLoading={loading}>
-//       <InnerHeader
-//         title={"Process Allocation"}
-//         rightIcon={
-//           showAddNewButton && (
-//             <TouchableOpacity
-//               onPress={() => {
-//                 navigation.navigate("AddNewDpr", {
-//                   landData: landData,
-//                 });
-//               }}
-//               style={styles.notificationHolder}
-//             >
-//               <Icon name="add" size={moderateScale(25)} color={Colors.white} />
-//             </TouchableOpacity>
-//           )
-//         }
-//       />
-
-//       <>
-//         <FlatList
-//           data={activityList}
-//           renderItem={({ item, index }) => (
-//             <RenderCard
-//               getStatusColor={getStatusColor}
-//               index={index}
-//               item={item}
-//               handleCardPress={handleCardPress}
-//             />
-//           )}
-//           keyExtractor={(item) => item.id?.toString()}
-//           contentContainerStyle={styles.listContainer}
-//           showsVerticalScrollIndicator={false}
-//           ListEmptyComponent={
-//             <View style={styles.emptyContainer}>
-//               <Text style={styles.emptyText}>
-//                 {en.DAILY_PROGRESS_REPORT.NO_DATA}
-//               </Text>
-//             </View>
-//           }
-//         />
-//         <CustomBottomSheet
-//           visible={bottomSheetVisible}
-//           onRequestClose={() => setBottomSheetVisible(false)}
-//         >
-//           <View style={styles.bottomSheetContent}>
-//             <Text style={styles.headerText}>
-//               {en.DAILY_PROGRESS_REPORT.SELECT_ACTION}
-//             </Text>
-//             <CustomButton
-//               text={en.DAILY_PROGRESS_REPORT.VIEW_DETAILS}
-//               buttonStyle={[
-//                 styles.bottomSheetButton,
-//                 { backgroundColor: Colors.lightGray },
-//               ]}
-//               textStyle={styles.bottomSheetButtonText}
-//               handleAction={() => handleBottomSheetAction("Details")}
-//             />
-
-//             {userData?.unitType === "FARM_BLOCK" &&
-//               selectedItem?.currentDprStatus === "PENDING" &&
-//               userData?.subUnitType != "WORKSHOP" && (
-//                 <CustomButton
-//                   text={"Approve"}
-//                   buttonStyle={styles.bottomSheetButton}
-//                   textStyle={styles.bottomSheetButtonText}
-//                   handleAction={() => approveOrRejectRequest("APPROVED")}
-//                 />
-//               )}
-//             {userData?.unitType === "FARM_BLOCK" &&
-//               selectedItem?.currentDprStatus === "PENDING" &&
-//               userData?.subUnitType != "WORKSHOP" && (
-//                 <CustomButton
-//                   text={"Reject"}
-//                   buttonStyle={[
-//                     styles.bottomSheetButton,
-//                     { backgroundColor: Colors.red },
-//                   ]}
-//                   textStyle={styles.bottomSheetButtonText}
-//                   handleAction={() => approveOrRejectRequest("REJECTED")}
-//                 />
-//               )}
-//           </View>
-//         </CustomBottomSheet>
-//       </>
-//     </WrapperContainer>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   listContainer: {
-//     padding: moderateScale(15),
-//     paddingBottom: moderateScaleVertical(20),
-//   },
-
-//   itemCard: {
-//     backgroundColor: Colors.white,
-//     borderRadius: moderateScale(8),
-//     padding: moderateScale(16),
-//     marginBottom: moderateScaleVertical(16),
-//     shadowColor: Colors.black,
-//     shadowOffset: {
-//       width: 0,
-//       height: 2,
-//     },
-//     shadowOpacity: 0.1,
-//     shadowRadius: 3.84,
-//     elevation: moderateScale(5),
-//   },
-//   itemRow: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     marginBottom: moderateScaleVertical(12),
-//   },
-//   itemColumn: {
-//     flex: 1,
-//     marginRight: moderateScale(8),
-//   },
-//   itemLabel: {
-//     fontSize: textScale(12),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.gray,
-//     marginBottom: moderateScaleVertical(2),
-//     textTransform: "capitalize",
-//   },
-//   itemValue: {
-//     fontSize: textScale(14),
-//     fontFamily: FontFamily.PoppinsMedium,
-//     color: Colors.textColor,
-//     textTransform: "capitalize",
-//   },
-//   statusBadge: {
-//     paddingHorizontal: moderateScale(12),
-//     paddingVertical: moderateScaleVertical(4),
-//     borderRadius: moderateScale(5),
-//   },
-//   statusText: {
-//     fontSize: textScale(11),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.white,
-//   },
-//   cardHeader: {
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//     marginBottom: moderateScaleVertical(12),
-//     borderBottomWidth: 1,
-//     borderBottomColor: Colors.diabledColor,
-//     paddingBottom: moderateScaleVertical(8),
-//   },
-//   dateText: {
-//     fontSize: textScale(13),
-//     fontFamily: FontFamily.PoppinsRegular,
-//     color: Colors.textColor,
-//     textTransform: "capitalize",
-//   },
-//   bottomSheetContent: {
-//     gap: moderateScaleVertical(8),
-//   },
-//   bottomSheetButton: {
-//     backgroundColor: Colors.greenColor,
-//     padding: moderateScaleVertical(12),
-//     borderRadius: moderateScale(8),
-//     alignItems: "center",
-//   },
-//   bottomSheetButtonText: {
-//     color: Colors.white,
-//     fontSize: textScale(14),
-//     fontFamily: FontFamily.PoppinsMedium,
-//   },
-//   // notificationHolder: {
-//   //   borderWidth: 2,
-//   //   width: moderateScale(50),
-//   //   height: moderateScale(50),
-//   //   borderRadius: moderateScale(25),
-//   //   backgroundColor: Colors.bg3,
-//   //   borderColor: Colors.bg3,
-//   //   alignItems: "center",
-//   //   justifyContent: "center",
-//   // },
-//   notificationHolder: {
-//     borderWidth: 2,
-//     width: moderateScale(50),
-//     height: moderateScale(50),
-//     borderRadius: moderateScale(25),
-//     backgroundColor: Colors.greenColor,
-//     borderColor: Colors.greenColor,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-// });
-
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   FlatList,
+  Platform,
+  Modal,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import WrapperContainer from "../../../../utils/WrapperContainer";
@@ -458,8 +30,172 @@ import {
 } from "../../../../utils/HelperFunction";
 import en from "../../../../constants/en";
 import CustomBottomSheet from "../../../../components/CustomBottomSheet";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
+import DropDown from "../../../../components/DropDown";
 
 export default function DprProcessAllocation({ route }) {
+  const activityListDummy = [
+    {
+      createdBy: "chakincharge@gmail.com",
+      createdOn: "2026-01-27T10:22:39.896+05:30",
+      updatedBy: "chakincharge@gmail.com",
+      updatedOn: "2026-01-27T10:22:39.896+05:30",
+      status: "ACTIVE",
+      id: 39,
+      planDate: "2026-01-27",
+      actualDate: "2026-01-27",
+      farmId: 14,
+      farmName: null,
+      farmBlockId: 8,
+      farmBlockName: null,
+      chakId: 12,
+      chakName: "chak ",
+      orchardId: null,
+      orchardName: null,
+      plotId: null,
+      plotName: null,
+      squareId: 15,
+      squareName: "LKU SQUARE",
+      epoId: null,
+      epoName: null,
+      planId: null,
+      farmPlanId: 25,
+      unitId: null,
+      unitType: null,
+      contractorType: null,
+      contractorId: null,
+      contractorName: null,
+      finYearId: 17,
+      finYear: "2025-2026",
+      seasonId: null,
+      season: null,
+      cropId: 31,
+      crop: "Wheat",
+      seedVariety: "W75",
+      seedVarietyId: 42,
+      fromSeedClass: "BS",
+      toSeedClass: "FS",
+      fromSeedStage: "",
+      toSeedStage: "I",
+      dprStatus: "PENDING",
+      currentDprStatus: "PENDING",
+      dprType: "CROP",
+      dprMechanicalSubmit: false,
+      lastStatusDate: "2026-01-27",
+      planType: null,
+      noOfLabour: 0,
+      workflows: [
+        {
+          createdBy: "chakincharge@gmail.com",
+          createdOn: "2026-01-27T10:22:39.953+05:30",
+          updatedBy: "SYSTEM",
+          updatedOn: "2026-01-27T10:22:39.953+05:30",
+          status: "ACTIVE",
+          id: 36,
+          fromStatus: null,
+          toStatus: "PENDING",
+          updatedDate: "2026-01-27",
+          remarks: "Report created and workflow initialized",
+          lastUpdatedByUnitType: "SYSTEM",
+        },
+      ],
+      activities: [
+        {
+          createdBy: "chakincharge@gmail.com",
+          createdOn: "2026-01-27T10:22:39.932+05:30",
+          updatedBy: "chakincharge@gmail.com",
+          updatedOn: "2026-01-27T10:22:39.932+05:30",
+          status: "ACTIVE",
+          id: 47,
+          activityId: 1,
+          activityName: "WATER COUSE DISELLTING",
+          area: null,
+          activityTime: null,
+          quantity: null,
+          dalChuri: null,
+          uncleanedSeed: null,
+          noOfLabour: 1,
+          noOfMachines: null,
+          activityStatus: "PENDING",
+          actualNoOfLabour: null,
+          contractorType: "ACTIVITY_WISE_CONTRACTOR",
+          contractorId: 48,
+          contractorName: "AMit",
+        },
+      ],
+      dprAgricultures: [
+        {
+          createdBy: "chakincharge@gmail.com",
+          createdOn: "2026-01-27T10:22:39.938+05:30",
+          updatedBy: "chakincharge@gmail.com",
+          updatedOn: "2026-01-27T10:22:39.938+05:30",
+          status: "ACTIVE",
+          id: 33,
+          itemCode: "item-2025-11-26-476",
+          materialType: "SEED",
+          itemId: null,
+          uom: null,
+          qty: 0,
+          issueDate: null,
+          remarks: null,
+          lotBatchNumber: null,
+          rate: 0,
+          cost: 0,
+          noOfItems: 0,
+          agrStatus: "SUBMITTED",
+          cashmemoId: null,
+          activityId: 1,
+          activityName: "WATER COUSE DISELLTING",
+          lotUsages: [],
+        },
+      ],
+      dprMechanicals: [
+        {
+          createdBy: "chakincharge@gmail.com",
+          createdOn: "2026-01-27T10:22:39.946+05:30",
+          updatedBy: "chakincharge@gmail.com",
+          updatedOn: "2026-01-27T10:22:39.946+05:30",
+          status: "ACTIVE",
+          id: 48,
+          equipmentName: "Property, Plant & Equipment",
+          equipmentId: 1,
+          operatorRequired: true,
+          operatorName: "",
+          operatorId: null,
+          fromWorkingHour: null,
+          toWorkingHour: null,
+          totalWorkingHour: null,
+          issueDate: null,
+          cpNumber: "",
+          remarks: null,
+          requiredQty: null,
+          approtvedQty: null,
+          estimatedHours: 1,
+          actualHours: null,
+          subUnitName: null,
+          subUnitId: null,
+          actualMechHour: null,
+          area: null,
+          mechIdleTime: null,
+          mechRunningTime: null,
+          cost: null,
+          activityId: 1,
+          activityName: "WATER COUSE DISELLTING",
+          engineerId: null,
+          engineerName: null,
+          inventoryRequestNo: null,
+          dprMechStatus: "PENDING",
+          subGroupId: 7,
+          subGroupName: "Electrical Installation and Equipment",
+          totalArea: null,
+          noOfItreation: null,
+        },
+      ],
+      dprLabour: [],
+    },
+  ];
   const navigation = useNavigation();
 
   // ------------------- STATES -------------------
@@ -468,22 +204,35 @@ export default function DprProcessAllocation({ route }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
   const [userData, setUserData] = useState([]);
-  const [showAddNewButton, setShowAddNewButton] = useState(false);
+  const [showAddNewButton, setShowAddNewButton] = useState(true);
 
   // Pagination States
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
+  const [show, setShow] = useState(false);
+
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
+  const [activeDateField, setActiveDateField] = useState(null); // 'FROM' | 'TO'
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
   const isFocused = useIsFocused();
   const landData = route?.params?.landData;
+
+  const NONE_PLAN_OPTION = {
+    id: null,
+    planCode: "None",
+    planName: "None",
+  };
 
   // ------------------- INITIAL FETCH -------------------
   useEffect(() => {
     if (isFocused) {
       resetPaginationAndFetch();
     }
-  }, [isFocused]);
+  }, [isFocused, fromDate, toDate, selectedPlan]);
 
   const resetPaginationAndFetch = async () => {
     setPage(0);
@@ -502,52 +251,61 @@ export default function DprProcessAllocation({ route }) {
   const fetchActivityList = async (uData, currentPage, isLoadMore) => {
     if (isLoadMore) setIsFetchingMore(true);
     else setLoading(true);
+    let payloadData = {
+      epoId: null,
+      chakId: uData?.chakId || null,
+      farmBlockId: uData?.farmBlockId || null,
+      pageSize: 100,
+      pageNumber: 0,
+      dprType: "CROP",
+      // farmPlanId: selectedPlan?.planId || null,
+      farmPlanId: null,
+      // fromDate: "2026-01-28",
+      // toDate: "2026-01-28",
+      fromDate: fromDate.toISOString().split("T")[0],
+      toDate: toDate.toISOString().split("T")[0],
+    };
 
     try {
-      const payloadData = {
-        page: currentPage,
-        pageSize: 10,
-        squareId: landData?.squareId,
-      };
+      if (selectedPlan) {
+        payloadData = {
+          epoId: null,
+          chakId: uData?.chakId || null,
+          farmBlockId: uData?.farmBlockId || null,
+          pageSize: 100,
+          pageNumber: 0,
+          dprType: "CROP",
+          farmPlanId: selectedPlan?.planId || null,
+          fromDate: fromDate.toISOString().split("T")[0],
+          toDate: toDate.toISOString().split("T")[0],
+        };
+      }
+
+      console.log("payloadData", payloadData);
 
       const encryptedPayload = encryptWholeObject(payloadData);
 
       const response = await apiRequest(
         API_ROUTES.GET_DPR_HISTORY,
         "post",
-        encryptedPayload
+        encryptedPayload,
       );
 
       const decrypted = decryptAES(response);
       const parsed = JSON.parse(decrypted);
 
+      console.log("parsed", parsed);
+
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
-        const newData = parsed?.data || [];
+        const newData = parsed?.data || activityListDummy;
 
-        if (isLoadMore) {
-          setActivityList((prev) => [...prev, ...newData]);
-        } else {
-          setActivityList(newData);
-        }
-
-        // NO MORE DATA?
-        if (newData.length < 10) setHasMore(false);
-
-        // CHAK RULE FOR ADD BUTTON
-        if (!isLoadMore) {
-          if (newData.length > 0 && uData?.unitType === "CHAK") {
-            const findPending = newData.find(
-              (i) => i?.currentDprStatus === "PENDING"
-            );
-            setShowAddNewButton(!findPending);
-          } else {
-            setShowAddNewButton(false);
-          }
-        }
+        setActivityList(newData);
       } else {
-        showErrorMessage(parsed?.message || "Invalid response");
+        setActivityList(activityListDummy);
+        showErrorMessage(parsed?.message || "Data not available.");
       }
     } catch (err) {
+      setActivityList(activityListDummy);
       console.log("Fetch error", err);
     } finally {
       setLoading(false);
@@ -577,14 +335,15 @@ export default function DprProcessAllocation({ route }) {
   const formatDate = (isoString) => {
     const date = new Date(isoString);
     return `${String(date.getDate()).padStart(2, "0")}-${String(
-      date.getMonth() + 1
+      date.getMonth() + 1,
     ).padStart(2, "0")}-${date.getFullYear()}`;
   };
 
   // ------------------- CARD PRESS -------------------
   const handleCardPress = (item) => {
     setSelectedItem(item);
-    setBottomSheetVisible(true);
+    //setBottomSheetVisible(true);
+    navigation.navigate("ViewDprDetail", { item: item, userData: userData });
   };
 
   // ------------------- BOTTOM SHEET ACTION -------------------
@@ -614,7 +373,7 @@ export default function DprProcessAllocation({ route }) {
       const response = await apiRequest(
         API_ROUTES.UPDATE_DPR,
         "POST",
-        encrypted
+        encrypted,
       );
 
       const decrypted = decryptAES(response);
@@ -641,7 +400,7 @@ export default function DprProcessAllocation({ route }) {
       style={styles.itemCard}
     >
       <View style={styles.cardHeader}>
-        <Text style={styles.dateText}>{item.squareName}</Text>
+        <Text style={styles.dateText}>{formatDate(item?.actualDate)}</Text>
         <View
           style={[
             styles.statusBadge,
@@ -653,12 +412,12 @@ export default function DprProcessAllocation({ route }) {
       </View>
 
       <View>
-        <View style={styles.itemRow}>
+        {/* <View style={styles.itemRow}>
           <View style={styles.itemColumn}>
             <Text style={styles.itemLabel}>Plan Id</Text>
             <Text style={styles.itemValue}>{item?.planId || "N/A"}</Text>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.itemRow}>
           <View style={styles.itemColumn}>
@@ -667,28 +426,32 @@ export default function DprProcessAllocation({ route }) {
           </View>
 
           <View style={styles.itemColumn}>
-            <Text style={styles.itemLabel}>Process Date</Text>
-            <Text style={styles.itemValue}>{formatDate(item?.reportDate)}</Text>
+            <Text style={styles.itemLabel}>No. Of Operations</Text>
+            <Text style={styles.itemValue}>{item?.activities?.length}</Text>
           </View>
         </View>
 
-        <View style={styles.itemRow}>
+        {/* <View style={styles.itemRow}>
           <View style={styles.itemColumn}>
             <Text style={styles.itemLabel}>Activity/Oper.</Text>
             <Text style={styles.itemValue}>{item?.activityName || "N/A"}</Text>
           </View>
-        </View>
+        </View> */}
       </View>
     </TouchableOpacity>
   );
 
-  // ------------------- ON END REACHED -------------------
-  const loadMoreData = () => {
-    if (hasMore && !isFetchingMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchActivityList(userData, nextPage, true);
+  const onChangeDate = (event, selectedDate) => {
+    setShow(false);
+    if (!selectedDate) return;
+
+    if (activeDateField === "FROM") {
+      setFromDate(selectedDate);
+    } else if (activeDateField === "TO") {
+      setToDate(selectedDate);
     }
+
+    setActiveDateField(null);
   };
 
   // ------------------- UI -------------------
@@ -707,6 +470,86 @@ export default function DprProcessAllocation({ route }) {
           )
         }
       />
+      {Platform.OS === "android" && show && (
+        <DateTimePicker
+          value={activeDateField === "FROM" ? fromDate : toDate}
+          mode="date"
+          display="default"
+          onChange={onChangeDate}
+        />
+      )}
+
+      {Platform.OS === "ios" && show && (
+        <Modal transparent animationType="slide">
+          <View style={styles.iosModalOverlay}>
+            <View style={styles.iosModalContainer}>
+              <View style={{ alignItems: "flex-end" }}>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text style={styles.doneText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+
+              <DateTimePicker
+                value={activeDateField === "FROM" ? fromDate : toDate}
+                mode="date"
+                display="spinner"
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    activeDateField === "FROM"
+                      ? setFromDate(selectedDate)
+                      : setToDate(selectedDate);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      <View style={styles.filterRow}>
+        {/* FROM DATE */}
+        <TouchableOpacity
+          style={styles.inputContainer}
+          onPress={() => {
+            setActiveDateField("FROM");
+            setShow(true);
+          }}
+        >
+          <Text style={styles.label}>From Date</Text>
+          <View style={styles.input}>
+            <Text>{fromDate.toLocaleDateString()}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* TO DATE */}
+        <TouchableOpacity
+          style={styles.inputContainer}
+          onPress={() => {
+            setActiveDateField("TO");
+            setShow(true);
+          }}
+        >
+          <Text style={styles.label}>To Date</Text>
+          <View style={styles.input}>
+            <Text>{toDate.toLocaleDateString()}</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View style={{ marginHorizontal: 15, marginBottom: 10 }}>
+        <DropDown
+          label="Plan"
+          data={[NONE_PLAN_OPTION, ...(landData?.plans || [])]}
+          value={selectedPlan?.planCode || null}
+          selectItem={(item) => {
+            if (item.id === null) {
+              // NONE selected
+              setSelectedPlan(null);
+            } else {
+              setSelectedPlan(item);
+            }
+          }}
+        />
+      </View>
 
       <FlatList
         data={activityList}
@@ -714,22 +557,6 @@ export default function DprProcessAllocation({ route }) {
         keyExtractor={(item) => item.id?.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {en.DAILY_PROGRESS_REPORT.NO_DATA}
-            </Text>
-          </View>
-        }
-        onEndReached={loadMoreData}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isFetchingMore ? (
-            <View style={{ padding: 15, alignItems: "center" }}>
-              <Text>Loading more...</Text>
-            </View>
-          ) : null
-        }
       />
 
       {/* Bottom Sheet */}
@@ -829,7 +656,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   dateText: {
-    fontSize: 13,
+    fontSize: 16,
     color: Colors.textColor,
   },
   bottomSheetContent: {
@@ -854,5 +681,52 @@ const styles = StyleSheet.create({
     borderColor: Colors.greenColor,
     alignItems: "center",
     justifyContent: "center",
+  },
+  inputContainer: {
+    //flex: 1,
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  label: {
+    fontSize: 14,
+    color: Colors.grey,
+    marginBottom: 4,
+    fontWeight: "700",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    padding: 8,
+  },
+  filterRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+
+  inputContainer: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+
+  iosModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end",
+  },
+
+  iosModalContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+
+  doneText: {
+    fontSize: 16,
+    color: "blue",
+    marginBottom: 10,
   },
 });
