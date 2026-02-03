@@ -29,12 +29,15 @@ import { API_ROUTES } from "../../../../services/APIRoutes";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { getUserData } from "../../../../utils/Storage";
+import { getUserData, getUserToken } from "../../../../utils/Storage";
+import { launchCamera, launchImageLibrary } from "react-native-image-picker";
 
 /* ================= COMPONENT ================= */
 
-const CreateDealerIndent = () => {
+const CreateDealerIndent = ({ route }) => {
   const navigation = useNavigation();
+  const isEdit = route.params?.isEdit || false;
+  const editIndent = route.params?.indent || null;
   const [loading, setLoading] = useState(false);
 
   /* ================= STATES ================= */
@@ -45,6 +48,9 @@ const CreateDealerIndent = () => {
 
   const [indentDateObj, setIndentDateObj] = useState(null);
   const [expectedDateObj, setExpectedDateObj] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [showFilePicker, setShowFilePicker] = useState(false);
+  const [indentFile, setindentFile] = useState([]);
 
   const [form, setForm] = useState({
     party: null,
@@ -59,6 +65,7 @@ const CreateDealerIndent = () => {
     paymentDate: "",
     amount: "",
     indentNumber: null,
+    txnOrChequeNo: "",
   });
 
   const [items, setItems] = useState([{ id: Date.now(), item: null, qty: "" }]);
@@ -92,6 +99,52 @@ const CreateDealerIndent = () => {
     fetchMaterialList();
     fetchPartyList();
   }, []);
+
+  useEffect(() => {
+    if (isEdit && editIndent) {
+      setForm({
+        party: {
+          id: editIndent.dealerId,
+          payeeName: editIndent.dealerName,
+          partyCode: editIndent.dealerCode,
+        },
+        communication: {
+          name: editIndent.modeOfCommunication,
+        },
+        communicationValue: editIndent.communicationValue || "",
+        indentDate: formatDate(editIndent.indentDate),
+        expectedDate: formatDate(editIndent.deliveryDate),
+        season: {
+          id: editIndent.seasonId,
+          seasonType: editIndent.seasonName,
+        },
+        materialType: {
+          name: editIndent.materialType,
+        },
+        paymentMode: editIndent.paymentMode
+          ? { name: editIndent.paymentMode }
+          : null,
+        paymentDate: formatDate(editIndent.paymentDate),
+        amount: editIndent.receivedAmount || "",
+        txnOrChequeNo: editIndent.chequeNo || "",
+        indentNumber: {
+          dealerIndentNo: editIndent.existingIndentNo,
+        },
+      });
+
+      setAdvancedReceived(editIndent.advanceReceived);
+
+      setItems(
+        editIndent.dealerIndentItems.map((it) => ({
+          id: Date.now() + Math.random(),
+          item: it,
+          qty: String(it.qty),
+        })),
+      );
+
+      setindentFile(editIndent.indentFile || []);
+    }
+  }, [isEdit, editIndent]);
 
   const fetchPartyList = async () => {
     setLoading(true);
@@ -266,6 +319,107 @@ const CreateDealerIndent = () => {
     setItems((p) => p.filter((i) => i.id !== id));
   };
 
+  const commonOptions = {
+    mediaType: "photo",
+    quality: 0.7,
+  };
+
+  const uploadFileImmediately = async (asset) => {
+    try {
+      setLoading(true);
+
+      const userData = await getUserData();
+
+      const formData = new FormData();
+
+      formData.append("file", {
+        uri:
+          Platform.OS === "android"
+            ? asset.uri
+            : asset.uri.replace("file://", ""),
+        name: asset.fileName || "upload.png",
+        type: asset.type || "image/png",
+      });
+
+      console.log("Uploading file 👉", formData);
+      const token = await getUserToken();
+
+      const response = await fetch(
+        API_ROUTES.BASE_URL + API_ROUTES.UPLOAD_FILE,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+        },
+      );
+
+      const result = await response.json();
+      console.log("UPLOAD RESPONSE", result);
+
+      if (result.statusCode == "200" && result.status == "SUCCESS") {
+        alert("File uploaded successfully ✅");
+        setUploadedFile(asset);
+        setindentFile((pre) => [...pre, result.data[0]]);
+      } else {
+        alert(result?.message || "Upload failed");
+      }
+    } catch (err) {
+      console.log("Upload Error ❌", err);
+      alert("File upload error");
+    } finally {
+      setLoading(false);
+      setShowFilePicker(false);
+    }
+  };
+
+  const openCamera = () => {
+    launchCamera(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+        saveToPhotos: true,
+      },
+      (res) => {
+        if (res.didCancel) return;
+
+        if (res.errorCode) {
+          alert(res.errorMessage);
+          return;
+        }
+
+        const asset = res.assets?.[0];
+        if (asset) {
+          uploadFileImmediately(asset);
+        }
+      },
+    );
+  };
+
+  const openGallery = () => {
+    launchImageLibrary(
+      {
+        mediaType: "photo",
+        quality: 0.8,
+      },
+      (res) => {
+        if (res.didCancel) return;
+
+        if (res.errorCode) {
+          alert(res.errorMessage);
+          return;
+        }
+
+        const asset = res.assets?.[0];
+        if (asset) {
+          uploadFileImmediately(asset);
+        }
+      },
+    );
+  };
+
   const getCommPlaceholder = () => {
     switch (form.communication?.name) {
       case "Phone":
@@ -279,27 +433,37 @@ const CreateDealerIndent = () => {
     }
   };
 
+  const getTxnLabel = () => {
+    if (!form.paymentMode) return "";
+
+    if (form.paymentMode.name === "CHEQUE") {
+      return "Cheque No";
+    }
+
+    return "Txn No";
+  };
+
   const toApiDate = (ddmmyyyy) => {
     if (!ddmmyyyy) return null;
     const [dd, mm, yyyy] = ddmmyyyy.split("/");
     return `${yyyy}-${mm}-${dd}`;
   };
 
-  const buildPayload = async () => {
+  const buildPayload = async (status = "PENDING") => {
     const userData = await getUserData();
+
     return {
       materialType: form.materialType?.name || null,
 
       dealerId: form.party?.id,
-      dealerName: form.party?.payeeName,
-      dealerCode: form.party?.partyCode,
+      dealerName: form.party?.payeeName || editIndent?.dealerName || "",
+      dealerCode: form.party?.partyCode || editIndent?.dealerCode || "",
 
       indentDate: toApiDate(form.indentDate),
       deliveryDate: toApiDate(form.expectedDate),
       paymentDate: advancedReceived ? toApiDate(form.paymentDate) : null,
 
       advanceReceived: advancedReceived,
-
       paymentMode: advancedReceived ? form.paymentMode?.name : null,
 
       modeOfCommunication: form.communication?.name?.toUpperCase(),
@@ -311,8 +475,13 @@ const CreateDealerIndent = () => {
       existingIndentNo: form.indentNumber?.dealerIndentNo || null,
 
       receivedAmount: advancedReceived ? form.amount : null,
+
       chequeNo:
-        form.paymentMode?.name === "CHEQUE" ? form.communicationValue : null,
+        advancedReceived && form.paymentMode && form.paymentMode.name !== "CASH"
+          ? form.txnOrChequeNo
+          : null,
+
+      indentFile: indentFile,
 
       dealerIndentItems: items.map((it) => ({
         itemName: it.item?.itemName,
@@ -329,7 +498,8 @@ const CreateDealerIndent = () => {
       unitName: "LUCKNOW AO",
       unitType: "AO",
 
-      indentStatus: "PENDING",
+      // ⭐ HERE
+      indentStatus: status,
     };
   };
 
@@ -337,9 +507,7 @@ const CreateDealerIndent = () => {
     try {
       setLoading(true);
 
-      const payload = buildPayload();
-
-      console.log("FINAL SUBMIT PAYLOAD 👉", payload);
+      const payload = await buildPayload("PENDING");
 
       const encryptedPayload = encryptWholeObject(payload);
 
@@ -349,19 +517,82 @@ const CreateDealerIndent = () => {
         encryptedPayload,
       );
 
-      const decrypted = decryptAES(response);
-      const parsed = JSON.parse(decrypted);
-
-      console.log("onSubmit", parsed);
+      const parsed = JSON.parse(decryptAES(response));
 
       if (parsed?.status === "SUCCESS") {
-        alert("Dealer Indent Created Successfully");
+        alert("Dealer Indent Created Successfully ✅");
         navigation.goBack();
       } else {
         alert(parsed?.message || "Submission failed");
       }
     } catch (e) {
-      console.log("onSubmit", e);
+      console.log("Submit error", e);
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSaveDraft = async () => {
+    try {
+      setLoading(true);
+
+      const payload = await buildPayload("DRAFT");
+
+      console.log("SAVE DRAFT PAYLOAD 📝", payload);
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const response = await apiRequest(
+        API_ROUTES.SAVE_DEALER_INDENT, // SAME API
+        "POST",
+        encryptedPayload,
+      );
+
+      const parsed = JSON.parse(decryptAES(response));
+
+      if (parsed?.status === "SUCCESS") {
+        alert("Draft saved successfully 📝");
+        navigation.goBack();
+      } else {
+        alert(parsed?.message || "Draft save failed");
+      }
+    } catch (e) {
+      console.log("Save Draft error", e);
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onUpdate = async () => {
+    try {
+      setLoading(true);
+
+      const payload = {
+        ...buildPayload(),
+        id: editIndent.id, // 👈 VERY IMPORTANT
+      };
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const response = await apiRequest(
+        API_ROUTES.UPDATE_DEALER_INDENT, // 👈 new API
+        "POST",
+        encryptedPayload,
+      );
+
+      const decrypted = decryptAES(response);
+      const parsed = JSON.parse(decrypted);
+
+      if (parsed?.status === "SUCCESS") {
+        alert("Dealer Indent Updated Successfully ✅");
+        navigation.goBack();
+      } else {
+        alert(parsed?.message || "Update failed");
+      }
+    } catch (e) {
+      console.log("Update error", e);
       alert("Something went wrong");
     } finally {
       setLoading(false);
@@ -372,7 +603,9 @@ const CreateDealerIndent = () => {
 
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title="Create Dealer Indent" />
+      <InnerHeader
+        title={isEdit ? "Edit Dealer Indent" : "Create Dealer Indent"}
+      />
 
       {Platform.OS === "android" && showDatePicker && (
         <DateTimePicker
@@ -412,6 +645,33 @@ const CreateDealerIndent = () => {
           </View>
         </Modal>
       )}
+
+      <Modal
+        transparent
+        visible={showFilePicker}
+        animationType="fade"
+        onRequestClose={() => setShowFilePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Upload Using</Text>
+
+            <TouchableOpacity style={styles.modalBtn} onPress={openCamera}>
+              <Icon name="photo-camera" size={20} />
+              <Text style={styles.modalBtnText}>Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalBtn} onPress={openGallery}>
+              <Icon name="photo-library" size={20} />
+              <Text style={styles.modalBtnText}>Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setShowFilePicker(false)}>
+              <Text style={{ color: "red", marginTop: 10 }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <ScrollView contentContainerStyle={styles.container}>
         {/* BASIC DETAILS */}
@@ -500,6 +760,32 @@ const CreateDealerIndent = () => {
             }
           />
 
+          <Card title="Attachment">
+            <TouchableOpacity
+              onPress={() => setShowFilePicker(true)}
+              style={{
+                borderWidth: 1,
+                borderColor: Colors.greenColor,
+                borderRadius: 8,
+                padding: 12,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: Colors.greenColor, fontWeight: "600" }}>
+                Upload File
+              </Text>
+              <Icon name="upload-file" size={22} color={Colors.greenColor} />
+            </TouchableOpacity>
+
+            {uploadedFile && (
+              <Text style={{ marginTop: 6, fontSize: 12 }}>
+                Selected: {uploadedFile.name}
+              </Text>
+            )}
+          </Card>
+
           <View style={styles.switchRow}>
             <Switch
               value={advancedReceived}
@@ -524,13 +810,28 @@ const CreateDealerIndent = () => {
               data={paymentModeList}
               value={form.paymentMode?.name || ""}
               selectItem={(item) =>
-                setForm((p) => ({ ...p, paymentMode: item }))
+                setForm((p) => ({
+                  ...p,
+                  paymentMode: item,
+                  txnOrChequeNo: "", // 👈 reset on change
+                }))
               }
             />
 
+            {/* 🔥 NEW FIELD */}
+            {form.paymentMode && form.paymentMode.name !== "CASH" && (
+              <Input
+                label={getTxnLabel()}
+                value={form.txnOrChequeNo}
+                onChangeText={(v) =>
+                  setForm((p) => ({ ...p, txnOrChequeNo: v }))
+                }
+              />
+            )}
+
             <Input
               label="Payment Received Date"
-              placeholder="dd/mm/yyyy"
+              placeholder="DD/MM/YYYY"
               value={form.paymentDate}
               onChangeText={(v) => setForm((p) => ({ ...p, paymentDate: v }))}
             />
@@ -580,8 +881,12 @@ const CreateDealerIndent = () => {
         {/* FOOTER */}
         <View style={styles.footer}>
           <Btn outline text="Cancel" onPress={navigation.goBack} />
-          <Btn outline text="Save Draft" />
-          <Btn fill onPress={onSubmit} text="Submit" />
+          <Btn outline onPress={onSaveDraft} text="Save Draft" />
+          <Btn
+            fill
+            onPress={isEdit ? onUpdate : onSubmit}
+            text={isEdit ? "Update" : "Submit"}
+          />
         </View>
       </ScrollView>
     </WrapperContainer>
@@ -741,5 +1046,33 @@ const styles = StyleSheet.create({
     color: Colors.greenColor,
     marginBottom: 10,
     fontWeight: "600",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  modalBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 10,
+  },
+  modalBtnText: {
+    fontSize: 15,
   },
 });

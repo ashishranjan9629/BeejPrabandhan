@@ -170,6 +170,7 @@ const getLabel = (val) => {
 
   return (
     val.name ||
+    val.cpNo ||
     val.itemName ||
     val.operationName ||
     val.macName ||
@@ -179,6 +180,7 @@ const getLabel = (val) => {
     val.seasonType ||
     val.payeeName ||
     val.dealerIndentNo ||
+    val.assetCategoryName ||
     ""
   );
 };

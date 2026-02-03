@@ -26,15 +26,15 @@ const BrowseProduct = ({ browseProductList, userData }) => {
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-evenly",
+            justifyContent: "space-around",
             alignItems: "center",
           }}
         >
           <TouchableOpacity
-            style={styles.item}
             onPress={() => {
-              navigation.navigate("SquarePlanList");
+              navigation.navigate("OrchardProcessAllocation");
             }}
+            style={styles.item}
           >
             <View
               style={[
@@ -54,12 +54,12 @@ const BrowseProduct = ({ browseProductList, userData }) => {
                 }}
               />
             </View>
-            <Text style={styles.nameText}>Crop</Text>
+            <Text style={styles.nameText}>Orchard</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.item}
             onPress={() => {
-              navigation.navigate("MechanicalAllocationProcessList");
+              navigation.navigate("NurseryProductionPlan");
             }}
           >
             <View
@@ -80,7 +80,28 @@ const BrowseProduct = ({ browseProductList, userData }) => {
                 }}
               />
             </View>
-            <Text style={styles.nameText}>Process List</Text>
+            <Text style={styles.nameText}>Nursery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.item} onPress={() => {}}>
+            <View
+              style={[
+                styles.imageView,
+                {
+                  borderColor: Colors.bg2,
+                  backgroundColor: Colors.bg2,
+                },
+              ]}
+            >
+              <Image
+                source={ImagePath.registrationIcon}
+                resizeMode="contain"
+                style={{
+                  width: moderateScale(40),
+                  height: moderateScale(40),
+                }}
+              />
+            </View>
+            <Text style={styles.nameText}>Flori/Vege Culture</Text>
           </TouchableOpacity>
         </View>
       </CustomBottomSheet>
@@ -91,17 +112,23 @@ const BrowseProduct = ({ browseProductList, userData }) => {
               style={styles.item}
               onPress={() => {
                 if (item?.navigationScreenName) {
-                  //console.log("userData", userData);
-                  const findRole = userData?.roleName?.includes(
+                  console.log("userData", userData);
+                  const findMachenicalRole = userData?.roleName?.includes(
                     "FARM_BLOCK_ENGG_INCHARGE",
                   );
+                  const findEPOIncharge =
+                    userData?.roleName?.includes("EPO_INCHARGE");
 
                   //console.log("findRole", findRole);
-                  if (findRole) {
-                    setBottomSheetVisible(true);
-                  } else {
-                    navigation.navigate(item.navigationScreenName);
+                  if (findMachenicalRole) {
+                    //setBottomSheetVisible(true);
+                    navigation.navigate("MechanicalAllocationProcessList");
                   }
+                  if (findEPOIncharge) {
+                    setBottomSheetVisible(true);
+                    return;
+                  }
+                  navigation.navigate(item.navigationScreenName);
                 } else {
                   console.warn(
                     "No navigationScreenName provided for this item",

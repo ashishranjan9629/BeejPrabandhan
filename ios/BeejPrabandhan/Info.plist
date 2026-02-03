@@ -41,6 +41,12 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to upload documents</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need gallery access to upload documents</string>
+
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>RCTNewArchEnabled</key>

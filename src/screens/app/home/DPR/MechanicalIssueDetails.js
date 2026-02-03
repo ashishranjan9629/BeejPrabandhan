@@ -28,6 +28,7 @@ import { showErrorMessage } from "../../../../utils/HelperFunction";
 import DropDown from "../../../../components/DropDown";
 import FontFamily from "../../../../utils/FontFamily";
 import CustomButton from "../../../../components/CustomButton";
+import { getUserData } from "../../../../utils/Storage";
 
 /* ================= MATERIAL TYPE ================= */
 
@@ -58,6 +59,16 @@ export default function MechanicalIssueDetails({ route }) {
       fetchDprDetail();
     }
   }, [isFocused, dprId]);
+
+  useEffect(() => {
+    if (!activityGroups.length || !dprData) return;
+
+    activityGroups.forEach((act) => {
+      act.mechanicals?.forEach((macItem) => {
+        fetchCpList(macItem);
+      });
+    });
+  }, [activityGroups.length]); // 👈 ONLY LENGTH
 
   /* ================= API ================= */
 
@@ -276,6 +287,130 @@ export default function MechanicalIssueDetails({ route }) {
   //   );
   // };
 
+  const approveMechanical = async (macItem) => {
+    try {
+      // 🔒 VALIDATIONS
+      if (!macItem.cpNumber) {
+        showErrorMessage("Please select CP Number");
+        return;
+      }
+
+      if (macItem.operatorRequired && !macItem.operatorName?.trim()) {
+        showErrorMessage("Please enter Operator Name");
+        return;
+      }
+
+      setLoading(true);
+
+      const userData = await getUserData();
+
+      // const payload = {
+
+      //   id: macItem.id,
+
+      //   equipmentId: macItem.equipmentId,
+      //   equipmentName: macItem.equipmentName,
+
+      //   subGroupId: macItem.subGroupId,
+      //   subGroupName: macItem.subGroupName,
+
+      //   operatorRequired: macItem.operatorRequired,
+      //   operatorName: macItem.operatorRequired ? macItem.operatorName : "",
+
+      //   cpNumber: macItem.cpNumber.cpNo,
+
+      //   remarks: null,
+
+      //   estimatedHours: macItem.estimatedHours || 0,
+      //   actualHours: macItem.actualHours || 0,
+      //   actualMechHour: macItem.actualMechHour || 0,
+
+      //   mechIdleTime: macItem.mechIdleTime || 0,
+      //   mechRunningTime: macItem.mechRunningTime || 0,
+
+      //   subUnitId: null,
+      //   subUnitName: null,
+
+      //   area: macItem.area || 0,
+
+      //   activityId: macItem.activityId,
+      //   activityName: macItem.activityName,
+
+      //   dprMechStatus: "ISSUE", // ✅ APPROVE STATUS
+      //   dprId: dprData.id,
+
+      //   engineerId: userData?.userId,
+      //   engineerName: userData?.username,
+      // };
+
+      const payload = {
+        id: macItem.id,
+
+        equipmentId: macItem.equipmentId,
+        equipmentName: macItem.equipmentName,
+
+        subGroupId: macItem.subGroupId,
+        subGroupName: macItem.subGroupName,
+
+        operatorRequired: macItem.operatorRequired,
+        operatorName: macItem.operatorRequired ? macItem.operatorName : "",
+
+        cpNumber:
+          typeof macItem.cpNumber === "object"
+            ? macItem.cpNumber.cpNo
+            : macItem.cpNumber,
+
+        remarks: null,
+
+        estimatedHours: Number(macItem.estimatedHours || 0),
+        actualHours: Number(macItem.actualHours || 0),
+        actualMechHour: Number(macItem.actualMechHour || 0),
+
+        mechIdleTime: Number(macItem.mechIdleTime || 0),
+        mechRunningTime: Number(macItem.mechRunningTime || 0),
+
+        subUnitId: null,
+        subUnitName: null,
+
+        area: Number(macItem.area || 0),
+
+        activityId: macItem.activityId,
+        activityName: macItem.activityName,
+
+        dprMechStatus: "ISSUE",
+        dprId: dprData.id,
+
+        engineerId: userData?.userId,
+        engineerName: userData?.username,
+      };
+
+      console.log("✅ APPROVE PAYLOAD", payload);
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const res = await apiRequest(
+        API_ROUTES.DPR_MECHANICAL_UPDATE,
+        "POST",
+        encryptedPayload,
+      );
+
+      const parsed = JSON.parse(decryptAES(res));
+      console.log("✅ APPROVE RESPONSE", parsed);
+
+      if (parsed?.status === "SUCCESS") {
+        alert("Mechanical Approved Successfully ✅");
+        fetchDprDetail(); // 🔁 reload updated status
+      } else {
+        showErrorMessage(parsed?.message || "Approve failed");
+      }
+    } catch (err) {
+      console.log("❌ Approve error", err);
+      showErrorMessage("Something went wrong while approving");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderActivity = ({ item, index }) => {
     const isOpen = expandedActivityId === item.activityId;
 
@@ -330,24 +465,115 @@ export default function MechanicalIssueDetails({ route }) {
               {/* CP & OPERATOR */}
               <View style={styles.dropdownContainer}>
                 <DropDown
+                  disabled={macItem?.dprMechStatus == "PENDING" ? false : true}
                   label="CP Number"
                   placeholder="Select CP Number"
-                  data={macItem?.cpList || []} // API se list aayegi
+                  data={macItem?.cpList || []}
                   value={macItem?.cpNumber}
-                  onChange={(val) => {
-                    console.log("Selected CP:", val);
+                  selectItem={(val) => {
+                    setActivityGroups((prev) =>
+                      prev.map((act) => ({
+                        ...act,
+                        mechanicals: act.mechanicals.map((m) =>
+                          m.id === macItem.id
+                            ? { ...m, cpNumber: val?.cpNumber || val }
+                            : m,
+                        ),
+                      })),
+                    );
                   }}
                 />
 
-                <DropDown
-                  label="Operator Name"
-                  placeholder="Select Operator"
-                  data={macItem?.operatorList || []}
-                  value={macItem?.operatorName}
-                  onChange={(val) => {
-                    console.log("Selected Operator:", val);
-                  }}
-                />
+                {macItem?.operatorRequired && (
+                  // <DropDown
+                  //   label="Operator Name"
+                  //   placeholder="Select Operator"
+                  //   data={macItem?.operatorList || []}
+                  //   value={macItem?.operatorName}
+                  //   onChange={(val) => {
+                  //     console.log("Selected Operator:", val);
+                  //   }}
+                  // />
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Operator Name</Text>
+                    <TextInput
+                      editable={
+                        macItem?.dprMechStatus == "PENDING" ? true : false
+                      }
+                      value={macItem?.operatorName || ""}
+                      style={
+                        macItem?.dprMechStatus == "PENDING"
+                          ? styles.input
+                          : styles.disabledInput
+                      }
+                      placeholder="Operator Name"
+                      onChangeText={(text) => {
+                        setActivityGroups((prev) =>
+                          prev.map((act) => ({
+                            ...act,
+                            mechanicals: act.mechanicals.map((m) =>
+                              m.id === macItem.id
+                                ? { ...m, operatorName: text }
+                                : m,
+                            ),
+                          })),
+                        );
+                      }}
+                    />
+                  </View>
+                )}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Idle Hours</Text>
+                  <TextInput
+                    editable={macItem?.mechIdleTime ? false : true}
+                    style={
+                      !macItem?.mechIdleTime
+                        ? styles.input
+                        : styles.disabledInput
+                    }
+                    placeholder="Idle Hours"
+                    keyboardType="numeric"
+                    value={String(macItem?.mechIdleTime || "")}
+                    onChangeText={(val) => {
+                      setActivityGroups((prev) =>
+                        prev.map((act) => ({
+                          ...act,
+                          mechanicals: act.mechanicals.map((m) =>
+                            m.id === macItem.id
+                              ? { ...m, mechIdleTime: val }
+                              : m,
+                          ),
+                        })),
+                      );
+                    }}
+                  />
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Working Hours</Text>
+                  <TextInput
+                    editable={macItem?.mechRunningTime ? false : true}
+                    style={
+                      !macItem?.mechRunningTime
+                        ? styles.input
+                        : styles.disabledInput
+                    }
+                    placeholder="Working Hours"
+                    keyboardType="numeric"
+                    value={String(macItem?.mechRunningTime || "")}
+                    onChangeText={(val) => {
+                      setActivityGroups((prev) =>
+                        prev.map((act) => ({
+                          ...act,
+                          mechanicals: act.mechanicals.map((m) =>
+                            m.id === macItem.id
+                              ? { ...m, mechRunningTime: val }
+                              : m,
+                          ),
+                        })),
+                      );
+                    }}
+                  />
+                </View>
               </View>
 
               {/* STATUS */}
@@ -359,25 +585,143 @@ export default function MechanicalIssueDetails({ route }) {
                   },
                 ]}
               >
-                <Text style={styles.statusText}>PENDING</Text>
+                <Text style={styles.statusText}>{macItem?.dprMechStatus}</Text>
               </View>
 
               {/* ACTIONS */}
-              <View style={styles.actionRow}>
-                <TouchableOpacity style={styles.approveBtn}>
-                  <Icon name="check-circle" size={18} color="#fff" />
-                  <Text style={styles.actionText}>Approve</Text>
-                </TouchableOpacity>
+              {macItem?.dprMechStatus == "PENDING" ||
+                macItem?.mechRunningTime ||
+                (!macItem?.mechIdleTime && (
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity
+                      onPress={() => approveMechanical(macItem)}
+                      style={styles.approveBtn}
+                    >
+                      <Icon name="check-circle" size={18} color="#fff" />
+                      <Text style={styles.actionText}>Approve</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.rejectBtn}>
-                  <Icon name="cancel" size={18} color="#fff" />
-                  <Text style={styles.actionText}>Reject</Text>
-                </TouchableOpacity>
-              </View>
+                    <TouchableOpacity
+                      onPress={() => rejectMechanical(macItem)}
+                      style={styles.rejectBtn}
+                    >
+                      <Icon name="cancel" size={18} color="#fff" />
+                      <Text style={styles.actionText}>Reject</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
             </View>
           ))}
       </View>
     );
+  };
+
+  const fetchCpList = async (macItem) => {
+    try {
+      if (!dprData?.farmBlockId) {
+        console.log("❌ farmBlockId missing");
+        return;
+      }
+
+      const payload = {
+        assetGroupId: macItem.equipmentId, // 👈 MOST IMPORTANT
+        assetSubGroupId: macItem.subGroupId,
+        equipmentAllotmentStatus: "ALLOTTED",
+        allottedUnitType: "FARM_BLOCK",
+        allottedUnitId: dprData.farmBlockId,
+        assetCategoryId: macItem.categoryId || 116, // 👈 fallback
+      };
+
+      console.log("🚀 CP API PAYLOAD", payload);
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const res = await apiRequest(
+        API_ROUTES.CP_NUMBER_LIST,
+        "POST",
+        encryptedPayload,
+      );
+
+      const parsed = JSON.parse(decryptAES(res));
+
+      console.log("✅ CP API RESPONSE", parsed);
+
+      if (parsed?.status === "SUCCESS") {
+        setActivityGroups((prev) =>
+          prev.map((act) => ({
+            ...act,
+            mechanicals: act.mechanicals.map((m) =>
+              m.id === macItem.id ? { ...m, cpList: parsed.data || [] } : m,
+            ),
+          })),
+        );
+      }
+    } catch (e) {
+      console.log("❌ CP API ERROR", e);
+    }
+  };
+
+  const rejectMechanical = async (macItem) => {
+    try {
+      setLoading(true);
+
+      const payload = {
+        id: macItem.id,
+        equipmentId: macItem.equipmentId,
+        equipmentName: macItem.equipmentName,
+        subGroupId: macItem.subGroupId,
+        subGroupName: macItem.subGroupName,
+
+        operatorRequired: macItem.operatorRequired,
+        operatorName: macItem.operatorName || "",
+        cpNo: macItem.cpNo || "",
+
+        remarks: macItem.remarks || null,
+
+        estimatedHours: macItem.estimatedHours || 0,
+        actualHours: macItem.actualHours || 0,
+        actualMechHour: macItem.actualMechHour || 0,
+        mechIdleTime: macItem.mechIdleTime || 0,
+        mechRunningTime: macItem.mechRunningTime || 0,
+
+        subUnitId: macItem.subUnitId || null,
+        subUnitName: macItem.subUnitName || null,
+        area: macItem.area || 0,
+
+        activityId: macItem.activityId,
+        activityName: macItem.activityName,
+
+        dprMechStatus: "REJECT",
+        dprId: dprData?.id,
+
+        engineerId: dprData?.engineerId,
+        engineerName: dprData?.engineerName,
+      };
+
+      console.log("REJECT PAYLOAD", payload);
+
+      const encryptedPayload = encryptWholeObject(payload);
+
+      const res = await apiRequest(
+        API_ROUTES.DPR_MECHANICAL_UPDATE,
+        "POST",
+        encryptedPayload,
+      );
+
+      const parsed = JSON.parse(decryptAES(res));
+
+      if (parsed?.status === "SUCCESS") {
+        alert("Mechanical rejected successfully ❌");
+        fetchDprDetail(); // 🔁 refresh list
+      } else {
+        showErrorMessage(parsed?.message || "Reject failed");
+      }
+    } catch (err) {
+      console.log("Reject error", err);
+      showErrorMessage("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ================= UI ================= */
@@ -409,12 +753,12 @@ export default function MechanicalIssueDetails({ route }) {
             renderItem={renderActivity}
           />
 
-          <CustomButton
+          {/* <CustomButton
             text="Submit"
             buttonStyle={styles.buttonStyle}
             textStyle={styles.buttonTextStyle}
             handleAction={() => navigation.goBack()}
-          />
+          /> */}
         </ScrollView>
       </KeyboardAvoidingView>
     </WrapperContainer>
@@ -592,11 +936,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  label: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-
   value: {
     fontSize: 14,
     fontWeight: "600",
@@ -659,5 +998,34 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
     backgroundColor: "#fff",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.disableFieldColor,
+    //backgroundColor: Colors.disableFieldColor,
+    borderRadius: 6,
+    padding: 8,
+    marginVertical: 6,
+  },
+
+  disabledInput: {
+    borderWidth: 1,
+    borderColor: Colors.disableFieldColor,
+    backgroundColor: Colors.disableFieldColor,
+    borderRadius: 6,
+    padding: 8,
+    marginVertical: 6,
+    paddingVertical: 12,
+  },
+  inputContainer: {
+    flex: 1,
+    marginRight: 8,
+    marginBottom: 5,
+  },
+  label: {
+    fontSize: 14,
+    color: Colors.grey,
+    marginBottom: 2,
+    fontWeight: "700",
   },
 });

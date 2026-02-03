@@ -14,27 +14,31 @@ import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
-import DropDown from "../../../../components/DropDown";
-import Colors from "../../../../utils/Colors";
-import { moderateScale, textScale } from "../../../../utils/responsiveSize";
-import FontFamily from "../../../../utils/FontFamily";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
+import WrapperContainer from "../../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../../components/InnerHeader";
+import DropDown from "../../../../../components/DropDown";
+import Colors from "../../../../../utils/Colors";
+import { moderateScale, textScale } from "../../../../../utils/responsiveSize";
+import FontFamily from "../../../../../utils/FontFamily";
+import {
+  decryptAES,
+  encryptWholeObject,
+} from "../../../../../utils/decryptData";
+import { apiRequest } from "../../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../../services/APIRoutes";
 import {
   showErrorMessage,
   showSuccessMessage,
-} from "../../../../utils/HelperFunction";
+} from "../../../../../utils/HelperFunction";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { getUserData } from "../../../../utils/Storage";
+import { getUserData } from "../../../../../utils/Storage";
 
-export default function AddNewDpr({ route }) {
+export default function AddNurseryDpr({ route }) {
   const navigation = useNavigation();
   const landData = route?.params?.landData;
+  console.log("landData", landData);
 
   const [loading, setLoading] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -467,26 +471,25 @@ export default function AddNewDpr({ route }) {
     return [
       {
         planDate,
-        actualDate: planDate,
 
-        chakId: String(userData?.chakId),
-        chakName: userData?.chakName,
+        /* ================= BASIC ================= */
+        chakId: null,
+        chakName: null,
+
+        farmBlockId: null,
+        farmBlockName: null,
+
+        farmPlanId: null,
 
         farmId: String(landData?.farmId),
         farmName: landData?.farmName,
 
-        farmBlockId: String(landData?.farmBlockId),
-        farmBlockName: null,
+        epoId: String(userData?.epoId),
+        epoName: userData?.epoName,
 
-        squareId: landData?.squareId,
-        squareName: landData?.squareName,
-
-        farmPlanId: selectedPlan?.planId || null,
-        farmPlanCode: selectedPlan?.planCode || null,
-
-        dprType: "CROP",
-        dprStatus: "PENDING",
-        currentDprStatus: "PENDING",
+        dprType: "NURSERY",
+        dprStatus: "APPROVED",
+        currentDprStatus: "APPROVED",
         dprMechanicalSubmit: false,
 
         /* ================= ACTIVITIES ================= */
@@ -499,11 +502,12 @@ export default function AddNewDpr({ route }) {
               noOfLabour: Number(act.noOfLabour || 0),
               actualNoOfLabour: "",
               contractorType: act.contractorType?.agreementType,
-              contractorId: act.contractorName?.contractorId,
-              contractorName: act.contractorName?.name,
+              contractorId: act.contractorName?.contractorId || null,
+              contractorName: act.contractorName?.name || "",
             })),
         ),
 
+        /* ================= AGRICULTURE ================= */
         dprAgricultures: entries.flatMap((entry) =>
           entry.activities.flatMap((act) =>
             act.agricultures
@@ -516,7 +520,18 @@ export default function AddNewDpr({ route }) {
                   materialType: ag.materialType.name,
                   activityId: act.activity.id,
                   activityName: act.activity.operationName,
-                  cashMemoItems: [],
+                  cashMemoItems: materialTableData
+                    .filter((m) => m.selected)
+                    .map((m) => ({
+                      runningInventoryId: m.runningInventoryId,
+                      itemName: m.itemName,
+                      lotBatchNo: m.lotNo,
+                      uom: m.uom,
+                      packingSize: m.packingSize,
+                      noOfBags: m.noOfBags,
+                      availableQty: m.availableQty,
+                      requestedQty: Number(m.issueQty || 0),
+                    })),
                 },
               })),
           ),
@@ -547,9 +562,8 @@ export default function AddNewDpr({ route }) {
           ),
         ),
 
+        /* ================= LABOUR ================= */
         dprLabour: [],
-        epoId: null,
-        epoName: null,
       },
     ];
   };
@@ -560,7 +574,10 @@ export default function AddNewDpr({ route }) {
 
       const payload = buildDprPayload();
 
-      console.log("🚀 FINAL DPR PAYLOAD", JSON.stringify(payload, null, 2));
+      console.log(
+        "🚀 FINAL NURSERY DPR PAYLOAD",
+        JSON.stringify(payload, null, 2),
+      );
 
       const encryptedPayload = encryptWholeObject(payload);
 
@@ -573,17 +590,17 @@ export default function AddNewDpr({ route }) {
       const decrypted = decryptAES(response);
       const parsed = JSON.parse(decrypted);
 
-      console.log("✅ DPR SAVE RESPONSE", parsed);
+      console.log("✅ NURSERY DPR SAVE RESPONSE", parsed);
 
       if (parsed?.status === "SUCCESS") {
-        showSuccessMessage("DPR submitted successfully ✅");
+        showSuccessMessage("Nursery DPR submitted successfully ✅");
         navigation.goBack();
       } else {
-        showErrorMessage(parsed?.message || "DPR submit failed");
+        showErrorMessage(parsed?.message || "Nursery DPR submit failed");
       }
     } catch (error) {
-      console.log("❌ Submit DPR Error", error);
-      showErrorMessage("Something went wrong while submitting DPR");
+      console.log("❌ Submit Nursery DPR Error", error);
+      showErrorMessage("Something went wrong while submitting Nursery DPR");
     } finally {
       setLoading(false);
     }
@@ -666,7 +683,7 @@ export default function AddNewDpr({ route }) {
   /* ================= UI ================= */
   return (
     <WrapperContainer isLoading={loading}>
-      <InnerHeader title="Add Process Allocation" />
+      <InnerHeader title="Nursery DPR" />
       {showMaterialModal && (
         <Modal visible={showMaterialModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
@@ -859,15 +876,16 @@ export default function AddNewDpr({ route }) {
               </Text>
             </View>
             <View style={styles.row}>
-              {/* <View style={styles.inputContainer}>
-                <Text style={styles.label}>Plan Id</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Plan ID</Text>
+
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
-                  value={landData?.planId}
+                  value={landData?.planCode}
                   editable={false}
                 />
-              </View> */}
+              </View>
               <TouchableOpacity
                 onPress={() => setShow(true)}
                 style={styles.inputContainer}
@@ -877,7 +895,7 @@ export default function AddNewDpr({ route }) {
                   <Text>{date.toLocaleDateString()}</Text>
                 </View>
               </TouchableOpacity>
-              <DropDown
+              {/* <DropDown
                 label="Plan"
                 data={[NONE_PLAN_OPTION, ...(landData?.plans || [])]}
                 value={selectedPlan?.planCode || ""}
@@ -889,7 +907,7 @@ export default function AddNewDpr({ route }) {
                     setSelectedPlan(item);
                   }
                 }}
-              />
+              /> */}
             </View>
           </View>
 

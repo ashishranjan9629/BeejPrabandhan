@@ -83,16 +83,6 @@ export default function ViewDprDetail({ route }) {
       if (parsed?.status === "SUCCESS") {
         setDprData(parsed.data);
         groupByActivity(parsed.data);
-        setTimeout(() => {
-          parsed.data.dprAgricultures?.forEach((ag) => {
-            preloadMaterialForAgriculture(
-              ag.activityId,
-              ag.id,
-              ag.cashMemoDto?.materialType,
-              ag.itemCode,
-            );
-          });
-        }, 0);
       } else {
         showErrorMessage(parsed?.message || "Failed to load DPR");
       }
@@ -143,23 +133,7 @@ export default function ViewDprDetail({ route }) {
       const act = Object.values(map).find(
         (x) => x.activityId === ag.activityId,
       );
-
-      if (!act) return;
-
-      const matchedMaterialType = materialTypeList.find(
-        (m) => m.name === ag.cashMemoDto?.materialType,
-      );
-
-      act.agricultures.push({
-        id: ag.id,
-        activityId: ag.activityId,
-        activityName: ag.activityName,
-
-        materialType: matchedMaterialType || null, // 🔥 OBJECT
-        materialList: [],
-        material: null,
-        itemCode: ag.itemCode,
-      });
+      act?.agricultures.push(ag);
     });
 
     data.dprMechanicals?.forEach((me) => {
@@ -170,51 +144,6 @@ export default function ViewDprDetail({ route }) {
     });
 
     setActivityGroups(Object.values(map));
-  };
-
-  const preloadMaterialForAgriculture = async (
-    activityId,
-    agId,
-    materialType,
-    itemCode,
-  ) => {
-    try {
-      const payload = encryptWholeObject({
-        materialType: materialType,
-      });
-
-      const res = await apiRequest(API_ROUTES.MATERIAL_LIST, "POST", payload);
-
-      const parsed = JSON.parse(decryptAES(res));
-
-      if (parsed?.status !== "SUCCESS") return;
-
-      const materialList = parsed.data || [];
-
-      // 🔥 MATCH itemCode
-      const matchedItem = materialList.find((m) => m.itemCode === itemCode);
-
-      setActivityGroups((prev) =>
-        prev.map((act) =>
-          act.activityId === activityId
-            ? {
-                ...act,
-                agricultures: act.agricultures.map((ag) =>
-                  ag.id === agId
-                    ? {
-                        ...ag,
-                        materialList,
-                        material: matchedItem || null, // 🔥 preselect
-                      }
-                    : ag,
-                ),
-              }
-            : act,
-        ),
-      );
-    } catch (e) {
-      console.log("Material preload error", e);
-    }
   };
 
   const updateLabourField = (activityId, labourId, key, value) => {
@@ -512,7 +441,7 @@ export default function ViewDprDetail({ route }) {
                       }
                       label="Material Type"
                       data={materialTypeList}
-                      value={ag.materialType?.name || ""}
+                      value={ag.materialType}
                       selectItem={(val) => {
                         getMaterialItem(item.activityId, ag.id, val);
                         setActivityGroups((prev) =>

@@ -1,12 +1,12 @@
 export const API_ROUTES = {
   //BASE_URL: "http://192.168.100.102:7930/api/", //(Q.A)
-  //BASE_URL: "http://192.168.100.102:7730/api/", //(UAT)
+  BASE_URL: "http://192.168.100.58:7730/api/", //(UAT)
   //BASE_URL: "http://192.168.100.102:7830/api/", //(development)
   //BASE_URL: "http://192.168.100.102:7630/api/", //UAT Public
   //BASE_URL: "http://192.168.100.102:7730/api/",
   // BASE_URL: "http://192.168.80.148:7830/api/",// (Nitesh Ip)
   //BASE_URL: "http://160.25.172.19:9053/api/", //Public Server
-  BASE_URL: "http://192.168.100.102:7630/api/",
+  //BASE_URL: "http://192.168.100.102:7630/api/",
   AUTHORIZE_LOGIN: "userauth/authenticate/login",
   GET_PROFILE: "userauth/all/get-profile",
   PROFILE_DETAILS: "master/employee-master/find-by-id",
@@ -61,4 +61,11 @@ export const API_ROUTES = {
   PARTY_LIST_DEALER_INDENT: "master/parties-master/dd",
   GET_INDENT_NUMBER: "marketing/dealer-indent/dd",
   SAVE_DEALER_INDENT: "marketing/dealer-indent/save",
+  UPLOAD_FILE: "dms/upload",
+  CANCEL_DEALER_INDENT: "marketing/dealer-indent/manual-disposal",
+  GET_EQUIPMENT_SUBGROUP_CATEGORY: "master/asset-category-master/dd",
+  DPR_UPDATE: "prod_farm/dpr/update",
+  DPR_MECHANICAL_UPDATE: "prod_farm/dpr/update-mechanical-item",
+  CP_NUMBER_LIST: "inventory/item-inventory/dd",
+  FIND_PLOT_BY_EPOID: "prod_farm/dpr/find-plots-by-epoId",
 };

@@ -31,6 +31,12 @@ import MechanicalIssueDetails from "../screens/app/home/DPR/MechanicalIssueDetai
 import DealerIndentsList from "../screens/app/marketing/dealerIndent/DealerIndentsList";
 import DealerIndentDetail from "../screens/app/marketing/dealerIndent/DealerIndentDetail";
 import CreateDealerIndent from "../screens/app/marketing/dealerIndent/CreateDealerIndent";
+import OrchardProcessAllocation from "../screens/app/home/DPR/Orchard/OrchardProcessAllocation";
+import OrchardDPRList from "../screens/app/home/DPR/Orchard/OrchardDPRList";
+import NurseryDPRList from "../screens/app/home/DPR/Nursery/NurseryDPRList";
+import NurseryProductionPlan from "../screens/app/home/DPR/Nursery/NurseryProductionPlan";
+import AddOrchardDpr from "../screens/app/home/DPR/Orchard/AddOrchardDpr";
+import AddNurseryDpr from "../screens/app/home/DPR/Nursery/AddNurseryDpr";
 
 const Stack = createNativeStackNavigator();
 const AppNavigation = () => {
@@ -87,6 +93,20 @@ const AppNavigation = () => {
       <Stack.Screen name="DealerIndentDetail" component={DealerIndentDetail} />
       <Stack.Screen name="CreateDealerIndent" component={CreateDealerIndent} />
       <Stack.Screen name="ViewDprDetail" component={ViewDprDetail} />
+      <Stack.Screen name="OrchardDPRList" component={OrchardDPRList} />
+
+      <Stack.Screen name="NurseryDPRList" component={NurseryDPRList} />
+      <Stack.Screen
+        name="NurseryProductionPlan"
+        component={NurseryProductionPlan}
+      />
+
+      <Stack.Screen
+        name="OrchardProcessAllocation"
+        component={OrchardProcessAllocation}
+      />
+      <Stack.Screen name="AddOrchardDpr" component={AddOrchardDpr} />
+      <Stack.Screen name="AddNurseryDpr" component={AddNurseryDpr} />
       <Stack.Screen name="AddNewDpr" component={AddNewDpr} />
     </Stack.Navigator>
   );
