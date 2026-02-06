@@ -36,166 +36,6 @@ import DateTimePicker, {
 import DropDown from "../../../../components/DropDown";
 
 export default function DprProcessAllocation({ route }) {
-  const activityListDummy = [
-    {
-      createdBy: "chakincharge@gmail.com",
-      createdOn: "2026-01-27T10:22:39.896+05:30",
-      updatedBy: "chakincharge@gmail.com",
-      updatedOn: "2026-01-27T10:22:39.896+05:30",
-      status: "ACTIVE",
-      id: 39,
-      planDate: "2026-01-27",
-      actualDate: "2026-01-27",
-      farmId: 14,
-      farmName: null,
-      farmBlockId: 8,
-      farmBlockName: null,
-      chakId: 12,
-      chakName: "chak ",
-      orchardId: null,
-      orchardName: null,
-      plotId: null,
-      plotName: null,
-      squareId: 15,
-      squareName: "LKU SQUARE",
-      epoId: null,
-      epoName: null,
-      planId: null,
-      farmPlanId: 25,
-      unitId: null,
-      unitType: null,
-      contractorType: null,
-      contractorId: null,
-      contractorName: null,
-      finYearId: 17,
-      finYear: "2025-2026",
-      seasonId: null,
-      season: null,
-      cropId: 31,
-      crop: "Wheat",
-      seedVariety: "W75",
-      seedVarietyId: 42,
-      fromSeedClass: "BS",
-      toSeedClass: "FS",
-      fromSeedStage: "",
-      toSeedStage: "I",
-      dprStatus: "PENDING",
-      currentDprStatus: "PENDING",
-      dprType: "CROP",
-      dprMechanicalSubmit: false,
-      lastStatusDate: "2026-01-27",
-      planType: null,
-      noOfLabour: 0,
-      workflows: [
-        {
-          createdBy: "chakincharge@gmail.com",
-          createdOn: "2026-01-27T10:22:39.953+05:30",
-          updatedBy: "SYSTEM",
-          updatedOn: "2026-01-27T10:22:39.953+05:30",
-          status: "ACTIVE",
-          id: 36,
-          fromStatus: null,
-          toStatus: "PENDING",
-          updatedDate: "2026-01-27",
-          remarks: "Report created and workflow initialized",
-          lastUpdatedByUnitType: "SYSTEM",
-        },
-      ],
-      activities: [
-        {
-          createdBy: "chakincharge@gmail.com",
-          createdOn: "2026-01-27T10:22:39.932+05:30",
-          updatedBy: "chakincharge@gmail.com",
-          updatedOn: "2026-01-27T10:22:39.932+05:30",
-          status: "ACTIVE",
-          id: 47,
-          activityId: 1,
-          activityName: "WATER COUSE DISELLTING",
-          area: null,
-          activityTime: null,
-          quantity: null,
-          dalChuri: null,
-          uncleanedSeed: null,
-          noOfLabour: 1,
-          noOfMachines: null,
-          activityStatus: "PENDING",
-          actualNoOfLabour: null,
-          contractorType: "ACTIVITY_WISE_CONTRACTOR",
-          contractorId: 48,
-          contractorName: "AMit",
-        },
-      ],
-      dprAgricultures: [
-        {
-          createdBy: "chakincharge@gmail.com",
-          createdOn: "2026-01-27T10:22:39.938+05:30",
-          updatedBy: "chakincharge@gmail.com",
-          updatedOn: "2026-01-27T10:22:39.938+05:30",
-          status: "ACTIVE",
-          id: 33,
-          itemCode: "item-2025-11-26-476",
-          materialType: "SEED",
-          itemId: null,
-          uom: null,
-          qty: 0,
-          issueDate: null,
-          remarks: null,
-          lotBatchNumber: null,
-          rate: 0,
-          cost: 0,
-          noOfItems: 0,
-          agrStatus: "SUBMITTED",
-          cashmemoId: null,
-          activityId: 1,
-          activityName: "WATER COUSE DISELLTING",
-          lotUsages: [],
-        },
-      ],
-      dprMechanicals: [
-        {
-          createdBy: "chakincharge@gmail.com",
-          createdOn: "2026-01-27T10:22:39.946+05:30",
-          updatedBy: "chakincharge@gmail.com",
-          updatedOn: "2026-01-27T10:22:39.946+05:30",
-          status: "ACTIVE",
-          id: 48,
-          equipmentName: "Property, Plant & Equipment",
-          equipmentId: 1,
-          operatorRequired: true,
-          operatorName: "",
-          operatorId: null,
-          fromWorkingHour: null,
-          toWorkingHour: null,
-          totalWorkingHour: null,
-          issueDate: null,
-          cpNumber: "",
-          remarks: null,
-          requiredQty: null,
-          approtvedQty: null,
-          estimatedHours: 1,
-          actualHours: null,
-          subUnitName: null,
-          subUnitId: null,
-          actualMechHour: null,
-          area: null,
-          mechIdleTime: null,
-          mechRunningTime: null,
-          cost: null,
-          activityId: 1,
-          activityName: "WATER COUSE DISELLTING",
-          engineerId: null,
-          engineerName: null,
-          inventoryRequestNo: null,
-          dprMechStatus: "PENDING",
-          subGroupId: 7,
-          subGroupName: "Electrical Installation and Equipment",
-          totalArea: null,
-          noOfItreation: null,
-        },
-      ],
-      dprLabour: [],
-    },
-  ];
   const navigation = useNavigation();
 
   // ------------------- STATES -------------------
@@ -297,15 +137,13 @@ export default function DprProcessAllocation({ route }) {
       console.log("parsed", parsed);
 
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
-        const newData = parsed?.data || activityListDummy;
+        const newData = parsed?.data || [];
 
         setActivityList(newData);
       } else {
-        setActivityList(activityListDummy);
         showErrorMessage(parsed?.message || "Data not available.");
       }
     } catch (err) {
-      setActivityList(activityListDummy);
       console.log("Fetch error", err);
     } finally {
       setLoading(false);
@@ -447,6 +285,7 @@ export default function DprProcessAllocation({ route }) {
 
     if (activeDateField === "FROM") {
       setFromDate(selectedDate);
+      setToDate(selectedDate);
     } else if (activeDateField === "TO") {
       setToDate(selectedDate);
     }

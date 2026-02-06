@@ -1,6 +1,7 @@
 export const API_ROUTES = {
   //BASE_URL: "http://192.168.100.102:7930/api/", //(Q.A)
-  BASE_URL: "http://192.168.100.58:7730/api/", //(UAT)
+  //BASE_URL: "http://192.168.100.58:7730/api/", //(UAT)
+  BASE_URL: "http://160.25.172.19:9052/api/",
   //BASE_URL: "http://192.168.100.102:7830/api/", //(development)
   //BASE_URL: "http://192.168.100.102:7630/api/", //UAT Public
   //BASE_URL: "http://192.168.100.102:7730/api/",

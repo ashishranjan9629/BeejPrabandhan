@@ -139,7 +139,11 @@ export default function MechanicalIssueDetails({ route }) {
       const act = Object.values(map).find(
         (x) => x.activityId === me.activityId,
       );
-      act?.mechanicals.push(me);
+      act?.mechanicals.push({
+        ...me,
+        isIdleLocked: me.mechIdleTime,
+        isRunningLocked: me.mechRunningTime,
+      });
     });
 
     setActivityGroups(Object.values(map));
@@ -522,58 +526,63 @@ export default function MechanicalIssueDetails({ route }) {
                     />
                   </View>
                 )}
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Idle Hours</Text>
-                  <TextInput
-                    editable={macItem?.mechIdleTime ? false : true}
-                    style={
-                      !macItem?.mechIdleTime
-                        ? styles.input
-                        : styles.disabledInput
-                    }
-                    placeholder="Idle Hours"
-                    keyboardType="numeric"
-                    value={String(macItem?.mechIdleTime || "")}
-                    onChangeText={(val) => {
-                      setActivityGroups((prev) =>
-                        prev.map((act) => ({
-                          ...act,
-                          mechanicals: act.mechanicals.map((m) =>
-                            m.id === macItem.id
-                              ? { ...m, mechIdleTime: val }
-                              : m,
-                          ),
-                        })),
-                      );
-                    }}
-                  />
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Working Hours</Text>
-                  <TextInput
-                    editable={macItem?.mechRunningTime ? false : true}
-                    style={
-                      !macItem?.mechRunningTime
-                        ? styles.input
-                        : styles.disabledInput
-                    }
-                    placeholder="Working Hours"
-                    keyboardType="numeric"
-                    value={String(macItem?.mechRunningTime || "")}
-                    onChangeText={(val) => {
-                      setActivityGroups((prev) =>
-                        prev.map((act) => ({
-                          ...act,
-                          mechanicals: act.mechanicals.map((m) =>
-                            m.id === macItem.id
-                              ? { ...m, mechRunningTime: val }
-                              : m,
-                          ),
-                        })),
-                      );
-                    }}
-                  />
-                </View>
+
+                {dprData?.dprStatus == "SUBMITTED" && (
+                  <>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Idle Hours</Text>
+                      <TextInput
+                        editable={!macItem.isIdleLocked}
+                        style={
+                          macItem.isIdleLocked
+                            ? styles.disabledInput
+                            : styles.input
+                        }
+                        placeholder="Idle Hours"
+                        keyboardType="numeric"
+                        value={String(macItem?.mechIdleTime || "")}
+                        onChangeText={(val) => {
+                          setActivityGroups((prev) =>
+                            prev.map((act) => ({
+                              ...act,
+                              mechanicals: act.mechanicals.map((m) =>
+                                m.id === macItem.id
+                                  ? { ...m, mechIdleTime: val }
+                                  : m,
+                              ),
+                            })),
+                          );
+                        }}
+                      />
+                    </View>
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>Working Hours</Text>
+                      <TextInput
+                        editable={!macItem.isRunningLocked}
+                        style={
+                          !macItem?.isRunningLocked
+                            ? styles.input
+                            : styles.disabledInput
+                        }
+                        placeholder="Working Hours"
+                        keyboardType="numeric"
+                        value={String(macItem?.mechRunningTime || "")}
+                        onChangeText={(val) => {
+                          setActivityGroups((prev) =>
+                            prev.map((act) => ({
+                              ...act,
+                              mechanicals: act.mechanicals.map((m) =>
+                                m.id === macItem.id
+                                  ? { ...m, mechRunningTime: val }
+                                  : m,
+                              ),
+                            })),
+                          );
+                        }}
+                      />
+                    </View>
+                  </>
+                )}
               </View>
 
               {/* STATUS */}
@@ -589,16 +598,43 @@ export default function MechanicalIssueDetails({ route }) {
               </View>
 
               {/* ACTIONS */}
-              {macItem?.dprMechStatus == "PENDING" ||
-                macItem?.mechRunningTime ||
-                (!macItem?.mechIdleTime && (
+
+              {macItem?.dprMechStatus == "PENDING" && (
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    onPress={() => approveMechanical(macItem)}
+                    style={styles.approveBtn}
+                  >
+                    <Icon name="check-circle" size={18} color="#fff" />
+                    <Text style={styles.actionText}>Approveewwww</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => rejectMechanical(macItem)}
+                    style={styles.rejectBtn}
+                  >
+                    <Icon name="cancel" size={18} color="#fff" />
+                    <Text style={styles.actionText}>Reject</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {!macItem.isIdleLocked &&
+                !macItem.isRunningLocked &&
+                dprData?.dprLabour?.length > 0 && (
                   <View style={styles.actionRow}>
                     <TouchableOpacity
-                      onPress={() => approveMechanical(macItem)}
+                      onPress={() => {
+                        if (!macItem.mechIdleTime || !macItem.mechRunningTime) {
+                          showErrorMessage("Please fill Idle & Working Hours");
+                          return;
+                        }
+                        approveMechanical(macItem);
+                      }}
                       style={styles.approveBtn}
                     >
                       <Icon name="check-circle" size={18} color="#fff" />
-                      <Text style={styles.actionText}>Approve</Text>
+                      <Text style={styles.actionText}>Approveee</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -609,7 +645,7 @@ export default function MechanicalIssueDetails({ route }) {
                       <Text style={styles.actionText}>Reject</Text>
                     </TouchableOpacity>
                   </View>
-                ))}
+                )}
             </View>
           ))}
       </View>

@@ -23,6 +23,60 @@ const DealerIndentDetail = ({ route }) => {
   const [loading, setLoading] = useState(false);
   const [indentDetail, setindentDetail] = useState("");
 
+  const dummy = {
+    createdBy: "rofiuuuuuun@gmail.com",
+    createdOn: "2026-02-02T17:17:01.131+05:30",
+    updatedBy: "rofiuuuuuun@gmail.com",
+    updatedOn: "2026-02-02T17:17:01.131+05:30",
+    status: "ACTIVE",
+    id: 65,
+    dealerIndentNo: "NSC-INDENT-02022026-02051",
+    dealerId: 37,
+    dealerName: "testuserss",
+    materialType: "SEED",
+    materialSubType: null,
+    deliveryDate: "2026-02-06",
+    advanceReceived: true,
+    receivedAmount: 333,
+    advancePaymentStatus: "CONFIRMED",
+    paymentMode: "CASH",
+    chequeNo: null,
+    paymentDate: "2026-01-30",
+    seasonName: "",
+    seasonId: 1,
+    modeOfCommunication: "EMAIL",
+    existingIndentNo: null,
+    aoId: 43,
+    roId: 40,
+    hoId: null,
+    indentDate: "2026-01-31",
+    indentStatus: "DRAFT",
+    dealerCode: "NSC-PARTY-13012026-01050",
+    firmType: null,
+    communicationValue: "hhh@gmail.com",
+    disposalRemark: null,
+    dealerIndentItems: [
+      {
+        createdBy: "rofiuuuuuun@gmail.com",
+        createdOn: "2026-02-02T17:17:01.134+05:30",
+        updatedBy: "rofiuuuuuun@gmail.com",
+        updatedOn: "2026-02-02T17:17:01.134+05:30",
+        status: "ACTIVE",
+        id: 103,
+        itemName: "Paddy | CBH1212 | BS (20 Kg)",
+        itemCode: "item-2025-11-26-914",
+        hsnShortName: "040001",
+        packingSize: 20,
+        qty: 333,
+        qtyAvailableForInvoice: 333,
+        uom: "Kg",
+        indentItemStatus: "DRAFT",
+      },
+    ],
+    unitName: "LUCKNOW AO",
+    unitType: "AO",
+  };
+
   useEffect(() => {
     fetchDealerIndentsDetail();
   }, []);
@@ -47,13 +101,15 @@ const DealerIndentDetail = ({ route }) => {
       const parsed = JSON.parse(decrypted);
 
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
-        const newData = parsed?.data;
+        const newData = parsed?.data || dummy;
 
         setindentDetail(newData);
       } else {
-        showErrorMessage(parsed?.message || "Invalid response");
+        //showErrorMessage(parsed?.message || "Invalid response");
+        setindentDetail(dummy);
       }
     } catch (err) {
+      setindentDetail(dummy);
       console.log("Fetch error", err);
     } finally {
       setLoading(false);

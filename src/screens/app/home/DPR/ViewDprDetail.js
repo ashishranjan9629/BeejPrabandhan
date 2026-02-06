@@ -29,6 +29,9 @@ import { showErrorMessage } from "../../../../utils/HelperFunction";
 import DropDown from "../../../../components/DropDown";
 import FontFamily from "../../../../utils/FontFamily";
 import CustomButton from "../../../../components/CustomButton";
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
 
 /* ================= MATERIAL TYPE ================= */
 
@@ -57,6 +60,8 @@ export default function ViewDprDetail({ route }) {
   const [materialList, setmaterialList] = useState([]);
   const [materialTableData, setMaterialTableData] = useState([]);
   const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [show, setShow] = useState(false);
 
   //console.log("userData", userData);
 
@@ -70,6 +75,13 @@ export default function ViewDprDetail({ route }) {
   }, [isFocused, dprId]);
 
   /* ================= API ================= */
+
+  const onChangeDate = (event, selectedDate) => {
+    setShow(false); // hide after selection
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
 
   const fetchDprDetail = async () => {
     try {
@@ -104,6 +116,54 @@ export default function ViewDprDetail({ route }) {
     }
   };
 
+  const fetchMaterialListByItemCode = async (itemCode) => {
+    try {
+      setLoading(true);
+
+      const payloadData = {
+        itemCode: itemCode,
+        itemSubType: "STANDARD",
+      };
+
+      const encryptedPayload = encryptWholeObject(payloadData);
+
+      const res = await apiRequest(
+        API_ROUTES.MATERIAL_LIST_DPR,
+        "POST",
+        encryptedPayload,
+      );
+
+      const parsed = JSON.parse(decryptAES(res));
+
+      console.log("parsed___", parsed);
+
+      if (parsed?.status === "SUCCESS" || parsed?.statusCode === "200") {
+        // 🔥 prefill selected materials
+
+        const prefilled = (parsed.data || []).map((m) => {
+          // const matchedLot = dprData?.dprAgricultures?.lotUsages?.find((lu) => {
+          //   console.log("dpr____", lu);
+          //   console.log("dpr____", m.id);
+          //   //lu.runningInventoryId === m.id,
+          // });
+
+          return {
+            ...m,
+            // selected: m.requestedQty > 0, // ya backend flag
+            selected: !!matchedLot,
+            issueQty: m.requestedQty?.toString() || "",
+          };
+        });
+
+        setMaterialTableData(prefilled);
+      }
+    } catch (e) {
+      console.log("Prefill material error", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /* ================= GROUP DATA ================= */
 
   const groupByActivity = (data) => {
@@ -129,10 +189,17 @@ export default function ViewDprDetail({ route }) {
             }));
 
       map[a.id] = {
-        id: a.id, // 🔥 UNIQUE
+        id: a.id,
         activityId: a.activityId,
         activityName: a.activityName,
-        basic: a,
+        basic: {
+          ...a,
+          actualNoOfLabour:
+            a.actualNoOfLabour ??
+            data.dprLabour?.filter((l) => l.activityId === a.activityId)
+              .length ??
+            0,
+        },
         agricultures: [],
         mechanicals: [],
         labours,
@@ -155,7 +222,8 @@ export default function ViewDprDetail({ route }) {
         activityId: ag.activityId,
         activityName: ag.activityName,
 
-        materialType: matchedMaterialType || null, // 🔥 OBJECT
+        //materialType: matchedMaterialType || null,
+        materialType: ag.materialType || null,
         materialList: [],
         material: null,
         itemCode: ag.itemCode,
@@ -212,6 +280,10 @@ export default function ViewDprDetail({ route }) {
             : act,
         ),
       );
+
+      if (matchedItem?.itemCode) {
+        fetchMaterialListByItemCode(matchedItem.itemCode);
+      }
     } catch (e) {
       console.log("Material preload error", e);
     }
@@ -363,28 +435,39 @@ export default function ViewDprDetail({ route }) {
     }
   };
 
-  const updateNoOfLabour = (activityId, newCount) => {
+  const updateActualNoOfLabour = (activityId, newCount) => {
+    if (
+      typeof newCount !== "number" ||
+      Number.isNaN(newCount) ||
+      newCount < 0
+    ) {
+      return;
+    }
+
     setActivityGroups((prev) =>
       prev.map((act) => {
         if (act.activityId !== activityId) return act;
 
-        const currentLabours = [...act.labours];
+        const currentLabours = Array.isArray(act.labours)
+          ? [...act.labours]
+          : [];
+
         const diff = newCount - currentLabours.length;
 
         let updatedLabours = [...currentLabours];
 
-        // ➕ Add labour rows
+        // ➕ add rows
         if (diff > 0) {
-          const newLabours = Array.from({ length: diff }).map((_, i) => ({
+          const newLabours = Array.from({ length: diff }, (_, i) => ({
             id: `lab-${activityId}-${Date.now()}-${i}`,
             activityId,
             labourName: "",
-            workingHours: "",
+            actualHours: "",
           }));
           updatedLabours = [...currentLabours, ...newLabours];
         }
 
-        // ➖ Remove labour rows
+        // ➖ remove rows
         if (diff < 0) {
           updatedLabours = currentLabours.slice(0, newCount);
         }
@@ -393,7 +476,7 @@ export default function ViewDprDetail({ route }) {
           ...act,
           basic: {
             ...act.basic,
-            noOfLabour: newCount,
+            actualNoOfLabour: newCount, // ✅ ONLY ACTUAL
           },
           labours: updatedLabours,
         };
@@ -455,19 +538,54 @@ export default function ViewDprDetail({ route }) {
             <View style={styles.inputContainer}>
               <Text style={styles.label}>No of Labour</Text>
               <TextInput
-                editable={dprData?.currentDprStatus == "APPROVED"}
-                style={
-                  dprData?.currentDprStatus == "APPROVED"
-                    ? styles.input
-                    : styles.disabledInput
-                }
+                maxLength={2}
+                editable={false}
+                style={styles.disabledInput}
                 keyboardType="numeric"
                 value={String(item.basic?.noOfLabour || "")}
-                onChangeText={(val) =>
-                  updateNoOfLabour(item.activityId, Number(val))
-                }
+                onChangeText={(val) => {
+                  // allow empty typing
+                  if (val === "") {
+                    updateNoOfLabour(item.activityId, 0);
+                    return;
+                  }
+
+                  const parsed = parseInt(val, 10);
+
+                  if (Number.isNaN(parsed)) return;
+
+                  updateNoOfLabour(item.activityId, parsed);
+                }}
               />
             </View>
+
+            {dprData?.currentDprStatus == "APPROVED" && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Actual No of Labour</Text>
+                <TextInput
+                  maxLength={2}
+                  keyboardType="number-pad"
+                  editable={dprData?.currentDprStatus === "APPROVED"}
+                  style={
+                    dprData?.currentDprStatus === "APPROVED"
+                      ? styles.input
+                      : styles.disabledInput
+                  }
+                  value={String(item.basic?.actualNoOfLabour || "")}
+                  onChangeText={(val) => {
+                    if (val === "") {
+                      updateActualNoOfLabour(item.activityId, 0);
+                      return;
+                    }
+
+                    const parsed = parseInt(val, 10);
+                    if (Number.isNaN(parsed)) return;
+
+                    updateActualNoOfLabour(item.activityId, parsed);
+                  }}
+                />
+              </View>
+            )}
 
             {/* AGRICULTURE */}
             {item.agricultures.length > 0 && (
@@ -512,7 +630,8 @@ export default function ViewDprDetail({ route }) {
                       }
                       label="Material Type"
                       data={materialTypeList}
-                      value={ag.materialType?.name || ""}
+                      // value={ag.materialType?.name || ""}
+                      value={ag.materialType || ""}
                       selectItem={(val) => {
                         getMaterialItem(item.activityId, ag.id, val);
                         setActivityGroups((prev) =>
@@ -559,7 +678,14 @@ export default function ViewDprDetail({ route }) {
                     />
                     <TouchableOpacity
                       style={styles.selectMaterialBtn}
+                      // onPress={() => {
+                      //   setShowMaterialModal(true);
+                      // }}
+
                       onPress={() => {
+                        if (ag.material?.itemCode) {
+                          fetchMaterialListByItemCode(ag.material.itemCode);
+                        }
                         setShowMaterialModal(true);
                       }}
                     >
@@ -738,7 +864,7 @@ export default function ViewDprDetail({ route }) {
             activityId: act.activityId,
             activityName: act.activityName,
             noOfLabour: act.basic?.noOfLabour || 0,
-            actualNoOfLabour: act.labours?.length || 0,
+            actualNoOfLabour: act.basic?.actualNoOfLabour || 0,
             contractorType: act.basic?.contractorType,
             contractorId: act.basic?.contractorId,
             contractorName: act.basic?.contractorName,
@@ -977,6 +1103,66 @@ export default function ViewDprDetail({ route }) {
     <WrapperContainer isLoading={loading}>
       <InnerHeader title="Crop DPR" />
 
+      {Platform.OS === "android" && show && (
+        <DateTimePicker
+          value={date}
+          mode="date" // "time" or "datetime"
+          display="default"
+          onChange={onChangeDate}
+          maximumDate={new Date(2030, 11, 31)}
+          minimumDate={new Date(2020, 0, 1)}
+        />
+      )}
+
+      {Platform.OS === "ios" && show && (
+        <Modal transparent={true} animationType="slide">
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "flex-end",
+              backgroundColor: "rgba(0,0,0,0.3)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                padding: 20,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}
+            >
+              <View style={{ alignItems: "flex-end" }}>
+                <TouchableOpacity onPress={() => setShow(false)}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: "blue",
+                      marginBottom: 10,
+                    }}
+                  >
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="spinner"
+                onChange={(event, selectedDate) => {
+                  if (selectedDate) {
+                    setDate(selectedDate);
+                  }
+                }}
+                style={{ width: "100%" }}
+                maximumDate={new Date(2030, 11, 31)}
+                minimumDate={new Date(2020, 0, 1)}
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {showMaterialModal && (
         <Modal visible={showMaterialModal} transparent animationType="fade">
           <View style={styles.modalOverlay}>
@@ -995,7 +1181,6 @@ export default function ViewDprDetail({ route }) {
                   <View key={index} style={styles.materialCard}>
                     {/* TOP ROW */}
                     <View style={styles.cardHeader}>
-                      {console.log("materialTableData", item)}
                       <Switch
                         value={item.selected}
                         onValueChange={(v) => {
@@ -1088,6 +1273,23 @@ export default function ViewDprDetail({ route }) {
               <Text>Square: {dprData.squareName}</Text>
               <Text>Status: {dprData.currentDprStatus}</Text>
               <Text>DPR Type: {dprData.dprType}</Text>
+              <TouchableOpacity
+                style={[styles.inputContainer, { marginTop: 10 }]}
+              >
+                <Text style={styles.label}>Plan Report Date</Text>
+                <View style={styles.input}>
+                  <Text>{dprData?.actualDate}</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShow(true)}
+                style={[styles.inputContainer]}
+              >
+                <Text style={styles.label}>Report Completion Date</Text>
+                <View style={styles.input}>
+                  <Text>{date.toLocaleDateString()}</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           )}
 

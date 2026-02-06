@@ -112,23 +112,27 @@ const BrowseProduct = ({ browseProductList, userData }) => {
               style={styles.item}
               onPress={() => {
                 if (item?.navigationScreenName) {
-                  console.log("userData", userData);
-                  const findMachenicalRole = userData?.roleName?.includes(
-                    "FARM_BLOCK_ENGG_INCHARGE",
-                  );
-                  const findEPOIncharge =
-                    userData?.roleName?.includes("EPO_INCHARGE");
+                  if (item?.name == "Daily Progress Reports") {
+                    const findMachenicalRole = userData?.roleName?.includes(
+                      "FARM_BLOCK_ENGG_INCHARGE",
+                    );
+                    const findEPOIncharge =
+                      userData?.roleName?.includes("EPO_INCHARGE");
 
-                  //console.log("findRole", findRole);
-                  if (findMachenicalRole) {
-                    //setBottomSheetVisible(true);
-                    navigation.navigate("MechanicalAllocationProcessList");
+                    //console.log("findRole", findRole);
+                    if (findMachenicalRole) {
+                      //setBottomSheetVisible(true);
+                      navigation.navigate("MechanicalAllocationProcessList");
+                      return;
+                    }
+                    if (findEPOIncharge) {
+                      setBottomSheetVisible(true);
+                      return;
+                    }
+                    navigation.navigate(item.navigationScreenName);
+                  } else {
+                    navigation.navigate(item.navigationScreenName);
                   }
-                  if (findEPOIncharge) {
-                    setBottomSheetVisible(true);
-                    return;
-                  }
-                  navigation.navigate(item.navigationScreenName);
                 } else {
                   console.warn(
                     "No navigationScreenName provided for this item",

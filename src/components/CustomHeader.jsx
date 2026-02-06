@@ -6,6 +6,7 @@ import Feather from "react-native-vector-icons/Feather";
 import FontFamily from "../utils/FontFamily";
 import { useNavigation } from "@react-navigation/native";
 import PropTypes from "prop-types";
+import ImagePath from "../utils/ImagePath";
 
 const CustomHeader = ({ data }) => {
   const navigation = useNavigation();
@@ -60,7 +61,7 @@ const CustomHeader = ({ data }) => {
             onPress={() => navigation.navigate("UserProfile")}
           >
             <Image
-              source={data?.userProfileImage}
+              source={data?.userProfileImage || ImagePath.userProfile}
               resizeMode="cover"
               style={styles.userProfileHolder}
             />

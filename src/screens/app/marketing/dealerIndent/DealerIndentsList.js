@@ -40,6 +40,221 @@ const DealerIndentsList = () => {
   const [selectedIndent, setSelectedIndent] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
 
+  const dummyList = [
+    {
+      createdBy: "rofiuuuuuun@gmail.com",
+      createdOn: "2026-02-02T17:17:01.131+05:30",
+      updatedBy: "rofiuuuuuun@gmail.com",
+      updatedOn: "2026-02-02T17:17:01.131+05:30",
+      status: "ACTIVE",
+      id: 65,
+      dealerIndentNo: "NSC-INDENT-02022026-02051",
+      dealerId: 37,
+      dealerName: "testuserss",
+      materialType: "SEED",
+      materialSubType: null,
+      deliveryDate: "2026-02-06",
+      advanceReceived: true,
+      receivedAmount: 333,
+      advancePaymentStatus: "CONFIRMED",
+      paymentMode: "CASH",
+      chequeNo: null,
+      paymentDate: "2026-01-30",
+      seasonName: "",
+      seasonId: 1,
+      modeOfCommunication: "EMAIL",
+      existingIndentNo: null,
+      aoId: 43,
+      roId: 40,
+      hoId: null,
+      indentDate: "2026-01-31",
+      indentStatus: "DRAFT",
+      dealerCode: "NSC-PARTY-13012026-01050",
+      firmType: null,
+      communicationValue: "hhh@gmail.com",
+      disposalRemark: null,
+      dealerIndentItems: [
+        {
+          createdBy: "rofiuuuuuun@gmail.com",
+          createdOn: "2026-02-02T17:17:01.134+05:30",
+          updatedBy: "rofiuuuuuun@gmail.com",
+          updatedOn: "2026-02-02T17:17:01.134+05:30",
+          status: "ACTIVE",
+          id: 103,
+          itemName: "Paddy | CBH1212 | BS (20 Kg)",
+          itemCode: "item-2025-11-26-914",
+          hsnShortName: "040001",
+          packingSize: 20,
+          qty: 333,
+          qtyAvailableForInvoice: 333,
+          uom: "Kg",
+          indentItemStatus: "DRAFT",
+        },
+      ],
+      unitName: "LUCKNOW AO",
+      unitType: "AO",
+    },
+    {
+      createdBy: "rofiuuuuuun@gmail.com",
+      createdOn: "2026-02-02T17:14:00.447+05:30",
+      updatedBy: "rofiuuuuuun@gmail.com",
+      updatedOn: "2026-02-02T17:14:00.447+05:30",
+      status: "ACTIVE",
+      id: 64,
+      dealerIndentNo: "NSC-INDENT-02022026-02049",
+      dealerId: 8,
+      dealerName: "Pro Agri pvt ltd",
+      materialType: "SEED",
+      materialSubType: null,
+      deliveryDate: "2026-02-02",
+      advanceReceived: true,
+      receivedAmount: 100,
+      advancePaymentStatus: "CONFIRMED",
+      paymentMode: "UPI",
+      chequeNo: "1234566",
+      paymentDate: "2026-02-02",
+      seasonName: "",
+      seasonId: 1,
+      modeOfCommunication: "EMAIL",
+      existingIndentNo: "NSC-INDENT-27112025-00049",
+      aoId: 43,
+      roId: 40,
+      hoId: null,
+      indentDate: "2026-02-02",
+      indentStatus: "PENDING",
+      dealerCode: "NSC-PARTY-27112025-00044",
+      firmType: null,
+      communicationValue: "email",
+      disposalRemark: null,
+      dealerIndentItems: [
+        {
+          createdBy: "rofiuuuuuun@gmail.com",
+          createdOn: "2026-02-02T17:14:00.452+05:30",
+          updatedBy: "rofiuuuuuun@gmail.com",
+          updatedOn: "2026-02-02T17:14:00.452+05:30",
+          status: "ACTIVE",
+          id: 102,
+          itemName: "Wheat | HD-2967 | NS (10 Kg)",
+          itemCode: "item-2025-11-26-476",
+          hsnShortName: "040001",
+          packingSize: 10,
+          qty: 2,
+          qtyAvailableForInvoice: 2,
+          uom: "Kg",
+          indentItemStatus: "DRAFT",
+        },
+      ],
+      unitName: "LUCKNOW AO",
+      unitType: "AO",
+    },
+    {
+      createdBy: "anonymousUser",
+      createdOn: "2026-02-02T17:10:16.797+05:30",
+      updatedBy: "anonymousUser",
+      updatedOn: "2026-02-02T17:10:16.797+05:30",
+      status: "ACTIVE",
+      id: 63,
+      dealerIndentNo: "NSC-INDENT-02022026-02048",
+      dealerId: 8,
+      dealerName: "Pro Agri pvt ltd",
+      materialType: "SEED",
+      materialSubType: null,
+      deliveryDate: "2026-02-02",
+      advanceReceived: true,
+      receivedAmount: 100,
+      advancePaymentStatus: "CONFIRMED",
+      paymentMode: "UPI",
+      chequeNo: "1234566",
+      paymentDate: "2026-02-02",
+      seasonName: "",
+      seasonId: 1,
+      modeOfCommunication: "EMAIL",
+      existingIndentNo: "NSC-INDENT-27112025-00049",
+      aoId: 43,
+      roId: 40,
+      hoId: null,
+      indentDate: "2026-02-02",
+      indentStatus: "DISPOSED",
+      dealerCode: "NSC-PARTY-27112025-00044",
+      firmType: null,
+      communicationValue: "email",
+      disposalRemark: null,
+      dealerIndentItems: [
+        {
+          createdBy: "anonymousUser",
+          createdOn: "2026-02-02T17:10:16.873+05:30",
+          updatedBy: "anonymousUser",
+          updatedOn: "2026-02-02T17:10:16.873+05:30",
+          status: "ACTIVE",
+          id: 101,
+          itemName: "Wheat | HD-2967 | NS (10 Kg)",
+          itemCode: "item-2025-11-26-476",
+          hsnShortName: "040001",
+          packingSize: 10,
+          qty: 2,
+          qtyAvailableForInvoice: 2,
+          uom: "Kg",
+          indentItemStatus: "DRAFT",
+        },
+      ],
+      unitName: "LUCKNOW AO",
+      unitType: "AO",
+    },
+    {
+      createdBy: "anonymousUser",
+      createdOn: "2026-02-02T17:09:29.854+05:30",
+      updatedBy: "anonymousUser",
+      updatedOn: "2026-02-02T17:09:29.854+05:30",
+      status: "ACTIVE",
+      id: 62,
+      dealerIndentNo: "NSC-INDENT-02022026-02047",
+      dealerId: 8,
+      dealerName: "Pro Agri pvt ltd",
+      materialType: "SEED",
+      materialSubType: null,
+      deliveryDate: "2026-02-02",
+      advanceReceived: true,
+      receivedAmount: 100,
+      advancePaymentStatus: "CONFIRMED",
+      paymentMode: "UPI",
+      chequeNo: "1234566",
+      paymentDate: "2026-02-02",
+      seasonName: "",
+      seasonId: 1,
+      modeOfCommunication: "EMAIL",
+      existingIndentNo: "NSC-INDENT-27112025-00049",
+      aoId: 43,
+      roId: 40,
+      hoId: null,
+      indentDate: "2026-02-02",
+      indentStatus: "PENDING",
+      dealerCode: "NSC-PARTY-27112025-00044",
+      firmType: null,
+      communicationValue: "email",
+      disposalRemark: null,
+      dealerIndentItems: [
+        {
+          createdBy: "anonymousUser",
+          createdOn: "2026-02-02T17:09:29.857+05:30",
+          updatedBy: "anonymousUser",
+          updatedOn: "2026-02-02T17:09:29.857+05:30",
+          status: "ACTIVE",
+          id: 100,
+          itemName: "Wheat | HD-2967 | NS (10 Kg)",
+          itemCode: "item-2025-11-26-476",
+          hsnShortName: "040001",
+          packingSize: 10,
+          qty: 2,
+          qtyAvailableForInvoice: 2,
+          uom: "Kg",
+          indentItemStatus: "DRAFT",
+        },
+      ],
+      unitName: "LUCKNOW AO",
+      unitType: "AO",
+    },
+  ];
+
   const [filter, setFilter] = useState({
     indentNo: "",
     party: null,
@@ -86,13 +301,15 @@ const DealerIndentsList = () => {
       const parsed = JSON.parse(decrypted);
 
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
-        const newData = parsed?.data;
+        const newData = parsed?.data || dummyList;
 
         setDealerIndentsList(newData);
       } else {
-        showErrorMessage(parsed?.message || "Invalid response");
+        setDealerIndentsList(dummyList);
+        //showErrorMessage(parsed?.message || "Invalid response");
       }
     } catch (err) {
+      setDealerIndentsList(dummyList);
       console.log("Fetch error", err);
     } finally {
       setLoading(false);
@@ -369,7 +586,7 @@ const DealerIndentsList = () => {
 
             {/* ACTIONS */}
             <View style={styles.filterActionRow}>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.resetBtn}
                 onPress={() => {
                   setFilter({
@@ -382,6 +599,15 @@ const DealerIndentsList = () => {
                 }}
               >
                 <Text style={{ color: Colors.greenColor }}>Reset</Text>
+              </TouchableOpacity> */}
+
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => {
+                  setShowFilter(false);
+                }}
+              >
+                <Text style={{ color: Colors.greenColor }}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity

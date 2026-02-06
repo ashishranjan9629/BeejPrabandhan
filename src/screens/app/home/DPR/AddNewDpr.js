@@ -773,7 +773,7 @@ export default function AddNewDpr({ route }) {
           {/* ADD ENTRY */}
           <TouchableOpacity style={styles.addEntryBtn} onPress={addEntry}>
             <Icon name="add" size={24} color="#fff" />
-            <Text style={styles.addEntryText}>Add New Entry</Text>
+            <Text style={styles.addEntryText}>Add Activity</Text>
           </TouchableOpacity>
 
           {Platform.OS === "android" && show && (
@@ -904,7 +904,7 @@ export default function AddNewDpr({ route }) {
                   }}
                   onPress={() => toggleEntry(entry.id)}
                 >
-                  <Text style={styles.entryTitle}>Entry #{ei + 1}</Text>
+                  <Text style={styles.entryTitle}>Activity #{ei + 1}</Text>
                 </TouchableOpacity>
 
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
