@@ -14,23 +14,26 @@ import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
-import DropDown from "../../../../components/DropDown";
-import Colors from "../../../../utils/Colors";
-import { moderateScale, textScale } from "../../../../utils/responsiveSize";
-import FontFamily from "../../../../utils/FontFamily";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
+import WrapperContainer from "../../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../../components/InnerHeader";
+import DropDown from "../../../../../components/DropDown";
+import Colors from "../../../../../utils/Colors";
+import { moderateScale, textScale } from "../../../../../utils/responsiveSize";
+import FontFamily from "../../../../../utils/FontFamily";
+import {
+  decryptAES,
+  encryptWholeObject,
+} from "../../../../../utils/decryptData";
+import { apiRequest } from "../../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../../services/APIRoutes";
 import {
   showErrorMessage,
   showSuccessMessage,
-} from "../../../../utils/HelperFunction";
+} from "../../../../../utils/HelperFunction";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { getUserData } from "../../../../utils/Storage";
+import { getUserData } from "../../../../../utils/Storage";
 
 export default function AddNewDpr({ route }) {
   const navigation = useNavigation();
@@ -973,18 +976,21 @@ export default function AddNewDpr({ route }) {
                       }
                     />
 
-                    <TextInput
-                      style={styles.input}
-                      placeholder="No of Labour"
-                      keyboardType="numeric"
-                      value={act.noOfLabour}
-                      onChangeText={(v) =>
-                        updateActivity(entry.id, act.id, (a) => ({
-                          ...a,
-                          noOfLabour: v,
-                        }))
-                      }
-                    />
+                    <View style={styles.inputContainer}>
+                      <Text style={styles.label}>No of Labour</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="No of Labour"
+                        keyboardType="numeric"
+                        value={act.noOfLabour}
+                        onChangeText={(v) =>
+                          updateActivity(entry.id, act.id, (a) => ({
+                            ...a,
+                            noOfLabour: v,
+                          }))
+                        }
+                      />
+                    </View>
 
                     {/* AGRICULTURE */}
                     <View style={styles.sectionHeader}>
@@ -993,6 +999,7 @@ export default function AddNewDpr({ route }) {
                       </Text>
                       <TouchableOpacity
                         onPress={() => addAgriculture(entry.id, act.id)}
+                        style={styles.addNewButton}
                       >
                         <Text style={styles.addText}>+ Add New</Text>
                       </TouchableOpacity>
@@ -1071,14 +1078,19 @@ export default function AddNewDpr({ route }) {
 
                     {/* EQUIPMENT */}
                     <View style={styles.sectionHeader}>
-                      <Text style={styles.sectionTitle}>
-                        Equipment & Mechanical Details
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => addEquipment(entry.id, act.id)}
-                      >
-                        <Text style={styles.addText}>+ Add New</Text>
-                      </TouchableOpacity>
+                      <View style={{ width: "70%" }}>
+                        <Text style={styles.sectionTitle}>
+                          Equipment & Mechanical Details
+                        </Text>
+                      </View>
+                      <View style={{ width: "25%" }}>
+                        <TouchableOpacity
+                          onPress={() => addEquipment(entry.id, act.id)}
+                          style={styles.addNewButton}
+                        >
+                          <Text style={styles.addText}>+ Add New</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
 
                     {act.equipments.map((eq, index) => (
@@ -1168,19 +1180,22 @@ export default function AddNewDpr({ route }) {
                             }}
                           />
 
-                          <TextInput
-                            style={styles.input}
-                            placeholder="Estimated Hours"
-                            value={eq.estHours}
-                            onChangeText={(v) =>
-                              updateActivity(entry.id, act.id, (a) => ({
-                                ...a,
-                                equipments: a.equipments.map((x) =>
-                                  x.id === eq.id ? { ...x, estHours: v } : x,
-                                ),
-                              }))
-                            }
-                          />
+                          <View style={styles.inputContainer}>
+                            <Text style={styles.label}>Estimated Hours</Text>
+                            <TextInput
+                              style={styles.input}
+                              placeholder="Estimated Hours"
+                              value={eq.estHours}
+                              onChangeText={(v) =>
+                                updateActivity(entry.id, act.id, (a) => ({
+                                  ...a,
+                                  equipments: a.equipments.map((x) =>
+                                    x.id === eq.id ? { ...x, estHours: v } : x,
+                                  ),
+                                }))
+                              }
+                            />
+                          </View>
 
                           <View style={styles.switchRow}>
                             <Text>Operator Required</Text>
@@ -1272,7 +1287,13 @@ const styles = StyleSheet.create({
     color: Colors.greenColor,
     paddingLeft: 5,
   },
-  addText: { color: Colors.green },
+  addNewButton: {
+    borderWidth: 1,
+    borderColor: Colors.greenColor,
+    padding: 5,
+    borderRadius: 5,
+  },
+  addText: { color: Colors.greenColor, fontWeight: "bold" },
 
   rowBox: {
     borderWidth: 1,
@@ -1284,7 +1305,8 @@ const styles = StyleSheet.create({
 
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: Colors.disableFieldColor,
+    //backgroundColor: Colors.disableFieldColor,
     borderRadius: 6,
     padding: 8,
     marginVertical: 6,
@@ -1354,8 +1376,10 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 12,
-    color: "#555",
+    fontSize: 14,
+    color: Colors.grey,
+    marginBottom: 2,
+    fontWeight: "700",
   },
 
   value: {
@@ -1391,5 +1415,15 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
     marginBottom: 10,
+  },
+  selectMaterialBtn: {
+    alignItems: "flex-end",
+  },
+  selectMaterialText: {
+    //borderWidth: 1,
+    padding: 5,
+    borderRadius: 5,
+    color: Colors.greenColor,
+    fontWeight: "bold",
   },
 });

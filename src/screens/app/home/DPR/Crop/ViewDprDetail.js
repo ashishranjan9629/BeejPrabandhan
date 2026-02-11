@@ -12,23 +12,26 @@ import {
   Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import Colors from "../../../../utils/Colors";
+import Colors from "../../../../../utils/Colors";
 import {
   moderateScale,
   moderateScaleVertical,
   textScale,
-} from "../../../../utils/responsiveSize";
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
+} from "../../../../../utils/responsiveSize";
+import WrapperContainer from "../../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../../components/InnerHeader";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
-import { showErrorMessage } from "../../../../utils/HelperFunction";
-import DropDown from "../../../../components/DropDown";
-import FontFamily from "../../../../utils/FontFamily";
-import CustomButton from "../../../../components/CustomButton";
+import {
+  decryptAES,
+  encryptWholeObject,
+} from "../../../../../utils/decryptData";
+import { apiRequest } from "../../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../../services/APIRoutes";
+import { showErrorMessage } from "../../../../../utils/HelperFunction";
+import DropDown from "../../../../../components/DropDown";
+import FontFamily from "../../../../../utils/FontFamily";
+import CustomButton from "../../../../../components/CustomButton";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
@@ -781,7 +784,18 @@ export default function ViewDprDetail({ route }) {
 
                     <View style={styles.switchRow}>
                       <Text>Operator Required</Text>
-                      <Switch value={eq.operatorRequired} disabled />
+                      <Switch
+                        trackColor={{ false: "#ccc", true: Colors.greenColor }} // 👈 background
+                        thumbColor={
+                          Platform.OS === "android"
+                            ? item.selected
+                              ? Colors.greenColor
+                              : "#f4f3f4"
+                            : undefined
+                        }
+                        value={eq.operatorRequired}
+                        disabled
+                      />
                     </View>
                   </View>
                 ))}
@@ -802,44 +816,50 @@ export default function ViewDprDetail({ route }) {
                       <Text style={styles.serial}>S.N. {i + 1}</Text>
                       <View style={styles.divider} />
 
-                      <TextInput
-                        editable={dprData?.currentDprStatus == "APPROVED"}
-                        style={
-                          dprData?.currentDprStatus == "APPROVED"
-                            ? styles.input
-                            : styles.disabledInput
-                        }
-                        placeholder="Labour Name"
-                        value={lab.labourName}
-                        onChangeText={(val) =>
-                          updateLabourField(
-                            item.activityId,
-                            lab.id,
-                            "labourName",
-                            val,
-                          )
-                        }
-                      />
+                      <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Labour Name</Text>
+                        <TextInput
+                          editable={dprData?.currentDprStatus == "APPROVED"}
+                          style={
+                            dprData?.currentDprStatus == "APPROVED"
+                              ? styles.input
+                              : styles.disabledInput
+                          }
+                          placeholder="Labour Name"
+                          value={lab.labourName}
+                          onChangeText={(val) =>
+                            updateLabourField(
+                              item.activityId,
+                              lab.id,
+                              "labourName",
+                              val,
+                            )
+                          }
+                        />
+                      </View>
 
-                      <TextInput
-                        editable={dprData?.currentDprStatus == "APPROVED"}
-                        style={
-                          dprData?.currentDprStatus == "APPROVED"
-                            ? styles.input
-                            : styles.disabledInput
-                        }
-                        placeholder="Working Hours"
-                        keyboardType="numeric"
-                        value={lab.actualHours.toString()}
-                        onChangeText={(val) =>
-                          updateLabourField(
-                            item.activityId,
-                            lab.id,
-                            "actualHours",
-                            val,
-                          )
-                        }
-                      />
+                      <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Working Hours</Text>
+                        <TextInput
+                          editable={dprData?.currentDprStatus == "APPROVED"}
+                          style={
+                            dprData?.currentDprStatus == "APPROVED"
+                              ? styles.input
+                              : styles.disabledInput
+                          }
+                          placeholder="Working Hours"
+                          keyboardType="numeric"
+                          value={lab.actualHours.toString()}
+                          onChangeText={(val) =>
+                            updateLabourField(
+                              item.activityId,
+                              lab.id,
+                              "actualHours",
+                              val,
+                            )
+                          }
+                        />
+                      </View>
                     </View>
                   ))}
                 </>
@@ -1282,6 +1302,7 @@ export default function ViewDprDetail({ route }) {
                 </View>
               </TouchableOpacity>
               <TouchableOpacity
+                disabled={dprData?.dprLabour?.length > 0}
                 onPress={() => setShow(true)}
                 style={[styles.inputContainer]}
               >

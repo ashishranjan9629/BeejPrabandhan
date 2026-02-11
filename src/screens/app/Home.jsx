@@ -90,7 +90,7 @@ const Home = () => {
 
     {
       id: 3,
-      name: "Marketing",
+      name: "Dealer Indent",
       icon: ImagePath.complaint,
       backgroundColor: Colors.bg3,
       navigationScreenName: "DealerIndentsList",

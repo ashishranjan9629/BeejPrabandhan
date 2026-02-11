@@ -11,24 +11,26 @@ import {
   Switch,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import Colors from "../../../../utils/Colors";
+import Colors from "../../../../../utils/Colors";
 import {
   moderateScale,
   moderateScaleVertical,
   textScale,
-} from "../../../../utils/responsiveSize";
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
+} from "../../../../../utils/responsiveSize";
+import WrapperContainer from "../../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../../components/InnerHeader";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
-import { showErrorMessage } from "../../../../utils/HelperFunction";
-import DropDown from "../../../../components/DropDown";
-import FontFamily from "../../../../utils/FontFamily";
-import CustomButton from "../../../../components/CustomButton";
-import { getUserData } from "../../../../utils/Storage";
+import {
+  decryptAES,
+  encryptWholeObject,
+} from "../../../../../utils/decryptData";
+import { apiRequest } from "../../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../../services/APIRoutes";
+import { showErrorMessage } from "../../../../../utils/HelperFunction";
+import DropDown from "../../../../../components/DropDown";
+import FontFamily from "../../../../../utils/FontFamily";
+import { getUserData } from "../../../../../utils/Storage";
 
 /* ================= MATERIAL TYPE ================= */
 

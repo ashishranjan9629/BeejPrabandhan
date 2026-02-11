@@ -181,6 +181,7 @@ const getLabel = (val) => {
     val.payeeName ||
     val.dealerIndentNo ||
     val.assetCategoryName ||
+    val.comName ||
     ""
   );
 };
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.disableFieldColor,
     borderRadius: 6,
     padding: 10,
   },

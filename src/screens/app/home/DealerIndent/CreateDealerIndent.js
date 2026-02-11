@@ -92,7 +92,7 @@ const CreateDealerIndent = ({ route }) => {
   const [seasonList, setseasonList] = useState([]);
   const [materialList, setmaterialList] = useState([]);
   const [partyList, setpartyList] = useState([]);
-  const [indentNumbers, setIndentNumbers] = useState("");
+  const [indentNumbers, setIndentNumbers] = useState([]);
 
   useEffect(() => {
     fetchSeasonList();
@@ -102,12 +102,14 @@ const CreateDealerIndent = ({ route }) => {
 
   useEffect(() => {
     if (isEdit && editIndent) {
+      const partyObj = {
+        id: editIndent.dealerId,
+        comName: editIndent.dealerName,
+        partyCode: editIndent.dealerCode,
+      };
+
       setForm({
-        party: {
-          id: editIndent.dealerId,
-          payeeName: editIndent.dealerName,
-          partyCode: editIndent.dealerCode,
-        },
+        party: partyObj,
         communication: {
           name: editIndent.modeOfCommunication,
         },
@@ -133,6 +135,9 @@ const CreateDealerIndent = ({ route }) => {
       });
 
       setAdvancedReceived(editIndent.advanceReceived);
+
+      // ⭐ IMPORTANT
+      getIndentNumber(partyObj);
 
       setItems(
         editIndent.dealerIndentItems.map((it) => ({
@@ -166,6 +171,8 @@ const CreateDealerIndent = ({ route }) => {
 
       const decrypted = decryptAES(response);
       const parsed = JSON.parse(decrypted);
+
+      console.log("decrypted", parsed);
 
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
         const newData = parsed?.data;
@@ -421,12 +428,14 @@ const CreateDealerIndent = ({ route }) => {
   };
 
   const getCommPlaceholder = () => {
-    switch (form.communication?.name) {
-      case "Phone":
+    const type = form.communication?.name?.toUpperCase();
+
+    switch (type) {
+      case "PHONE":
         return "Enter phone number";
-      case "Email":
+      case "EMAIL":
         return "Enter email address";
-      case "Direct":
+      case "DIRECT":
         return "Enter remarks";
       default:
         return "";
@@ -456,8 +465,9 @@ const CreateDealerIndent = ({ route }) => {
       materialType: form.materialType?.name || null,
 
       dealerId: form.party?.id,
-      dealerName: form.party?.payeeName || editIndent?.dealerName || "",
-      dealerCode: form.party?.partyCode || editIndent?.dealerCode || "",
+      dealerName: form.party?.comName || "",
+      dealerCode:
+        form.party?.partyRegNo || form.party?.dealerRegistrationNo || "",
 
       indentDate: toApiDate(form.indentDate),
       deliveryDate: toApiDate(form.expectedDate),
@@ -481,8 +491,6 @@ const CreateDealerIndent = ({ route }) => {
           ? form.txnOrChequeNo
           : null,
 
-      indentFile: indentFile,
-
       dealerIndentItems: items.map((it) => ({
         itemName: it.item?.itemName,
         qty: Number(it.qty),
@@ -495,10 +503,10 @@ const CreateDealerIndent = ({ route }) => {
 
       aoId: userData?.aoId,
       roId: userData?.roId,
-      unitName: "LUCKNOW AO",
-      unitType: "AO",
 
-      // ⭐ HERE
+      unitName: userData?.unitName || "Ahemdabad VSPL",
+      unitType: userData?.unitType || "AO",
+
       indentStatus: status,
     };
   };
@@ -508,6 +516,7 @@ const CreateDealerIndent = ({ route }) => {
       setLoading(true);
 
       const payload = await buildPayload("PENDING");
+      console.log("onSubmit", payload);
 
       const encryptedPayload = encryptWholeObject(payload);
 
@@ -518,6 +527,8 @@ const CreateDealerIndent = ({ route }) => {
       );
 
       const parsed = JSON.parse(decryptAES(response));
+
+      console.log("onSubmit", parsed);
 
       if (parsed?.status === "SUCCESS") {
         alert("Dealer Indent Created Successfully ✅");
@@ -569,21 +580,29 @@ const CreateDealerIndent = ({ route }) => {
     try {
       setLoading(true);
 
+      // 👇 FIRST await payload properly
+      const basePayload = await buildPayload("PENDING");
+
+      // 👇 Then add id for update
       const payload = {
-        ...buildPayload(),
-        id: editIndent.id, // 👈 VERY IMPORTANT
+        ...basePayload,
+        id: editIndent.id,
       };
+
+      console.log("UPDATE PAYLOAD 👉", payload);
 
       const encryptedPayload = encryptWholeObject(payload);
 
       const response = await apiRequest(
-        API_ROUTES.UPDATE_DEALER_INDENT, // 👈 new API
+        API_ROUTES.SAVE_DEALER_INDENT,
         "POST",
         encryptedPayload,
       );
 
       const decrypted = decryptAES(response);
       const parsed = JSON.parse(decrypted);
+
+      console.log("UPDATE RESPONSE 👉", parsed);
 
       if (parsed?.status === "SUCCESS") {
         alert("Dealer Indent Updated Successfully ✅");
@@ -679,7 +698,7 @@ const CreateDealerIndent = ({ route }) => {
           <DropDown
             label="Party Name"
             data={partyList}
-            value={form.party?.payeeName || ""}
+            value={form.party?.comName || ""}
             selectItem={(item) => {
               getIndentNumber(item);
               setForm((p) => ({ ...p, party: item }));
@@ -700,7 +719,8 @@ const CreateDealerIndent = ({ route }) => {
           />
           {form.communication && (
             <Input
-              label={getCommPlaceholder()}
+              label="Communication Details"
+              placeholder={getCommPlaceholder()}
               value={form.communicationValue}
               onChangeText={(v) =>
                 setForm((p) => ({ ...p, communicationValue: v }))
@@ -799,6 +819,7 @@ const CreateDealerIndent = ({ route }) => {
         {advancedReceived && (
           <Card title="Payment Details">
             <Input
+              placeholder="Money Received"
               label="Money Received"
               keyboardType="numeric"
               value={form.amount}
@@ -857,6 +878,7 @@ const CreateDealerIndent = ({ route }) => {
 
               <Input
                 label="Qty"
+                placeholder="Qty"
                 keyboardType="numeric"
                 value={it.qty}
                 onChangeText={(v) =>
@@ -885,7 +907,7 @@ const CreateDealerIndent = ({ route }) => {
           <Btn
             fill
             onPress={isEdit ? onUpdate : onSubmit}
-            text={isEdit ? "Update" : "Submit"}
+            text={isEdit ? "Submit" : "Submit"}
           />
         </View>
       </ScrollView>
@@ -963,9 +985,10 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 4,
+    fontSize: 14,
+    color: Colors.grey,
+    marginBottom: 2,
+    fontWeight: "700",
   },
 
   input: {

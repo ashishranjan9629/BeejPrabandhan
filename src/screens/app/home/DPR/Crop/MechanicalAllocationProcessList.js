@@ -6,28 +6,27 @@ import {
   FlatList,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import WrapperContainer from "../../../../utils/WrapperContainer";
-import InnerHeader from "../../../../components/InnerHeader";
+import WrapperContainer from "../../../../../utils/WrapperContainer";
+import InnerHeader from "../../../../../components/InnerHeader";
 import {
   moderateScale,
   moderateScaleVertical,
   textScale,
-} from "../../../../utils/responsiveSize";
-import FontFamily from "../../../../utils/FontFamily";
-import Colors from "../../../../utils/Colors";
-import CustomButton from "../../../../components/CustomButton";
+} from "../../../../../utils/responsiveSize";
+import FontFamily from "../../../../../utils/FontFamily";
+import Colors from "../../../../../utils/Colors";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import { apiRequest } from "../../../../services/APIRequest";
-import { API_ROUTES } from "../../../../services/APIRoutes";
-import { getUserData } from "../../../../utils/Storage";
-import { decryptAES, encryptWholeObject } from "../../../../utils/decryptData";
+import { apiRequest } from "../../../../../services/APIRequest";
+import { API_ROUTES } from "../../../../../services/APIRoutes";
+import { getUserData } from "../../../../../utils/Storage";
+import {
+  decryptAES,
+  encryptWholeObject,
+} from "../../../../../utils/decryptData";
 import {
   showErrorMessage,
   showSuccessMessage,
-} from "../../../../utils/HelperFunction";
-import en from "../../../../constants/en";
-import CustomBottomSheet from "../../../../components/CustomBottomSheet";
+} from "../../../../../utils/HelperFunction";
 
 export default function MechanicalAllocationProcessList({ route }) {
   const navigation = useNavigation();

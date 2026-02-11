@@ -8,7 +8,7 @@ import {
   TextInput,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 
 import WrapperContainer from "../../../../utils/WrapperContainer";
@@ -39,6 +39,8 @@ const DealerIndentsList = () => {
   const [cancelRemark, setCancelRemark] = useState("");
   const [selectedIndent, setSelectedIndent] = useState(null);
   const [showFilter, setShowFilter] = useState(false);
+
+  const isFocused = useIsFocused();
 
   const dummyList = [
     {
@@ -264,8 +266,10 @@ const DealerIndentsList = () => {
   });
 
   useEffect(() => {
-    fetchDealerIndentsList();
-  }, []);
+    if (isFocused) {
+      fetchDealerIndentsList();
+    }
+  }, [isFocused]);
 
   const fetchDealerIndentsList = async () => {
     setLoading(true);
@@ -301,15 +305,15 @@ const DealerIndentsList = () => {
       const parsed = JSON.parse(decrypted);
 
       if (parsed?.status === "SUCCESS" && parsed?.statusCode === "200") {
-        const newData = parsed?.data || dummyList;
+        const newData = parsed?.data;
 
         setDealerIndentsList(newData);
       } else {
-        setDealerIndentsList(dummyList);
-        //showErrorMessage(parsed?.message || "Invalid response");
+        //setDealerIndentsList(dummyList);
+        showErrorMessage(parsed?.message || "Invalid response");
       }
     } catch (err) {
-      setDealerIndentsList(dummyList);
+      //setDealerIndentsList(dummyList);
       console.log("Fetch error", err);
     } finally {
       setLoading(false);
@@ -454,18 +458,20 @@ const DealerIndentsList = () => {
             <Text style={styles.actionText}>View</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("CreateDealerIndent", {
-                indent: item,
-                isEdit: true,
-              });
-            }}
-            style={styles.actionBtn}
-          >
-            <Icon name="edit" size={22} color="#1976d2" />
-            <Text style={styles.actionText}>Edit</Text>
-          </TouchableOpacity>
+          {item.indentStatus === "DRAFT" && (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("CreateDealerIndent", {
+                  indent: item,
+                  isEdit: true,
+                });
+              }}
+              style={styles.actionBtn}
+            >
+              <Icon name="edit" size={22} color="#1976d2" />
+              <Text style={styles.actionText}>Edit</Text>
+            </TouchableOpacity>
+          )}
 
           {item.indentStatus === "PENDING" && (
             <TouchableOpacity
