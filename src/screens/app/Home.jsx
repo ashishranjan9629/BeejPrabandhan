@@ -19,6 +19,7 @@ import { clearUserData } from "../../redux/slice/UserSlice";
 import { showSuccessMessage } from "../../utils/HelperFunction";
 import { useDispatch } from "react-redux";
 import en from "../../constants/en";
+import { ROLES } from "../../constants/userRole";
 
 const Home = () => {
   const [searchText, setSearchText] = useState("");
@@ -31,6 +32,7 @@ const Home = () => {
   const productOpacityAnim = useRef(new Animated.Value(0)).current;
   const productTranslateAnim = useRef(new Animated.Value(20)).current;
   const dispatch = useDispatch();
+  const [browseProductList, setbrowseProductList] = useState([]);
 
   // const userData = {
   //   name: "Ashish Ranjan",
@@ -70,54 +72,54 @@ const Home = () => {
     },
   ];
 
-  const browseProductList = [
-    {
-      id: 1,
-      name: "Field Inspection Reports",
-      icon: ImagePath.complaint,
-      backgroundColor: Colors.bg1,
-      navigationScreenName: "FieldInspectionReport",
-    },
-    {
-      id: 2,
-      name: "Daily Progress Reports",
-      icon: ImagePath.registrationIcon,
-      backgroundColor: Colors.bg2,
-      //navigationScreenName: "DailyProgressReportList",
-      navigationScreenName: "SquarePlanList",
-      //navigationScreenName: "AddNewDpr",
-    },
+  // const browseProductList = [
+  //   {
+  //     id: 1,
+  //     name: "Field Inspection Reports",
+  //     icon: ImagePath.complaint,
+  //     backgroundColor: Colors.bg1,
+  //     navigationScreenName: "FieldInspectionReport",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Daily Progress Reports",
+  //     icon: ImagePath.registrationIcon,
+  //     backgroundColor: Colors.bg2,
+  //     //navigationScreenName: "DailyProgressReportList",
+  //     navigationScreenName: "SquarePlanList",
+  //     //navigationScreenName: "AddNewDpr",
+  //   },
 
-    {
-      id: 3,
-      name: "Dealer Indent",
-      icon: ImagePath.complaint,
-      backgroundColor: Colors.bg3,
-      navigationScreenName: "DealerIndentsList",
-    },
-    // {
-    //   id: 2,
-    //   name: "Old DPR",
-    //   icon: ImagePath.registrationIcon,
-    //   backgroundColor: Colors.bg2,
-    //   //navigationScreenName: "DailyProgressReportList",
-    //   navigationScreenName: "DailyProgressReportList",
-    // },
-    // {
-    //   id: 3,
-    //   name: "Crop",
-    //   icon: ImagePath.complaint,
-    //   backgroundColor: Colors.bg3,
-    //   // navigationScreenName: "Crop",
-    // },
-    // {
-    //   id: 4,
-    //   name: "Daily Progress Reports",
-    //   icon: ImagePath.registrationIcon,
-    //   backgroundColor: Colors.bg4,
-    //   // navigationScreenName: "FieldInspectionReport",
-    // },
-  ];
+  //   {
+  //     id: 3,
+  //     name: "Dealer Indent",
+  //     icon: ImagePath.complaint,
+  //     backgroundColor: Colors.bg3,
+  //     navigationScreenName: "DealerIndentsList",
+  //   },
+  //   // {
+  //   //   id: 2,
+  //   //   name: "Old DPR",
+  //   //   icon: ImagePath.registrationIcon,
+  //   //   backgroundColor: Colors.bg2,
+  //   //   //navigationScreenName: "DailyProgressReportList",
+  //   //   navigationScreenName: "DailyProgressReportList",
+  //   // },
+  //   // {
+  //   //   id: 3,
+  //   //   name: "Crop",
+  //   //   icon: ImagePath.complaint,
+  //   //   backgroundColor: Colors.bg3,
+  //   //   // navigationScreenName: "Crop",
+  //   // },
+  //   // {
+  //   //   id: 4,
+  //   //   name: "Daily Progress Reports",
+  //   //   icon: ImagePath.registrationIcon,
+  //   //   backgroundColor: Colors.bg4,
+  //   //   // navigationScreenName: "FieldInspectionReport",
+  //   // },
+  // ];
 
   useEffect(() => {
     // Sequence of animations when component mounts
@@ -185,7 +187,9 @@ const Home = () => {
 
   const fethchUserprofileData = async () => {
     const userData = await getUserData();
+    console.log("userData", userData);
     setUserData(userData);
+
     try {
       const payloadData = {
         id: userData?.employeeId,
@@ -210,6 +214,109 @@ const Home = () => {
     } catch (error) {
     } finally {
     }
+
+    //updateDashboardOptions(userData);
+
+    if (
+      // userData?.roleName?.includes("CHAK_PROD_INCHARGE") ||
+      // userData?.roleName?.includes("FARM_BLOCK_ENGG_INCHARGE") ||
+      // userData?.roleName?.includes("FARM_BLOCK_PROD_INCHARGE")
+      userData?.roleName?.includes(ROLES.CHAK) ||
+      userData?.roleName?.includes(ROLES.MECHANICAL_BLOCK_ENGG) ||
+      userData?.roleName?.includes(ROLES.BLOK)
+    ) {
+      setbrowseProductList([
+        {
+          id: 2,
+          name: "Daily Progress Reports",
+          icon: ImagePath.registrationIcon,
+          backgroundColor: Colors.bg2,
+          //navigationScreenName: "DailyProgressReportList",
+          navigationScreenName: "SquarePlanList",
+          //navigationScreenName: "AddNewDpr",
+        },
+      ]);
+      return;
+    }
+    if (
+      // userData?.roleName?.includes("AO_QC_INCHARGE")
+      userData?.roleName?.includes(ROLES.AO_QC_INCHARGE)
+    ) {
+      setbrowseProductList([
+        {
+          id: 1,
+          name: "Field Inspection Reports",
+          icon: ImagePath.complaint,
+          backgroundColor: Colors.bg1,
+          navigationScreenName: "FieldInspectionReport",
+        },
+      ]);
+      return;
+    }
+
+    if (
+      // userData?.roleName?.includes("AO_MKT_INCHARGE")
+      userData?.roleName?.includes(ROLES.AO_MKT_INCHARGE)
+    ) {
+      setbrowseProductList([
+        {
+          id: 3,
+          name: "Dealer Indent",
+          icon: ImagePath.complaint,
+          backgroundColor: Colors.bg3,
+          navigationScreenName: "DealerIndentsList",
+        },
+      ]);
+      return;
+    }
+  };
+
+  const updateDashboardOptions = (userData) => {
+    // ✅ Parse applicationRole
+    const applicationRoles = userData?.applicationRole
+      ? JSON.parse(userData.applicationRole)
+      : [];
+
+    // ✅ helper function
+    const hasRole = (role) =>
+      applicationRoles?.some((item) => item.applicationRoleName === role);
+
+    const menuList = [];
+
+    // ✅ Field Inspection Reports
+    if (hasRole("PRODUCTION_PLAN")) {
+      menuList.push({
+        id: 1,
+        name: "Field Inspection Reports",
+        icon: ImagePath.complaint,
+        backgroundColor: Colors.bg1,
+        navigationScreenName: "FieldInspectionReport",
+      });
+    }
+
+    // ✅ Daily Progress Reports
+    if (hasRole("DPR")) {
+      menuList.push({
+        id: 2,
+        name: "Daily Progress Reports",
+        icon: ImagePath.registrationIcon,
+        backgroundColor: Colors.bg2,
+        navigationScreenName: "SquarePlanList",
+      });
+    }
+
+    // ✅ Dealer Indent
+    if (hasRole("DEALER_INDENT")) {
+      menuList.push({
+        id: 3,
+        name: "Dealer Indent",
+        icon: ImagePath.complaint,
+        backgroundColor: Colors.bg3,
+        navigationScreenName: "DealerIndentsList",
+      });
+    }
+
+    setbrowseProductList(menuList);
   };
 
   return (
